@@ -1,0 +1,25 @@
+button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 4px;
+  flex-shrink: 1;
+
+  background: var(--bg);
+  border: 1px solid var(--border-light);
+  border-top: 1px solid var(--highlight);
+  border-radius: 6px;
+
+  cursor: pointer;
+
+  transition: 100ms;
+}
+
+button:active {
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-top: 1px solid var(--border-light);
+
+  cursor: active;
+}

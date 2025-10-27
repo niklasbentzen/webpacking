@@ -1,35 +1,55 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import "./App.css";
+import { Routes, Route, Link, Navigate } from "react-router-dom";
+import Home from "./pages/home";
+import Page from "./pages/trips";
+import Admin from "./pages/admin/admin";
+import AdminActivities from "./pages/admin/admin-activities";
+import Login from "./pages/admin/login";
+
+import { useSupabaseAuth } from "./utils/service";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { user } = useSupabaseAuth();
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div>
+      <nav>
+        <Link to="/" style={{ marginRight: "10px" }}>
+          Home
+        </Link>
+        <Link to="/trips" style={{ marginRight: "10px" }}>
+          Trips
+        </Link>
+        {user ? <Link to="/admin">Admin</Link> : <Link to="/login">Login</Link>}
+      </nav>
+
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/trips" element={<Page />} />
+
+        {/* Login always exists */}
+        <Route
+          path="/login"
+          element={user ? <Navigate to="/admin" replace /> : <Login />}
+        />
+
+        {/* Admin route is protected */}
+        <Route
+          path="/admin"
+          element={user ? <Admin /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/admin-activities/:id"
+          element={
+            user ? <AdminActivities /> : <Navigate to="/login" replace />
+          }
+        />
+
+        {/* Catch-all route (optional) */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
+  );
 }
 
-export default App
+export default App;

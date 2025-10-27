@@ -11,7 +11,7 @@ type Trip = {
 
 function Home() {
   const [trip, setTrip] = useState<Trip | null>(null);
-  const [activities, setActivities] = useState<any[]>([]);
+  const [segments, setSegments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch most recent public trip
@@ -38,24 +38,24 @@ function Home() {
     getTrips();
   }, []);
 
-  // Fetch activities for that trip
+  // Fetch segments for that trip
   useEffect(() => {
     if (!trip) return;
 
-    const getActivities = async () => {
+    const getSegments = async () => {
       const { data, error } = await supabase
-        .from("activities")
+        .from("segments")
         .select("*")
         .eq("trip_id", trip.id);
 
       if (error) {
-        console.error("Error fetching activities:", error);
+        console.error("Error fetching segments:", error);
       } else {
-        setActivities(data ?? []);
+        setSegments(data ?? []);
       }
     };
 
-    getActivities();
+    getSegments();
   }, [trip]);
 
   // UI Rendering
@@ -72,14 +72,14 @@ function Home() {
           <h1 className="title">{trip.title}</h1>
         </div>
 
-        {activities.length > 0 ? (
+        {segments.length > 0 ? (
           <ul>
-            {activities.map((act) => (
-              <li key={act.id}>{act.name}</li>
+            {segments.map((segments) => (
+              <li key={segments.id}>{segments.name}</li>
             ))}
           </ul>
         ) : (
-          <p>No activities found for this trip.</p>
+          <p>No segments found for this trip.</p>
         )}
       </div>
     </main>

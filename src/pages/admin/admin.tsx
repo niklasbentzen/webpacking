@@ -59,7 +59,7 @@ function Admin() {
           {trips.map((trip) => (
             <tr
               key={trip.id}
-              onClick={() => navigate(`/admin-activities/${trip.id}`)} // route with ID
+              onClick={() => navigate(`/admin-segments/${trip.id}`)} // route with ID
               className="cursor-pointer hover:bg-gray-100"
             >
               <td>{trip.title}</td>

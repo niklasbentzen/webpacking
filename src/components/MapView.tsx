@@ -27,26 +27,26 @@ function GPXLoader({ tripId }: { tripId: string }) {
 
   useEffect(() => {
     const loadGPX = async () => {
-      const { data: activities, error } = await supabase
-        .from("activities")
+      const { data: segments, error } = await supabase
+        .from("segments")
         .select("id, name, gpx_path")
         .eq("trip_id", tripId);
 
       if (error) {
-        console.error("Failed to load activities:", error);
+        console.error("Failed to load segments:", error);
         return;
       }
 
-      if (!activities || activities.length === 0) return;
+      if (!segments || segments.length === 0) return;
 
-      activities.forEach((activity) => {
-        const paths = Array.isArray(activity.gpx_path)
-          ? activity.gpx_path
-          : [activity.gpx_path].filter(Boolean);
+      segments.forEach((segment) => {
+        const paths = Array.isArray(segment.gpx_path)
+          ? segment.gpx_path
+          : [segment.gpx_path].filter(Boolean);
 
         paths.forEach((url: string) => {
           if (!url || typeof url !== "string") {
-            console.warn("Skipping invalid GPX path:", activity.gpx_path);
+            console.warn("Skipping invalid GPX path:", segment.gpx_path);
             return;
           }
 

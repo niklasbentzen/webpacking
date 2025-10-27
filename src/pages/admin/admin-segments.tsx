@@ -1,39 +1,44 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
-import { getActivitiesFromTripId } from "../../utils/service";
+import { getSegmentsFromTripId } from "../../utils/service";
 import IconButton from "../../components/ui/IconButton/IconButton";
-import { Plus } from "lucide-react";
+import { Plus, ChevronLeft } from "lucide-react";
 
-function AdminActivity() {
+function AdminSegments() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [activities, setActivities] = useState<any[]>([]);
+  const [segments, setSegments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
 
-    const fetchActivities = async () => {
+    const fetchSegments = async () => {
       try {
-        const data = await getActivitiesFromTripId(id);
-        setActivities(data || []);
+        const data = await getSegmentsFromTripId(id);
+        setSegments(data || []);
       } catch (err: any) {
         console.error(err);
-        setError(err.message || "Failed to fetch activities");
+        setError(err.message || "Failed to fetch segments");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchActivities();
+    fetchSegments();
   }, [id]);
 
   return (
     <div className="flex-col">
       <header className="table-title flex-row space-between align-center">
-        <h3>Trips</h3>
+        <div className="flex-row gap-10">
+          <IconButton
+            icon={<ChevronLeft size={16} onClick={() => navigate(`/admin`)} />}
+          />
+          <h3>Segments</h3>
+        </div>
         <IconButton icon={<Plus size={16} />} />
       </header>
       <table>
@@ -44,14 +49,14 @@ function AdminActivity() {
           </tr>
         </thead>
         <tbody>
-          {activities.map((activity) => (
+          {segments.map((segment) => (
             <tr
-              key={activity.id}
-              onClick={() => navigate(`/admin-activity/${activity.id}`)} // route with ID
+              key={segment.id}
+              onClick={() => navigate(`/admin-segment/${segment.id}`)} // route with ID
               className="cursor-pointer hover:bg-gray-100"
             >
-              <td>{activity.name}</td>
-              <td>{activity.public ? "Yes" : "No"}</td>
+              <td>{segment.name}</td>
+              <td>{segment.public ? "Yes" : "No"}</td>
             </tr>
           ))}
         </tbody>
@@ -60,4 +65,4 @@ function AdminActivity() {
   );
 }
 
-export default AdminActivity;
+export default AdminSegments;

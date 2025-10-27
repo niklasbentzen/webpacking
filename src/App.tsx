@@ -3,7 +3,7 @@ import { Routes, Route, Link, Navigate } from "react-router-dom";
 import Home from "./pages/home";
 import Page from "./pages/trips";
 import Admin from "./pages/admin/admin";
-import AdminActivities from "./pages/admin/admin-activities";
+import AdminSegments from "./pages/admin/admin-segments";
 import Login from "./pages/admin/login";
 
 import { useSupabaseAuth } from "./utils/service";
@@ -39,10 +39,8 @@ function App() {
           element={user ? <Admin /> : <Navigate to="/login" replace />}
         />
         <Route
-          path="/admin-activities/:id"
-          element={
-            user ? <AdminActivities /> : <Navigate to="/login" replace />
-          }
+          path="/admin-segments/:id"
+          element={user ? <AdminSegments /> : <Navigate to="/login" replace />}
         />
 
         {/* Catch-all route (optional) */}

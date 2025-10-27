@@ -2,9 +2,9 @@ import supabase from "./supabase";
 import { useEffect, useState } from "react";
 
 /**
- * Fetches all trips with their associated activities
+ * Fetches all trips with their associated segments
  */
-export async function getAllTripsWithActivities() {
+export async function getAllTripsWithSegments() {
   const { data, error } = await supabase
     .from("trips")
     .select(
@@ -13,7 +13,7 @@ export async function getAllTripsWithActivities() {
       title,
       public,
       created_at,
-      activities (*)
+      segments (*)
     `
     )
     .order("created_at", { ascending: false });
@@ -23,9 +23,9 @@ export async function getAllTripsWithActivities() {
 }
 
 /**
- * Fetches the most recent public trip and its activities
+ * Fetches the most recent public trip and its segments
  */
-export async function getLatestPublicTripWithActivities() {
+export async function getLatestPublicTripWithSegments() {
   const { data, error } = await supabase
     .from("trips")
     .select(
@@ -34,7 +34,7 @@ export async function getLatestPublicTripWithActivities() {
       title,
       public,
       created_at,
-      activities (*)
+      segments (*)
     `
     )
     .eq("public", true)
@@ -47,11 +47,11 @@ export async function getLatestPublicTripWithActivities() {
 }
 
 /**
- * Fetches activities from a specific Trip ID
+ * Fetches segments from a specific Trip ID
  */
-export async function getActivitiesFromTripId(tripId: string) {
+export async function getSegmentsFromTripId(tripId: string) {
   const { data, error } = await supabase
-    .from("activities")
+    .from("segments")
     .select("*")
     .eq("trip_id", tripId);
 
@@ -83,16 +83,16 @@ export async function createTrip(title: string, isPublic = false) {
 }
 
 /**
- * Creates a new activity
+ * Creates a new segment
  */
-export async function createActivity(
-  activityName: string,
+export async function createSegment(
+  segmentName: string,
   trip_id: string,
   gpxPath: string
 ) {
   const { data, error } = await supabase
-    .from("activities")
-    .insert([{ name: activityName, trip_id: trip_id, gpx_path: [gpxPath] }])
+    .from("segments")
+    .insert([{ name: segmentName, trip_id: trip_id, gpx_path: [gpxPath] }])
     .select()
     .single();
 

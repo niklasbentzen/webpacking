@@ -9,7 +9,6 @@ export default function App() {
       <header style={{ display: "flex", gap: 12, marginBottom: 24 }}>
         <Link to="/">Trips</Link>
       </header>
-
       <Routes>
         <Route path="/" element={<Trips />} />
         <Route path="/trips/:slug" element={<Trip />} />

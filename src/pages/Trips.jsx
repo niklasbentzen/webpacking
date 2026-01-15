@@ -14,6 +14,7 @@ export default function Trips() {
           sort: "-startDate",
         });
         setTrips(res);
+        console.log(res);
       } catch (e) {
         setError(e?.message || "Failed to load trips");
       }
@@ -28,7 +29,7 @@ export default function Trips() {
       <ul>
         {trips.map((t) => (
           <li key={t.id}>
-            <Link to={`/trips/${t.slug}`}>{t.title}</Link>
+            <Link to={`/trips/${t.slug}`}>{t.name}</Link>
           </li>
         ))}
       </ul>

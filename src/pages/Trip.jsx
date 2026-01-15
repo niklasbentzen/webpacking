@@ -13,11 +13,10 @@ export default function Trip() {
       try {
         const tripRes = await pb
           .collection("trips")
-          .getFirstListItem(`slug="${slug}"`);
+          .getFirstListItem(`slug='${slug}'`);
 
         const segRes = await pb.collection("segments").getFullList({
-          filter: `published = true && trip="${tripRes.id}"`,
-          sort: "order",
+          filter: `published = true && trip = '${tripRes.id}'`,
         });
 
         setTrip(tripRes);
@@ -33,14 +32,14 @@ export default function Trip() {
 
   return (
     <>
-      <h1>{trip.title}</h1>
+      <h1>{trip.name}</h1>
       {trip.description && <p>{trip.description}</p>}
 
       <h2>Segments</h2>
       <ul>
         {segments.map((s) => (
           <li key={s.id}>
-            <Link to={`/segments/${s.slug}`}>{s.title}</Link>
+            <Link to={`/segments/${s.slug}`}>{s.name}</Link>
           </li>
         ))}
       </ul>

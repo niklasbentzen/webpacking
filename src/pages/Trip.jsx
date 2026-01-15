@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { pb } from "../lib/pb";
 
+import TripMap from "../components/TripMap";
+
 export default function Trip() {
   const { slug } = useParams();
   const [trip, setTrip] = useState(null);
@@ -17,6 +19,7 @@ export default function Trip() {
 
         const segRes = await pb.collection("segments").getFullList({
           filter: `published = true && trip = '${tripRes.id}'`,
+          sort: "startDate",
         });
 
         setTrip(tripRes);
@@ -33,6 +36,7 @@ export default function Trip() {
   return (
     <>
       <h1>{trip.name}</h1>
+      {gpxUrls.length > 0 && <TripMap gpxUrls={gpxUrls} />}
       {trip.description && <p>{trip.description}</p>}
 
       <h2>Segments</h2>

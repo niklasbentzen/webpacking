@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import { pb } from "../lib/pb";
+import TripMap from "../components/TripMap";
 
 export default function Segment() {
   const { slug } = useParams();
@@ -13,7 +14,7 @@ export default function Segment() {
       try {
         const seg = await pb
           .collection("segments")
-          .getFirstListItem(`slug="${slug}"`);
+          .getFirstListItem(`slug='${slug}'`);
         setSegment(seg);
       } catch (e) {
         setError(e?.message || "Failed to load segment");
@@ -21,9 +22,9 @@ export default function Segment() {
     })();
   }, [slug]);
 
-  const gpxUrls = useMemo(() => {
+  const gpxURLs = useMemo(() => {
     if (!segment?.gpxFiles?.length) return [];
-    return segment.gpxFiles.map((file) => pb.files.getUrl(segment, file));
+    return segment.gpxFiles.map((file) => pb.files.getURL(segment, file));
   }, [segment]);
 
   if (error) return <p>{error}</p>;
@@ -31,7 +32,8 @@ export default function Segment() {
 
   return (
     <article>
-      <h1>{segment.title}</h1>
+      <TripMap gpxURLs={gpxURLs} />
+      <h1>{segment.name}</h1>
 
       {(segment.distanceKm || segment.elevationM) && (
         <p>
@@ -41,11 +43,11 @@ export default function Segment() {
         </p>
       )}
 
-      {gpxUrls.length > 0 && (
+      {gpxURLs.length > 0 && (
         <>
           <h3>GPX</h3>
           <ul>
-            {gpxUrls.map((u) => (
+            {gpxURLs.map((u) => (
               <li key={u}>
                 <a href={u} target="_blank" rel="noreferrer">
                   Download track

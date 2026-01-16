@@ -59,11 +59,11 @@ function GPXLayer({ urls }) {
   return null;
 }
 
-export default function TripMap({ gpxUrls }) {
-  const urls = useMemo(() => gpxUrls?.filter(Boolean) ?? [], [gpxUrls]);
+export default function TripMap({ gpxURLs }) {
+  const urls = useMemo(() => gpxURLs?.filter(Boolean) ?? [], [gpxURLs]);
 
   return (
-    <div style={{ height: 420, borderRadius: 12, overflow: "hidden" }}>
+    <div style={{ height: 420, borderRadius: 4, overflow: "hidden" }}>
       <MapContainer
         center={[0, 0]}
         zoom={2}

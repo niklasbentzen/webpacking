@@ -1,0 +1,9 @@
+.leaflet-container {
+  background: transparent !important;
+}
+
+.leaflet-pane,
+.leaflet-map-pane,
+.leaflet-tile-pane {
+  background: transparent !important;
+}

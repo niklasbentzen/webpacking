@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { pb } from "../lib/pb";
 
 import TripMap from "../components/TripMap";
+import SegmentList from "../components/SegmentList/SegmentList";
 
 export default function Trip() {
   const { slug } = useParams();
@@ -30,23 +31,26 @@ export default function Trip() {
     })();
   }, [slug]);
 
+  const gpxURLs = [];
+  for (const seg of segments) {
+    const files = seg.gpxFiles || [];
+    for (const file of files) {
+      gpxURLs.push(pb.files.getURL(seg, file));
+    }
+  }
+
   if (error) return <p>{error}</p>;
   if (!trip) return <p>Loading…</p>;
 
   return (
     <>
+      {gpxURLs.length > 0 && <TripMap gpxURLs={gpxURLs} />}
       <h1>{trip.name}</h1>
-      {gpxUrls.length > 0 && <TripMap gpxUrls={gpxUrls} />}
+
       {trip.description && <p>{trip.description}</p>}
 
       <h2>Segments</h2>
-      <ul>
-        {segments.map((s) => (
-          <li key={s.id}>
-            <Link to={`/segments/${s.slug}`}>{s.name}</Link>
-          </li>
-        ))}
-      </ul>
+      <SegmentList segments={segments} />
     </>
   );
 }

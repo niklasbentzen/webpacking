@@ -1,8 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { MapContainer, useMap } from "react-leaflet";
 import L, { markers } from "leaflet";
 import "leaflet-gpx";
-import "./SparkLine.module.css";
+import { pb } from "../../lib/pb";
 
 function GPXLines({ urls }) {
   const map = useMap();
@@ -38,9 +38,7 @@ function GPXLines({ urls }) {
 
         if (loadedRef.current === urls.length) {
           const bounds = group.getBounds();
-          if (bounds.isValid()) {
-            map.fitBounds(bounds, { padding: [2, 2] });
-          }
+          if (bounds.isValid()) map.fitBounds(bounds, { padding: [2, 2] });
         }
       });
 
@@ -58,11 +56,19 @@ function GPXLines({ urls }) {
   return null;
 }
 
-export default function parkline({ gpxURLs }) {
-  if (!gpxURLs?.length) return null;
+export default function Sparkline({ activities, width = 80, height = 40 }) {
+  const gpxURLs = useMemo(() => {
+    const urls = [];
+    for (const a of activities || []) {
+      if (a.gpxFile) urls.push(pb.files.getURL(a, a.gpxFile));
+    }
+    return urls;
+  }, [activities]);
+
+  if (!gpxURLs.length) return null;
 
   return (
-    <div style={{ width: 80, height: 40, background: "transparent" }}>
+    <div style={{ width, height, background: "transparent" }}>
       <MapContainer
         center={[0, 0]}
         zoom={1}

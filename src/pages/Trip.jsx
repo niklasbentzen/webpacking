@@ -1,56 +1,60 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { pb } from "../lib/pb";
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 
-import TripMap from "../components/TripMap";
-import SegmentList from "../components/SegmentList/SegmentList";
+import StageMap from "../components/StageMap";
+import StageList from "../components/StageList/StageList";
+
+import {
+  fetchTripBySlug,
+  fetchStagesForTripWithActivities,
+  summarizeTripFromStages,
+} from "../lib/trips";
 
 export default function Trip() {
   const { slug } = useParams();
   const [trip, setTrip] = useState(null);
-  const [segments, setSegments] = useState([]);
+  const [stages, setStages] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
     (async () => {
       try {
-        const tripRes = await pb
-          .collection("trips")
-          .getFirstListItem(`slug='${slug}'`);
-
-        const segRes = await pb.collection("segments").getFullList({
-          filter: `published = true && trip = '${tripRes.id}'`,
-          sort: "startDate",
-        });
+        const tripRes = await fetchTripBySlug(slug);
+        const stageRes = await fetchStagesForTripWithActivities(tripRes.id);
 
         setTrip(tripRes);
-        setSegments(segRes);
+        setStages(stageRes);
       } catch (e) {
+        console.error(e, e?.data);
         setError(e?.message || "Failed to load trip");
       }
     })();
   }, [slug]);
 
-  const gpxURLs = [];
-  for (const seg of segments) {
-    const files = seg.gpxFiles || [];
-    for (const file of files) {
-      gpxURLs.push(pb.files.getURL(seg, file));
-    }
-  }
+  const totals = useMemo(() => summarizeTripFromStages(stages), [stages]);
 
   if (error) return <p>{error}</p>;
   if (!trip) return <p>Loading…</p>;
 
   return (
     <>
-      {gpxURLs.length > 0 && <TripMap gpxURLs={gpxURLs} />}
-      <h1>{trip.name}</h1>
+      {stages.length > 0 && <StageMap stages={stages} />}
 
+      <h1>{trip.name}</h1>
       {trip.description && <p>{trip.description}</p>}
 
-      <h2>Segments</h2>
-      <SegmentList segments={segments} />
+      <p style={{ opacity: 0.85 }}>
+        {totals.stageCount} stages • {totals.activityCount} activities
+        {totals.distanceKm != null
+          ? ` • ${totals.distanceKm.toFixed(1)} km`
+          : ""}
+        {totals.elevationM != null
+          ? ` • ${Math.round(totals.elevationM)} m`
+          : ""}
+      </p>
+
+      <h2>Stages</h2>
+      <StageList stages={stages} />
     </>
   );
 }

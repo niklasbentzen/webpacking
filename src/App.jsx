@@ -1,7 +1,7 @@
 import { Routes, Route, Link } from "react-router-dom";
 import Trips from "./pages/Trips.jsx";
 import Trip from "./pages/Trip.jsx";
-import Segment from "./pages/Segment.jsx";
+import Stage from "./pages/Stage.jsx";
 
 export default function App() {
   return (
@@ -12,7 +12,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Trips />} />
         <Route path="/trips/:slug" element={<Trip />} />
-        <Route path="/segments/:slug" element={<Segment />} />
+        <Route path="/stages/:slug" element={<Stage />} />
       </Routes>
     </div>
   );

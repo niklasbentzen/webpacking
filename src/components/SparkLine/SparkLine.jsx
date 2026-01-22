@@ -38,7 +38,7 @@ function GPXLines({ urls }) {
 
         if (loadedRef.current === urls.length) {
           const bounds = group.getBounds();
-          if (bounds.isValid()) map.fitBounds(bounds, { padding: [2, 2] });
+          if (bounds.isValid()) map.fitBounds(bounds, { padding: [0, 0] });
         }
       });
 
@@ -56,7 +56,7 @@ function GPXLines({ urls }) {
   return null;
 }
 
-export default function Sparkline({ activities, width = 80, height = 40 }) {
+export default function Sparkline({ activities, width = 60, height = 60 }) {
   const gpxURLs = useMemo(() => {
     const urls = [];
     for (const a of activities || []) {

@@ -31,45 +31,44 @@ export default function StageList({ stages }) {
         return (
           <li key={stage.id}>
             <Link className={s.stageItem} to={`/stages/${stage.slug}`}>
-              {/* pass activities so Sparkline doesn't fetch */}
               <Sparkline activities={stageActs} />
 
               <div className={s.col}>
-                {dateLabel && <span className={s.stageDate}>{dateLabel}</span>}
+                {dateLabel && <label>{dateLabel}</label>}
 
                 <h3 className={s.stageTitle}>{stage.name}</h3>
 
                 <div className={s.stageData}>
-                  <div className={s.stageDataItem}>
+                  <div>
                     {summary.bikeCount > 0 && (
-                      <span title={`${summary.bikeCount} bike ride(s)`}>
+                      <div className="flex-row center">
                         <PersonSimpleBikeIcon size="18" /> {summary.bikeCount}
-                      </span>
+                      </div>
                     )}
                     {summary.hikeCount > 0 && (
-                      <span title={`${summary.hikeCount} hike(s)`}>
+                      <div className="flex-row center">
                         <PersonSimpleHikeIcon size="18" /> {summary.hikeCount}
-                      </span>
+                      </div>
                     )}
                   </div>
 
                   {summary.distanceKm != null && (
                     <div className={s.stageDataItem}>
-                      <ArrowsHorizontalIcon size="18" />
+                      <ArrowsHorizontalIcon size="14" />
                       {summary.distanceKm.toFixed(1)} km
                     </div>
                   )}
 
                   {summary.elevationM != null && (
                     <div className={s.stageDataItem}>
-                      <ArrowUpRightIcon size="18" />
+                      <ArrowUpRightIcon size="14" />
                       {Math.round(summary.elevationM)} m
                     </div>
                   )}
 
                   {summary.duration && (
                     <div className={s.stageDataItem}>
-                      <ClockIcon size="18" />
+                      <ClockIcon size="14" />
                       {summary.duration}
                     </div>
                   )}

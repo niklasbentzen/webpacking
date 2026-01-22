@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import { pb } from "../lib/pb";
-import StageMap from "../components/StageMap";
+import TripMap from "../components/TripMap/TripMap";
 
 import {
   formatDateRange,
@@ -13,6 +13,7 @@ import {
 export default function Stage() {
   const { slug } = useParams();
   const [stage, setStage] = useState(null);
+  const [trip, setTrip] = useState(null);
   const [activities, setActivities] = useState([]);
   const [error, setError] = useState("");
 
@@ -21,14 +22,16 @@ export default function Stage() {
       try {
         const stageRes = await pb
           .collection("stages")
-          .getFirstListItem(`slug='${slug}'`);
+          .getFirstListItem(`slug='${slug}'`, { expand: "trip" });
 
         const activitiesRes = await pb.collection("activities").getFullList({
           filter: `stage = '${stageRes.id}'`,
           sort: "startTime",
+          expand: "trip_via_stage",
         });
 
         setStage(stageRes);
+        setTrip(stageRes.expand?.trip || null);
         setActivities(activitiesRes);
       } catch (e) {
         console.error(e, e?.data);
@@ -50,9 +53,9 @@ export default function Stage() {
   if (!stage) return <p>Loading…</p>;
 
   return (
-    <article>
+    <section>
       {/* Map loads activities itself based on stage */}
-      <StageMap stages={[stage]} />
+      <TripMap stages={[stage]} trip={trip} />
 
       <h1>{stage.name}</h1>
 
@@ -135,6 +138,6 @@ export default function Stage() {
       )}
 
       <ReactMarkdown>{stage.body || ""}</ReactMarkdown>
-    </article>
+    </section>
   );
 }

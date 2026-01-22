@@ -1,0 +1,41 @@
+.trip {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 1em;
+
+  min-height: 100vh;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 1em;
+
+  min-width: 420px;
+
+  padding: 10px 0;
+}
+
+.tripData {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  align-items: center;
+}
+
+.tripDataItem  {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+}

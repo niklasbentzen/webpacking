@@ -1,8 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import StageMap from "../components/StageMap";
+import TripMap from "../components/TripMap/TripMap";
 import StageList from "../components/StageList/StageList";
+
+import s from "./Trip.module.css";
+
+import {
+  PersonSimpleBikeIcon,
+  PersonSimpleHikeIcon,
+  ArrowUpRightIcon,
+  ArrowsHorizontalIcon,
+  ClockIcon,
+  LineSegmentIcon,
+  LineSegmentsIcon,
+} from "@phosphor-icons/react";
 
 import {
   fetchTripBySlug,
@@ -37,24 +49,49 @@ export default function Trip() {
   if (!trip) return <p>Loading…</p>;
 
   return (
-    <>
-      {stages.length > 0 && <StageMap stages={stages} />}
+    <main className={s.trip}>
+      <section>
+        {stages.length > 0 && <TripMap stages={stages} trip={trip} />}
+        <div>
+          <h1>{trip.name}</h1>
+          {trip.description && <p>{trip.description}</p>}
+        </div>
+      </section>
 
-      <h1>{trip.name}</h1>
-      {trip.description && <p>{trip.description}</p>}
+      <aside className={s.sidebar}>
+        <div>
+          <h3>Summary</h3>
+          <div className={s.tripData}>
+            {totals.stageCount != null && (
+              <div className={s.tripDataItem}>
+                <LineSegmentsIcon size="14" />
+                {totals.stageCount} stages
+              </div>
+            )}
+            {totals.activityCount != null && (
+              <div className={s.tripDataItem}>
+                <LineSegmentIcon size="14" />
+                {totals.activityCount} activities
+              </div>
+            )}
+            {totals.distanceKm != null && (
+              <div className={s.tripDataItem}>
+                <ArrowsHorizontalIcon size="14" />
+                {totals.distanceKm} km
+              </div>
+            )}
+            {totals.elevationM != null && (
+              <div className={s.tripDataItem}>
+                <ArrowUpRightIcon size="14" />
+                {totals.elevationM} m
+              </div>
+            )}
+          </div>
+        </div>
 
-      <p style={{ opacity: 0.85 }}>
-        {totals.stageCount} stages • {totals.activityCount} activities
-        {totals.distanceKm != null
-          ? ` • ${totals.distanceKm.toFixed(1)} km`
-          : ""}
-        {totals.elevationM != null
-          ? ` • ${Math.round(totals.elevationM)} m`
-          : ""}
-      </p>
-
-      <h2>Stages</h2>
-      <StageList stages={stages} />
-    </>
+        <h3>Stages</h3>
+        <StageList stages={stages} />
+      </aside>
+    </main>
   );
 }

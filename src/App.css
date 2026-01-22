@@ -1,7 +1,74 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  margin: 0;
+}
 
-  font-family: "Anybody", system-ui, Avenir, Helvetica, Arial, sans-serif;
+body {
+  margin: 0;
+  background-color: 
+  color: hsl(0, 100%, 10%);
+}
+
+h1 {
+  font-size: 3em;
+  margin: 0;
+  padding: 0;
+}
+
+h2 {
+  font-size: 1.5em;
+  margin: 0;
+  padding: 0;
+}
+
+h3 {
+  font-size: 1.1em;
+  margin: 0;
+  padding: 0;
+}
+
+p {
+  font-size: 1em;
+  margin: 0;
+  padding: 0;
+}
+
+label {
+  font-size: 0.8em;
+  font-weight: 600;
+  opacity: 0.6;
+}
+
+main {
+  max-width: 2000px;
+  margin: auto;
+}
+
+section {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+}
+
+sub {
+  font-size: 0.8em;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.center {
+  justify-content: center;
+  align-items: center;
+}
+
+.bottom {
+  align-items: flex-end;
 }

@@ -1,19 +1,27 @@
 :root {
-  font-family: "Anybody", system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: Helvitca, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: hsla(0, 0%, 5%, 1);
+  background-color: var(--bg);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --bg: hsl(45, 18%, 96%);
+  --bg-dark: hsl(45, 18%, 92%);
+  --bg-light: hsl(45, 18%, 99%);
+
+  --p: hsl(200, 100%, 40%);
+
+  --b: hsla(0, 0%, 0%, 0.2);
 }
 
-@media (prefers-color-scheme: light) {
+@media (prefers-color-scheme: dark) {
   :root {
     color: #000;
     background-color: #ffffff;

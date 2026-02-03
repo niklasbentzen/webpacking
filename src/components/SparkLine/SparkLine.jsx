@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef } from "react";
 import { MapContainer, useMap } from "react-leaflet";
-import L, { markers } from "leaflet";
+import L from "leaflet";
 import "leaflet-gpx";
 import { pb } from "../../lib/pb";
 
-function GPXLines({ urls }) {
+function RouteLayers({ items }) {
   const map = useMap();
   const groupRef = useRef(L.featureGroup());
   const loadedRef = useRef(0);
@@ -15,57 +15,107 @@ function GPXLines({ urls }) {
     group.addTo(map);
     loadedRef.current = 0;
 
-    if (!urls?.length) return;
+    if (!items?.length) return;
 
-    urls.forEach((url) => {
-      const gpx = new L.GPX(url, {
-        async: true,
-        polyline_options: {
-          weight: 2,
-          opacity: 1,
-          color: "#000",
-        },
-        markers: {
-          startIcon: null,
-          endIcon: null,
-          shadowUrl: null,
-        },
-      });
+    const total = items.length;
+    let cancelled = false;
 
-      gpx.on("loaded", (e) => {
-        loadedRef.current += 1;
-        group.addLayer(e.target);
+    const maybeFit = () => {
+      if (loadedRef.current >= total) {
+        const bounds = group.getBounds();
+        if (bounds.isValid()) map.fitBounds(bounds, { padding: [0, 0] });
+      }
+    };
 
-        if (loadedRef.current === urls.length) {
-          const bounds = group.getBounds();
-          if (bounds.isValid()) map.fitBounds(bounds, { padding: [0, 0] });
-        }
-      });
+    for (const item of items) {
+      if (item.kind === "gpx") {
+        const gpx = new L.GPX(item.url, {
+          async: true,
+          polyline_options: {
+            weight: 2,
+            opacity: 1,
+            color: "var(--p)",
+          },
+          markers: {
+            startIcon: null,
+            endIcon: null,
+            shadowUrl: null,
+          },
+        });
 
-      gpx.on("error", () => {
-        loadedRef.current += 1;
-      });
-    });
+        gpx.on("loaded", (e) => {
+          if (cancelled) return;
+          loadedRef.current += 1;
+          group.addLayer(e.target);
+          maybeFit();
+        });
+
+        gpx.on("error", () => {
+          if (cancelled) return;
+          loadedRef.current += 1;
+          maybeFit();
+        });
+
+        continue;
+      }
+
+      // GeoJSON / GeoJSONSmall
+      fetch(item.url)
+        .then((r) => r.json())
+        .then((data) => {
+          if (cancelled) return;
+
+          const layer = L.geoJSON(data, {
+            style: () => ({
+              color: "var(--p)",
+              weight: 2,
+              opacity: 1,
+            }),
+          });
+
+          group.addLayer(layer);
+
+          loadedRef.current += 1;
+          maybeFit();
+        })
+        .catch(() => {
+          if (cancelled) return;
+          loadedRef.current += 1;
+          maybeFit();
+        });
+    }
 
     return () => {
+      cancelled = true;
       group.clearLayers();
       map.removeLayer(group);
     };
-  }, [map, urls]);
+  }, [map, items]);
 
   return null;
 }
 
 export default function Sparkline({ activities, width = 60, height = 60 }) {
-  const gpxURLs = useMemo(() => {
-    const urls = [];
+  const items = useMemo(() => {
+    const out = [];
+
     for (const a of activities || []) {
-      if (a.gpxFile) urls.push(pb.files.getURL(a, a.gpxFile));
+      // Prefer geoJSONSmall -> geoJSON -> gpxFile
+      const geoFile = a.geoJSONSmall || a.geoJSON;
+      if (geoFile) {
+        out.push({ kind: "geojson", url: pb.files.getURL(a, geoFile) });
+        continue;
+      }
+
+      if (a.gpxFile) {
+        out.push({ kind: "gpx", url: pb.files.getURL(a, a.gpxFile) });
+      }
     }
-    return urls;
+
+    return out.filter((x) => x.url);
   }, [activities]);
 
-  if (!gpxURLs.length) return null;
+  if (!items.length) return null;
 
   return (
     <div style={{ width, height, background: "transparent" }}>
@@ -84,7 +134,7 @@ export default function Sparkline({ activities, width = 60, height = 60 }) {
         doubleClickZoom={false}
         attributionControl={false}
       >
-        <GPXLines urls={gpxURLs} />
+        <RouteLayers items={items} />
       </MapContainer>
     </div>
   );

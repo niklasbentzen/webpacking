@@ -16,8 +16,9 @@ import {
   summarizeActivities,
 } from "../../lib/stages";
 
-export default function StageList({ stages }) {
-  if (!stages?.length) return null;
+export default function StageList({ stages, clickedStage }) {
+  if (!stages?.length)
+    return <i style={{ color: "var(--text-faded" }}>Found no stages...</i>;
 
   return (
     <ul className={s.stageList}>
@@ -30,7 +31,12 @@ export default function StageList({ stages }) {
 
         return (
           <li key={stage.id}>
-            <Link className={s.stageItem} to={`/stages/${stage.slug}`}>
+            <Link
+              className={`${s.stageItem} ${
+                stage.id === clickedStage ? s.clickedStage : ""
+              }`}
+              to={`/stages/${stage.slug}`}
+            >
               <Sparkline activities={stageActs} />
 
               <div className={s.col}>
@@ -41,21 +47,23 @@ export default function StageList({ stages }) {
                 <div className={s.stageData}>
                   <div>
                     {summary.bikeCount > 0 && (
-                      <div className="flex-row center">
-                        <PersonSimpleBikeIcon size="18" /> {summary.bikeCount}
+                      <div className={(s.stageDataItem, s.activityCount)}>
+                        <PersonSimpleBikeIcon size="18" />
+                        <span>{summary.bikeCount}</span>
                       </div>
                     )}
                     {summary.hikeCount > 0 && (
-                      <div className="flex-row center">
-                        <PersonSimpleHikeIcon size="18" /> {summary.hikeCount}
+                      <div className={(s.stageDataItem, s.activityCount)}>
+                        <PersonSimpleHikeIcon size="18" />
+                        <span>{summary.hikeCount}</span>
                       </div>
                     )}
                   </div>
 
-                  {summary.distanceKm != null && (
+                  {summary.distanceM != null && (
                     <div className={s.stageDataItem}>
                       <ArrowsHorizontalIcon size="14" />
-                      {summary.distanceKm.toFixed(1)} km
+                      {summary.distanceM.toFixed(1)} km
                     </div>
                   )}
 

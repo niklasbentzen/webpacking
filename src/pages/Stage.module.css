@@ -1,0 +1,29 @@
+.stage {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-rows: 80vh auto;
+  grid-column-gap: 2em;
+  grid-row-gap: 2em;
+
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.map {
+  grid-area: 1 / 1 / 2 / 3;
+}
+.info {
+  grid-area: 1 / 3 / 2 / 4;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2em;
+
+  position: sticky;
+  top: 0em;
+  align-self: end;
+}
+.body {
+  grid-area: 2 / 2 / 3 / 3;
+}

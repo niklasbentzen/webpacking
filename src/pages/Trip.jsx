@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { act, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import TripMap from "../components/TripMap/TripMap";
+import TripMap from "../components/Map/TripMap";
 import StageList from "../components/StageList/StageList";
+import Divider from "../components/Divider/Divider";
 
 import s from "./Trip.module.css";
 
@@ -26,9 +27,12 @@ export default function Trip() {
   const { slug } = useParams();
   const [trip, setTrip] = useState(null);
   const [stages, setStages] = useState([]);
+  const [clickedStage, setClickedStage] = useState(null);
   const [error, setError] = useState("");
+  const [status, setStatus] = useState("Idle");
 
   useEffect(() => {
+    setStatus("Loading...");
     (async () => {
       try {
         const tripRes = await fetchTripBySlug(slug);
@@ -39,28 +43,33 @@ export default function Trip() {
       } catch (e) {
         console.error(e, e?.data);
         setError(e?.message || "Failed to load trip");
+        setStatus(e?.message || "Error");
       }
     })();
   }, [slug]);
 
   const totals = useMemo(() => summarizeTripFromStages(stages), [stages]);
 
-  if (error) return <p>{error}</p>;
-  if (!trip) return <p>Loading…</p>;
-
   return (
     <main className={s.trip}>
-      <section>
-        {stages.length > 0 && <TripMap stages={stages} trip={trip} />}
-        <div>
-          <h1>{trip.name}</h1>
-          {trip.description && <p>{trip.description}</p>}
-        </div>
-      </section>
+      <div className={s.map}>
+        {
+          <TripMap
+            stages={stages}
+            trip={trip}
+            setClickedStage={setClickedStage}
+            clickedStage={clickedStage}
+          />
+        }
+      </div>
+      <div className={s.info}>
+        <h1 style={{ color: "var(--p)" }}>{trip?.name ?? status}</h1>
+        {trip?.description && <p>{trip.description}</p>}
+      </div>
 
-      <aside className={s.sidebar}>
-        <div>
-          <h3>Summary</h3>
+      <div className={s.stages}>
+        <section>
+          <h2>Summary</h2>
           <div className={s.tripData}>
             {totals.stageCount != null && (
               <div className={s.tripDataItem}>
@@ -74,10 +83,10 @@ export default function Trip() {
                 {totals.activityCount} activities
               </div>
             )}
-            {totals.distanceKm != null && (
+            {totals.distanceM != null && (
               <div className={s.tripDataItem}>
                 <ArrowsHorizontalIcon size="14" />
-                {totals.distanceKm} km
+                <span>{totals.distanceM} km</span>
               </div>
             )}
             {totals.elevationM != null && (
@@ -87,11 +96,15 @@ export default function Trip() {
               </div>
             )}
           </div>
-        </div>
+        </section>
 
-        <h3>Stages</h3>
-        <StageList stages={stages} />
-      </aside>
+        <Divider />
+
+        <section>
+          <h2>Stages</h2>
+          <StageList stages={stages} clickedStage={clickedStage} />
+        </section>
+      </div>
     </main>
   );
 }

@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   list-style: none;
-  gap: 0px;
+  gap: 0.5em;
   padding: 0;
   margin: 0;
 }
@@ -14,11 +14,26 @@
   gap: 0.5em;
 
   padding: 0.5em;
+  border-radius: 10px;
+  border: 1px solid transparent;
 
   transition: 0.1s ease-in-out;
 }
 .stageItem:hover {
   background: var(--bg-light);
+  border: 1px solid var(--bg-dark);
+}
+
+.stageTitle {
+  transition: 0.1s ease-in-out;
+}
+.stageItem:hover .stageTitle {
+  color: var(--p);
+}
+
+.clickedStage {
+  background: var(--bg-light);
+  border: 1px solid var(--p);
 }
 
 .stageItem,
@@ -45,6 +60,18 @@
   flex-direction: row;
   align-items: center;
   gap: 4px;
+
+  font-weight: 600;
+  opacity: 0.6;
+}
+
+.activityCount {
+  display: flex;
+  font-size: 12px;
+  align-items: flex-start;
+  font-weight: 600;
+  opacity: 0.6;
+  line-height: 1;
 }
 
 .col {
@@ -60,5 +87,9 @@ h3 {
 
 a {
   text-decoration: none;
-  color: black;
+  color: var(--text);
+}
+
+.selectedStageId {
+  border: 1px solid var(--p);
 }

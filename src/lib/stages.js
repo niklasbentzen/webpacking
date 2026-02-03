@@ -2,6 +2,15 @@
 import { pb } from "./pb";
 
 /**
+ * Get a stage by its ID, with activities expanded (back relation)
+ */
+export async function fetchStageByIdWithActivities(stageId) {
+  return await pb
+    .collection("stages")
+    .getFirstListItem(`id='${stageId}'`, { expand: "activities_via_stage" });
+}
+
+/**
  * Formats:
  * - May 7, 2026
  * - May 7 — May 8, 2026
@@ -65,7 +74,7 @@ export function getStageDateRangeFromActivities(activities) {
 }
 
 export function summarizeActivities(activities) {
-  let distanceKm = 0;
+  let distanceM = 0;
   let elevationM = 0;
   let durationMs = 0;
 
@@ -73,7 +82,7 @@ export function summarizeActivities(activities) {
   let hikeCount = 0;
 
   for (const a of activities || []) {
-    if (typeof a.distanceKm === "number") distanceKm += a.distanceKm;
+    if (typeof a.distanceM === "number") distanceM += a.distanceM;
     if (typeof a.elevationM === "number") elevationM += a.elevationM;
 
     if (a.type === "Bike") bikeCount += 1;
@@ -90,7 +99,7 @@ export function summarizeActivities(activities) {
   return {
     bikeCount,
     hikeCount,
-    distanceKm: distanceKm || null,
+    distanceM: distanceM || null,
     elevationM: elevationM || null,
     duration: formatDuration(durationMs),
   };

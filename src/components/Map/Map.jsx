@@ -1,7 +1,6 @@
 import React, { forwardRef, useImperativeHandle, useRef } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import "./StageMap.css"; // keep if it contains leaflet fixes etc.
 
 import HoverDot from "./HoverDot";
 

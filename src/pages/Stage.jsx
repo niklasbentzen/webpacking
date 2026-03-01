@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import { pb } from "../lib/pb";
-import StageMap from "../components/Map/StageMap";
+
 import ActivityList from "../components/ActivityList/ActivityList";
 import s from "./Stage.module.css";
 import Divider from "../components/Divider/Divider";

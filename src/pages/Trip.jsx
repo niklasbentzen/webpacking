@@ -1,7 +1,5 @@
 import { act, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-
-import TripMap from "../components/Map/TripMap";
 import StageList from "../components/StageList/StageList";
 import Divider from "../components/Divider/Divider";
 

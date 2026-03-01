@@ -1,120 +1,69 @@
-import { useEffect, useMemo, useRef } from "react";
-import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
-import L from "leaflet";
+import React, { forwardRef, useImperativeHandle, useRef } from "react";
+import { MapContainer, TileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import "./StageMap.css"; // keep if it contains leaflet fixes etc.
+
+import HoverDot from "./HoverDot";
 
 /**
- * geojsonItems = [
- *   {
- *     id: "activity-1",
- *     data: <GeoJSON FeatureCollection | Feature | Geometry>,
- *     style?: (feature) => ({ color, weight, opacity, ... }),
- *     onClick?: (feature, layer, event) => void,
- *     onHover?: (isHovering, feature, layer, event) => void,
- *   }
- * ]
+ * Reusable map shell.
+ *
+ * Usage:
+ * <Map ref={mapRef}>
+ *   <StageLayers ... />
+ *   <PlannedRoute ... />
+ *   <CurrentPosition ... />
+ * </Map>
  */
-function GeoJSONLayers({ geojsonItems, fitBounds = true, padding = [20, 20] }) {
-  const map = useMap();
-  const groupRef = useRef(L.featureGroup());
+const Map = forwardRef(function Map(
+  {
+    children,
+    center = [56, 10],
+    zoom = 6,
+    className,
+    style,
+    tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    tileAttribution = "&copy; OpenStreetMap contributors",
+  },
+  ref
+) {
+  const hoverDotRef = useRef(null);
 
-  // Normalize list
-  const items = useMemo(
-    () => geojsonItems?.filter((x) => x?.data) || [],
-    [geojsonItems]
-  );
-
-  useEffect(() => {
-    const group = groupRef.current;
-    group.clearLayers();
-    group.addTo(map);
-
-    return () => {
-      group.clearLayers();
-      if (map.hasLayer(group)) map.removeLayer(group);
-    };
-  }, [map]);
-
-  useEffect(() => {
-    const group = groupRef.current;
-    group.clearLayers();
-
-    if (!items.length) return;
-
-    // Create Leaflet GeoJSON layers and add to group so we can fit bounds
-    for (const item of items) {
-      const leafletLayer = L.geoJSON(item.data, {
-        style: item.style,
-        onEachFeature: (feature, layer) => {
-          if (item.onClick) {
-            layer.on("click", (e) => item.onClick(feature, layer, e));
-          }
-          if (item.onHover) {
-            layer.on("mouseover", (e) => item.onHover(true, feature, layer, e));
-            layer.on("mouseout", (e) => item.onHover(false, feature, layer, e));
-          }
-        },
-      });
-
-      group.addLayer(leafletLayer);
-    }
-
-    if (fitBounds) {
-      const bounds = group.getBounds();
-      if (bounds.isValid()) map.fitBounds(bounds, { padding });
-    }
-  }, [items, map, fitBounds, padding]);
+  useImperativeHandle(ref, () => ({
+    setHoverPoint(pt) {
+      if (!pt) return;
+      hoverDotRef.current?.show(pt.lat, pt.lng);
+    },
+    clearHover() {
+      hoverDotRef.current?.hide();
+    },
+  }));
 
   return (
-    <>
-      {items.map((item) => (
-        <GeoJSON
-          key={item.id}
-          data={item.data}
-          style={item.style}
-          onEachFeature={(feature, layer) => {
-            if (item.onClick) {
-              layer.on("click", (e) => item.onClick(feature, layer, e));
-            }
-            if (item.onHover) {
-              layer.on("mouseover", (e) =>
-                item.onHover(true, feature, layer, e)
-              );
-              layer.on("mouseout", (e) =>
-                item.onHover(false, feature, layer, e)
-              );
-            }
-          }}
-        />
-      ))}
-    </>
-  );
-}
-
-export default function Map({
-  geojsonItems = [],
-  height = 520,
-  fitBounds = true,
-  padding = [20, 20],
-}) {
-  return (
-    <div style={{ height, borderRadius: 10, overflow: "hidden" }}>
+    <div
+      className={className}
+      style={{
+        height: "100%",
+        borderRadius: 10,
+        overflow: "hidden",
+        position: "relative",
+        ...style,
+      }}
+    >
       <MapContainer
-        center={[56, 10]}
-        zoom={6}
+        center={center}
+        zoom={zoom}
         style={{ height: "100%", width: "100%" }}
       >
-        <TileLayer
-          attribution="&copy; OpenStreetMap contributors"
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        <TileLayer attribution={tileAttribution} url={tileUrl} />
 
-        <GeoJSONLayers
-          geojsonItems={geojsonItems}
-          fitBounds={fitBounds}
-          padding={padding}
-        />
+        {children}
+
+        {/* Always available to consumers via Map ref */}
+        <HoverDot ref={hoverDotRef} />
       </MapContainer>
     </div>
   );
-}
+});
+
+export default Map;

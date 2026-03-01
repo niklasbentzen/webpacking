@@ -22,6 +22,9 @@ import {
   ArrowsHorizontalIcon,
   ClockIcon,
 } from "@phosphor-icons/react";
+import Map from "../components/Map/Map";
+import StageLayers from "../components/Map/StageLayers";
+import PlannedRoute from "../components/Map/PlannedRoute";
 
 export default function Stage() {
   const { slug } = useParams();
@@ -76,13 +79,17 @@ export default function Stage() {
     <main className={s.stage}>
       {activities.length > 0 && (
         <div className={s.map}>
-          <StageMap
-            ref={mapRef}
-            stage={stage}
-            trip={trip}
-            selectedActivity={selectedActivity}
-            setSelectedActivity={setSelectedActivity}
-          />
+          <Map ref={mapRef}>
+            <StageLayers
+              stage={stage}
+              selectedActivity={selectedActivity}
+              setSelectedActivity={setSelectedActivity}
+              fitBounds
+              padding={[20, 20]}
+            />
+            {trip && <PlannedRoute trip={trip} />}
+          </Map>
+
           <div className={s.heightmap}>
             <Heightmap
               stage={stage}

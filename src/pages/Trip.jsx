@@ -23,6 +23,9 @@ import {
   summarizeTripFromStages,
 } from "../lib/trips";
 import { formatDateRange } from "../lib/stages";
+import Map from "../components/Map/Map";
+import TripLayer from "../components/Map/TripLayer";
+import PlannedRoute from "../components/Map/PlannedRoute";
 
 export default function Trip() {
   const { slug } = useParams();
@@ -54,14 +57,14 @@ export default function Trip() {
   return (
     <main className={s.trip}>
       <div className={s.map}>
-        {
-          <TripMap
+        <Map>
+          <PlannedRoute trip={trip} />
+          <TripLayer
             stages={stages}
-            trip={trip}
-            setClickedStage={setClickedStage}
             clickedStage={clickedStage}
+            setClickedStage={setClickedStage}
           />
-        }
+        </Map>
       </div>
       <div className={s.info}>
         <h1>{trip?.name ?? status}</h1>

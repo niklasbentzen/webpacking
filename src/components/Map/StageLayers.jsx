@@ -1,115 +1,9 @@
-import React, {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react";
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
-import { pb } from "../../lib/pb";
+import { useEffect, useRef, useState } from "react";
+import { useMap } from "react-leaflet";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import "./StageMap.css";
+import { pb } from "../../lib/pb";
 
-const HoverDot = forwardRef(function HoverDot(_, ref) {
-  const map = useMap();
-  const dotRef = useRef(null);
-
-  useEffect(() => {
-    const color =
-      getComputedStyle(document.documentElement)
-        .getPropertyValue("--p")
-        .trim() || "#ff6600";
-
-    const dot = L.circleMarker([0, 0], {
-      radius: 6,
-      color: color,
-      weight: 3,
-      fillColor: "white",
-      fillOpacity: 1,
-      opacity: 1,
-    });
-
-    dot.remove();
-    dotRef.current = dot;
-
-    return () => {
-      dot.remove();
-      dotRef.current = null;
-    };
-  }, [map]);
-
-  useImperativeHandle(ref, () => ({
-    show(lat, lng) {
-      if (!dotRef.current) return;
-      dotRef.current.setLatLng([lat, lng]);
-      if (!map.hasLayer(dotRef.current)) {
-        dotRef.current.addTo(map);
-      }
-    },
-    hide() {
-      dotRef.current?.remove();
-    },
-  }));
-
-  return null;
-});
-
-function PlannedLayer({ trip }) {
-  const map = useMap();
-  const groupRef = useRef(L.featureGroup());
-
-  useEffect(() => {
-    const group = groupRef.current;
-
-    group.clearLayers();
-    if (map.hasLayer(group)) map.removeLayer(group);
-
-    const file = trip?.plannedTrip;
-    if (!trip || !file) return;
-
-    const url = pb.files.getURL(trip, file);
-    if (!url) return;
-
-    group.addTo(map);
-
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const res = await fetch(url);
-        if (!res.ok)
-          throw new Error(`Failed to fetch planned GeoJSON (${res.status})`);
-
-        const data = await res.json();
-        if (cancelled) return;
-
-        const layer = L.geoJSON(data, {
-          style: () => ({
-            color: "black",
-            weight: 2,
-            opacity: 0.8,
-            dashArray: "6 10",
-          }),
-        });
-
-        layer.addTo(group);
-      } catch (err) {
-        console.warn("Planned GeoJSON load error:", url, err);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      group.clearLayers();
-      if (map.hasLayer(group)) map.removeLayer(group);
-    };
-  }, [map, trip]);
-
-  return null;
-}
-
-function StageLayers({
+export default function StageLayers({
   stage,
   selectedActivity,
   setSelectedActivity,
@@ -122,16 +16,13 @@ function StageLayers({
   const suppressNextMapClickRef = useRef(false);
 
   const [activities, setActivities] = useState([]);
-
   const lineByActivityIdRef = useRef(new Map());
 
-  // Track the latest selected activity in a ref for async callbacks
   const selectedActivityRef = useRef(null);
   useEffect(() => {
     selectedActivityRef.current = selectedActivity ?? null;
   }, [selectedActivity]);
 
-  // If selection happens before a line layer is loaded, remember the id
   const pendingFitIdRef = useRef(null);
 
   const cssVar = (name, fallback) => {
@@ -143,7 +34,6 @@ function StageLayers({
 
   const fitToActivity = (activityId) => {
     if (!activityId) return false;
-
     const line = lineByActivityIdRef.current.get(activityId);
     if (!line) return false;
 
@@ -158,7 +48,6 @@ function StageLayers({
     return true;
   };
 
-  // ✅ Key helper: apply styles based on current selection
   const applySelectionStyles = (selectedId) => {
     const selectedColor = cssVar("--p", "#ff6600");
     const unselectedColor = "green";
@@ -190,7 +79,6 @@ function StageLayers({
     lineByActivityIdRef.current.clear();
 
     const unselectedColor = "green";
-
     let cancelled = false;
 
     (async () => {
@@ -211,17 +99,14 @@ function StageLayers({
             style: () => ({ color: "#ffffff", weight: 8, opacity: 1 }),
           });
 
-          // Create line (initial style can be unselected; we'll applySelectionStyles right after)
           const line = L.geoJSON(data, {
             style: () => ({ color: unselectedColor, weight: 4, opacity: 0.5 }),
           });
 
           lineByActivityIdRef.current.set(activity.id, line);
 
-          // ✅ Critical: if selection happened before load, style it now
           applySelectionStyles(selectedActivityRef.current);
 
-          // ✅ If selection happened before load, also fit now (optional)
           if (pendingFitIdRef.current === activity.id) {
             fitToActivity(activity.id);
             pendingFitIdRef.current = null;
@@ -236,7 +121,6 @@ function StageLayers({
               suppressNextMapClickRef.current = true;
               L.DomEvent.stopPropagation(e);
 
-              // Selection triggers styling+fit via selectedActivity effect
               setSelectedActivity?.(activity.id);
 
               setTimeout(() => {
@@ -258,7 +142,7 @@ function StageLayers({
 
           outline.addTo(group);
           line.addTo(group);
-          line.bringToFront?.(); // keep color visible above outline
+          line.bringToFront?.();
           hit.addTo(group);
         } catch (e) {
           console.warn("Failed to load GeoJSON:", url, e);
@@ -285,7 +169,6 @@ function StageLayers({
     };
   }, [map, activities, fitBounds, padding]);
 
-  // ✅ Selection effect: styles + fit (works from map click OR external buttons)
   useEffect(() => {
     applySelectionStyles(selectedActivity ?? null);
 
@@ -311,56 +194,3 @@ function StageLayers({
 
   return null;
 }
-
-const StageMap = forwardRef(function StageMap(
-  { stage, trip, selectedActivity, setSelectedActivity },
-  ref
-) {
-  const hoverDotRef = useRef(null);
-
-  useImperativeHandle(ref, () => ({
-    setHoverPoint(pt) {
-      if (!pt) return;
-      hoverDotRef.current?.show(pt.lat, pt.lng);
-    },
-    clearHover() {
-      hoverDotRef.current?.hide();
-    },
-  }));
-
-  return (
-    <div
-      style={{
-        height: "100%",
-        borderRadius: 10,
-        overflow: "hidden",
-        position: "relative",
-      }}
-    >
-      <MapContainer
-        center={[56, 10]}
-        zoom={6}
-        style={{ height: "100%", width: "100%" }}
-      >
-        <TileLayer
-          attribution="&copy; OpenStreetMap contributors"
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-
-        {trip && <PlannedLayer trip={trip} />}
-
-        <StageLayers
-          stage={stage}
-          selectedActivity={selectedActivity}
-          setSelectedActivity={setSelectedActivity}
-          fitBounds={true}
-          padding={[20, 20]}
-        />
-
-        <HoverDot ref={hoverDotRef} />
-      </MapContainer>
-    </div>
-  );
-});
-
-export default StageMap;

@@ -1,65 +1,9 @@
-// ✅ Copy/paste this whole file (same as before, but click fitBounds now fits ENTIRE STAGE)
 import { useEffect, useRef, useState } from "react";
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
-import { pb } from "../../lib/pb";
+import { useMap } from "react-leaflet";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import { pb } from "../../lib/pb";
 
-function PlannedLayer({ trip }) {
-  const map = useMap();
-  const groupRef = useRef(L.featureGroup());
-
-  useEffect(() => {
-    const group = groupRef.current;
-
-    group.clearLayers();
-    if (map.hasLayer(group)) map.removeLayer(group);
-
-    const file = trip?.plannedTrip;
-    if (!trip || !file) return;
-
-    const url = pb.files.getURL(trip, file);
-    if (!url) return;
-
-    group.addTo(map);
-
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const res = await fetch(url);
-        if (!res.ok)
-          throw new Error(`Failed to fetch planned GeoJSON (${res.status})`);
-
-        const data = await res.json();
-        if (cancelled) return;
-
-        const layer = L.geoJSON(data, {
-          style: () => ({
-            color: "black",
-            weight: 2,
-            opacity: 0.8,
-            dashArray: "6 10",
-          }),
-        });
-
-        layer.addTo(group);
-      } catch (err) {
-        console.warn("Planned GeoJSON load error:", url, err);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      group.clearLayers();
-      if (map.hasLayer(group)) map.removeLayer(group);
-    };
-  }, [map, trip]);
-
-  return null;
-}
-
-function StageLayers({
+export default function TripLayer({
   stages,
   clickedStage,
   setClickedStage,
@@ -103,7 +47,7 @@ function StageLayers({
 
   // Style all stage lines based on hovered/clicked state
   const applyStageStyles = () => {
-    const selectedColor = cssVar("--p");
+    const selectedColor = cssVar("--p", "#ff6600");
     const unselectedColor = "green";
 
     const hoveredStage = hoveredStageRef.current;
@@ -114,10 +58,10 @@ function StageLayers({
 
       const color = isClicked ? selectedColor : unselectedColor;
       const opacity = isHovered || isClicked ? 1 : 0.5;
-      const weight = isHovered || isClicked ? 4 : 4;
 
       for (const line of lines) {
-        line.setStyle?.({ color, opacity, weight });
+        line.setStyle?.({ color, opacity, weight: 4 });
+        if (isClicked) line.bringToFront?.();
       }
     }
   };
@@ -138,6 +82,7 @@ function StageLayers({
 
     lineLayersByStageRef.current.clear();
     stageBoundsByIdRef.current.clear();
+    didInitialFitRef.current = false;
 
     let cancelled = false;
 
@@ -190,8 +135,6 @@ function StageLayers({
               L.DomEvent.stopPropagation(e);
 
               setClickedStage?.(activity.stage);
-
-              // ✅ Fit ENTIRE STAGE (all activities), not just this activity
               fitStageBounds(activity.stage);
 
               setTimeout(() => {
@@ -237,7 +180,7 @@ function StageLayers({
       group.clearLayers();
       if (map.hasLayer(group)) map.removeLayer(group);
     };
-    // IMPORTANT: no clickedStage here; styling handled below
+    // important: no clickedStage dependency; style handled below
   }, [map, activities, fitBounds, padding, setClickedStage]);
 
   // Re-apply styles when clickedStage changes (no rebuild)
@@ -260,36 +203,4 @@ function StageLayers({
   }, [map, setClickedStage]);
 
   return null;
-}
-
-export default function TripMap({
-  stages = [],
-  trip,
-  clickedStage,
-  setClickedStage,
-}) {
-  return (
-    <div style={{ height: "100%", borderRadius: 10, overflow: "hidden" }}>
-      <MapContainer
-        center={[56, 10]}
-        zoom={6}
-        style={{ height: "100%", width: "100%" }}
-      >
-        <TileLayer
-          attribution="&copy; OpenStreetMap contributors"
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-
-        {trip && <PlannedLayer trip={trip} />}
-
-        <StageLayers
-          stages={stages}
-          clickedStage={clickedStage}
-          setClickedStage={setClickedStage}
-          fitBounds={true}
-          padding={[20, 20]}
-        />
-      </MapContainer>
-    </div>
-  );
 }

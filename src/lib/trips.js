@@ -54,7 +54,6 @@ export async function fetchStagesForTripWithActivities(tripId) {
 
 export function summarizeTripFromStages(stages) {
   const stageCount = stages?.length || 0;
-  console.log(stages);
 
   let activityCount = 0;
   let distanceM = 0;
@@ -87,7 +86,6 @@ export function summarizeTripFromStages(stages) {
       }
     }
   }
-  console.log(firstStartTime, lastEndTime);
 
   return {
     stageCount,

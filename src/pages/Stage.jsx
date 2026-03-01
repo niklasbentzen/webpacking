@@ -60,7 +60,6 @@ export default function Stage() {
         if (activitiesRes.length == 1) {
           setSelectedActivity(activitiesRes[0].id);
         }
-        console.log("Loaded stage", stageRes, activitiesRes);
       } catch (e) {
         console.error(e, e?.data);
         setError(e?.message || "Failed to load stage");

@@ -1,4 +1,4 @@
-import { act, useEffect, useMemo, useState } from "react";
+import { act, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import StageList from "../components/StageList/StageList";
 import Divider from "../components/Divider/Divider";
@@ -24,6 +24,7 @@ import { formatDateRange } from "../lib/stages";
 import Map from "../components/Map/Map";
 import TripLayer from "../components/Map/TripLayer";
 import PlannedRoute from "../components/Map/PlannedRoute";
+import InReachLayer from "../components/Map/InReachLayer";
 
 export default function Trip() {
   const { slug } = useParams();
@@ -32,6 +33,7 @@ export default function Trip() {
   const [clickedStage, setClickedStage] = useState(null);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("Idle");
+  const layerRef = useRef();
 
   useEffect(() => {
     setStatus("Loading...");
@@ -56,13 +58,19 @@ export default function Trip() {
     <main className={s.trip}>
       <div className={s.map}>
         <Map>
-          <PlannedRoute trip={trip} />
+          <InReachLayer ref={layerRef} />
           <TripLayer
             stages={stages}
             clickedStage={clickedStage}
             setClickedStage={setClickedStage}
           />
+          <PlannedRoute trip={trip} />
         </Map>
+        <div>
+          <button onClick={() => layerRef.current?.locate()}>
+            Locate last position
+          </button>
+        </div>
       </div>
       <div className={s.info}>
         <h1>{trip?.name ?? status}</h1>

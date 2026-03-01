@@ -14,7 +14,6 @@ export default function Trips() {
           sort: "-startDate",
         });
         setTrips(res);
-        console.log(res);
       } catch (e) {
         setError(e?.message || "Failed to load trips");
       }

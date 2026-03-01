@@ -84,7 +84,7 @@ export default function AdminStage() {
         if (!isMounted) return;
 
         setStage(stageRes);
-        console.log("fetched stage", stageRes);
+
         setActivities(stageRes.expand?.activities_via_stage || []);
         setName(stageRes.name || "");
         setSlug(stageRes.slug || "");
@@ -144,9 +144,8 @@ export default function AdminStage() {
         endDate: endDate ? new Date(endDate).toISOString() : null,
       };
 
-      console.log("saving payload", payload);
       const updated = await updateStage(stage.id, payload);
-      console.log("updated stage", updated);
+
       setStage((prev) => ({ ...prev, ...updated }));
       setSavedMsg("Saved.");
     } catch (err) {

@@ -14,7 +14,6 @@ export default function AdminHome() {
     loadTrips();
   }, []);
 
-  console.log(trips);
   return (
     <div className={s.admin}>
       <h2>Trips Overview</h2>

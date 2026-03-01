@@ -14,3 +14,8 @@ export async function fetchActivitiesForStages(stages) {
   }
   return all;
 }
+
+// Update activity
+export async function updateActivity(id, data) {
+  return await pb.collection("activities").update(id, data);
+}

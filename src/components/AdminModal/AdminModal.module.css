@@ -1,0 +1,44 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: flex-end; /* use flex-end instead of end */
+  background-color: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* modal becomes a flex column that has a fixed height */
+.modal {
+  width: min(720px, 100%);
+  background: var(--bg);
+  height: 90vh;
+  padding: 16px;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden; /* IMPORTANT: don't scroll the modal itself */
+  min-height: 0; /* allow children to shrink */
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex: 0 0 auto;
+}
+
+.title {
+  margin: 0;
+}
+
+/* new: content area that actually scrolls */
+.content {
+  flex: 1 1 auto;
+  min-height: 0; /* IMPORTANT in flex layouts */
+  overflow: auto;
+}

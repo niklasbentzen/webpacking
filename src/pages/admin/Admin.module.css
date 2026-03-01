@@ -1,0 +1,245 @@
+.admin {
+  display: flex;
+  flex-direction: column;
+  gap: 3em;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+}
+
+.controls {
+  position: sticky;
+  z-index: 999;
+  top: 1em;
+  padding: 0.5em;
+  border: 1px solid var(--b);
+  border-radius: 8px;
+  background: var(--bg);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.general {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 0.5em;
+}
+
+.published {
+  min-width: 100px;
+  justify-content: flex-end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8em;
+  color: var(text-muted);
+}
+
+input {
+  font-size: 1em;
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+input[name="name"] {
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+input[type="checkbox"] {
+  width: auto;
+}
+
+textarea {
+  font-size: 1em;
+  width: 100%;
+  height: 100px;
+  box-sizing: border-box;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.stagesHeader {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.activityCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+
+  border: solid 1px var(--b);
+  border-radius: 8px;
+  padding: 1em;
+}
+
+.rowCentered {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.sectionHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+button {
+  border: none;
+  padding: 0.5em 1em;
+  font-weight: 600;
+  border-radius: 6px;
+  color: var(--bg-light);
+  background-color: var(--contrast);
+
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.secondary {
+  background-color: transparent;
+  color: var(--text);
+  border: solid 1px var(--b);
+}
+
+.iconButton {
+  cursor: pointer;
+}
+.iconButton:hover {
+  color: var(--p);
+}
+
+h3 {
+  font-size: 1em;
+  font-weight: 600;
+}
+
+.activityData {
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+}
+.activityDataItem {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.storyPreview {
+  background: var(--bg-light);
+  padding: 1em;
+  border-radius: 6px;
+  border: solid 1px var(--b);
+}
+
+.storyPreview img {
+  max-width: 100%;
+  border-radius: 4px;
+  margin: 0.5em 0;
+}
+
+.type {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5em;
+  flex-wrap: wrap;
+}
+
+.activityType {
+  display: flex;
+  flex-direction: row;
+  gap: 0.2em;
+  align-items: center;
+
+  background: var(--bg);
+  color: var(--text);
+  border: solid 1px var(--b);
+  cursor: default;
+  padding: 0.2em 0.5em;
+  font-size: 0.8em;
+  font-weight: 500;
+  border-radius: 6px;
+}
+
+.autoGenerate {
+  font-size: 0.8em;
+  color: var(--text);
+  font-weight: 400;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+}
+
+.imageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+
+  gap: 1em;
+}
+
+.imageCard img {
+  width: 100%;
+  height: 200px;
+  object-fit: contain;
+  display: block;
+}
+
+.imageCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+
+  border: 1px solid var(--b);
+  border-radius: 6px;
+}
+
+.imageControls {
+  display: flex;
+  flex-direction: row;
+  gap: 2em;
+  justify-content: center;
+}
+
+.imageControl {
+  padding: 0.5em;
+  cursor: pointer;
+}
+.imageControl:hover {
+  color: var(--p);
+}

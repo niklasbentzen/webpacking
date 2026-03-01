@@ -1,3 +1,4 @@
+// ✅ Copy/paste this whole file (same as before, but click fitBounds now fits ENTIRE STAGE)
 import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import { pb } from "../../lib/pb";
@@ -14,7 +15,7 @@ function PlannedLayer({ trip }) {
     group.clearLayers();
     if (map.hasLayer(group)) map.removeLayer(group);
 
-    const file = trip?.plannedTrip; // <-- your GeoJSON file field
+    const file = trip?.plannedTrip;
     if (!trip || !file) return;
 
     const url = pb.files.getURL(trip, file);
@@ -70,7 +71,13 @@ function StageLayers({
   const suppressNextMapClickRef = useRef(false);
   const didInitialFitRef = useRef(false);
 
-  const lineLayersByStageRef = useRef(new Map()); // stageId -> array of L.GeoJSON layers
+  // stageId -> array of line layers for that stage
+  const lineLayersByStageRef = useRef(new Map());
+
+  // stageId -> L.LatLngBounds for that stage
+  const stageBoundsByIdRef = useRef(new Map());
+
+  const hoveredStageRef = useRef(null);
   const [activities, setActivities] = useState([]);
 
   const cssVar = (name, fallback) => {
@@ -92,19 +99,45 @@ function StageLayers({
     );
 
     setActivities(allActivities);
-    console.log("Extracted activities for stages:", allActivities);
   }, [stages]);
 
-  // Build layers once per activities change (NOT per click)
+  // Style all stage lines based on hovered/clicked state
+  const applyStageStyles = () => {
+    const selectedColor = cssVar("--p");
+    const unselectedColor = "green";
+
+    const hoveredStage = hoveredStageRef.current;
+
+    for (const [stageId, lines] of lineLayersByStageRef.current.entries()) {
+      const isClicked = clickedStage === stageId;
+      const isHovered = hoveredStage === stageId;
+
+      const color = isClicked ? selectedColor : unselectedColor;
+      const opacity = isHovered || isClicked ? 1 : 0.5;
+      const weight = isHovered || isClicked ? 4 : 4;
+
+      for (const line of lines) {
+        line.setStyle?.({ color, opacity, weight });
+      }
+    }
+  };
+
+  // Helper: fit bounds for the whole stage
+  const fitStageBounds = (stageId) => {
+    const bounds = stageBoundsByIdRef.current.get(stageId);
+    if (bounds && bounds.isValid()) {
+      map.fitBounds(bounds, { padding });
+    }
+  };
+
+  // Build layers once per activities change
   useEffect(() => {
     const group = groupRef.current;
     group.clearLayers();
     group.addTo(map);
 
     lineLayersByStageRef.current.clear();
-
-    const selectedColor = cssVar("--p");
-    const unselectedColor = "green";
+    stageBoundsByIdRef.current.clear();
 
     let cancelled = false;
 
@@ -118,6 +151,7 @@ function StageLayers({
 
         try {
           const res = await fetch(url);
+          if (!res.ok) throw new Error(`Failed to fetch GeoJSON ${res.status}`);
           const data = await res.json();
           if (cancelled) return;
 
@@ -125,21 +159,31 @@ function StageLayers({
             style: () => ({ color: "#ffffff", weight: 8, opacity: 1 }),
           });
 
-          // default is always "unselected" style; selection is applied via effect below
           const line = L.geoJSON(data, {
-            style: () => ({ color: unselectedColor, weight: 4, opacity: 0.5 }),
+            style: () => ({ color: "green", weight: 4, opacity: 0.5 }),
           });
 
           const hit = L.geoJSON(data, {
             style: () => ({ color: "#000", weight: 22, opacity: 0 }),
           });
 
-          // register line under stage id so we can style it later without rebuilding
+          // register line under stage id
           if (!lineLayersByStageRef.current.has(activity.stage)) {
             lineLayersByStageRef.current.set(activity.stage, []);
           }
           lineLayersByStageRef.current.get(activity.stage).push(line);
 
+          // accumulate stage bounds (union of all activity bounds)
+          const activityBounds = line.getBounds();
+          if (activityBounds?.isValid?.()) {
+            const existing = stageBoundsByIdRef.current.get(activity.stage);
+            stageBoundsByIdRef.current.set(
+              activity.stage,
+              existing ? existing.extend(activityBounds) : activityBounds
+            );
+          }
+
+          // interaction: hover highlights entire stage; click fits entire stage
           hit.eachLayer((hitLayer) => {
             hitLayer.on("click", (e) => {
               suppressNextMapClickRef.current = true;
@@ -147,10 +191,8 @@ function StageLayers({
 
               setClickedStage?.(activity.stage);
 
-              const bounds = line.getBounds();
-              if (bounds.isValid()) {
-                map.fitBounds(bounds, { padding });
-              }
+              // ✅ Fit ENTIRE STAGE (all activities), not just this activity
+              fitStageBounds(activity.stage);
 
               setTimeout(() => {
                 suppressNextMapClickRef.current = false;
@@ -159,39 +201,35 @@ function StageLayers({
 
             hitLayer.on("mouseover", () => {
               map.getContainer().style.cursor = "pointer";
-              line.setStyle?.({ opacity: 1 });
+              hoveredStageRef.current = activity.stage;
+              applyStageStyles();
             });
 
             hitLayer.on("mouseout", () => {
               map.getContainer().style.cursor = "";
-              const isSelected = clickedStage === activity.stage;
-              line.setStyle?.({ opacity: isSelected ? 1 : 0.5 });
+              hoveredStageRef.current = null;
+              applyStageStyles();
             });
           });
 
           outline.addTo(group);
           line.addTo(group);
           hit.addTo(group);
-
-          // apply correct initial style immediately (in case clickedStage already set)
-          const isSelected = clickedStage === activity.stage;
-          line.setStyle?.({
-            color: isSelected ? selectedColor : unselectedColor,
-            opacity: isSelected ? 1 : 0.5,
-          });
         } catch (e) {
           console.warn("Failed to load GeoJSON:", url, e);
         }
       }
 
-      if (!didInitialFitRef.current) {
+      // initial fit (whole group)
+      if (fitBounds && !didInitialFitRef.current) {
         const bounds = group.getBounds();
-
         if (bounds.isValid()) {
           map.fitBounds(bounds, { padding });
           didInitialFitRef.current = true;
         }
       }
+
+      applyStageStyles();
     })();
 
     return () => {
@@ -199,9 +237,16 @@ function StageLayers({
       group.clearLayers();
       if (map.hasLayer(group)) map.removeLayer(group);
     };
-  }, [map, activities, fitBounds, padding, clickedStage, setClickedStage]);
+    // IMPORTANT: no clickedStage here; styling handled below
+  }, [map, activities, fitBounds, padding, setClickedStage]);
 
-  // Update styles on clickedStage change
+  // Re-apply styles when clickedStage changes (no rebuild)
+  useEffect(() => {
+    applyStageStyles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clickedStage]);
+
+  // Click blank map to clear selection
   useEffect(() => {
     if (!setClickedStage) return;
 
@@ -223,7 +268,6 @@ export default function TripMap({
   clickedStage,
   setClickedStage,
 }) {
-  console.log(stages);
   return (
     <div style={{ height: "100%", borderRadius: 10, overflow: "hidden" }}>
       <MapContainer

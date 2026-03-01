@@ -16,8 +16,10 @@
   --bg-dark: hsl(45, 18%, 92%);
   --bg-light: hsl(45, 18%, 99%);
 
+  --contrast: hsl(85, 17%, 14%);
+
   --text: hsl(0, 0%, 5%);
-  --text-faded: hsl(0, 0%, 30%);
+  --text-faded: hsl(0, 0%, 50%);
 
   --p: hsl(87, 79%, 30%);
 
@@ -29,6 +31,8 @@
     --bg: hsl(85, 17%, 14%);
     --bg-dark: hsl(85, 17%, 10%);
     --bg-light: hsl(85, 17%, 20%);
+
+    --contrast: hsl(45, 18%, 96%);
 
     --text: hsl(0, 0%, 95%);
     --text-faded: hsl(0, 0%, 70%);

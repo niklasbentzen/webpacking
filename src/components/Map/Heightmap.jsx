@@ -37,6 +37,8 @@ export default function Heightmap({
   stage,
   selectedActivity,
   setSelectedActivity,
+  onHoverPoint,
+  onHoverEnd,
 }) {
   const [activities, setActivities] = useState([]);
   const [profilesById, setProfilesById] = useState({}); // { [activityId]: profileArray }
@@ -46,14 +48,7 @@ export default function Heightmap({
     setActivities(stage?.expand?.activities_via_stage ?? []);
   }, [stage]);
 
-  // pick a default activity if none selected
-  useEffect(() => {
-    if (!selectedActivity && activities.length) {
-      setSelectedActivity?.(activities[0].id);
-    }
-  }, [activities, selectedActivity, setSelectedActivity]);
-
-  // load ONLY the selected profile (simplest)
+  // load the selected profile
   useEffect(() => {
     if (!selectedActivity) return;
 
@@ -99,7 +94,6 @@ export default function Heightmap({
   const status = statusById[selectedActivity] || "idle";
 
   // convert to recharts format (use distM + ele from your file)
-  console.log(profile);
   const data = useMemo(() => {
     if (!profile) return [];
     return profile.map((p) => ({
@@ -114,58 +108,76 @@ export default function Heightmap({
 
   if (!stage) return null;
 
-  if (!selectedActivity) return <div>Select an activity</div>;
-
+  if (!selectedActivity) return <></>;
+  /*
   if (status === "loading") return <div>Loading height profile…</div>;
   if (status === "error") return <div>Could not load height profile.</div>;
   if (!data.length) return <div>No height data.</div>;
-
+*/
   const minE = Math.min(...data.map((x) => x.ele));
   const maxE = Math.max(...data.map((x) => x.ele));
   const pad = Math.max(5, Math.round((maxE - minE) * 0.08));
 
   return (
-    <div style={{ width: "100%", height: 180 }}>
-      <div
-        style={{ display: "flex", gap: 8, marginBottom: 8, flexWrap: "wrap" }}
-      >
-        {activities.map((a) => (
-          <button
-            key={a.id}
-            onClick={() => setSelectedActivity?.(a.id)}
-            style={{
-              padding: "6px 10px",
-              borderRadius: 8,
-              border: "1px solid rgba(0,0,0,0.15)",
-              background:
-                a.id === selectedActivity ? "rgba(0,0,0,0.07)" : "white",
-              cursor: "pointer",
-            }}
-          >
-            {a.type || "Activity"} ({a.id.slice(0, 4)})
-          </button>
-        ))}
-      </div>
+    <div
+      style={{
+        margin: "1em",
+        padding: "1em",
+        boxSizing: "border-box",
+        background: "var(--bg)",
+        borderRadius: 10,
+      }}
+    >
+      <ResponsiveContainer width="100%" height={140} minHeight={10}>
+        <AreaChart
+          data={data}
+          onMouseMove={(state) => {
+            if (!state?.isTooltipActive) return;
 
-      <ResponsiveContainer>
-        <AreaChart data={data}>
+            const idx = Number(state.activeTooltipIndex);
+
+            const p = data[idx];
+            if (!p || p.lat == null || p.lng == null) return;
+
+            // call the imperative bridge with lat/lng (and anything else you want)
+            onHoverPoint?.({
+              lat: p.lat,
+              lng: p.lng,
+              distM: p.distM,
+              ele: p.ele,
+              i: p.i,
+              activityId: selectedActivity,
+            });
+          }}
+          onMouseLeave={() => onHoverEnd?.()}
+        >
           <XAxis
             dataKey="distM"
-            tickFormatter={(v) => formatKm(v)}
+            tickFormatter={(v) => `${formatKm(v)} km`}
+            tickCount={5}
             minTickGap={30}
+            height={12}
+            tick={{ fontSize: 12, fill: "var(--text)" }}
           />
           <YAxis
             dataKey="ele"
-            domain={[minE - pad, maxE + pad]}
-            tickFormatter={(v) => Math.round(v)}
-            width={40}
+            domain={["auto", "auto"]}
+            tickCount={10}
+            tickFormatter={(v) => `${Math.round(v)} m`}
+            width={45}
+            tick={{ fontSize: 12, fill: "var(--text)" }}
           />
           <Tooltip content={<ElevationTooltip />} />
           <Area
             type="monotone"
             dataKey="ele"
-            strokeWidth={2}
+            strokeWidth={1}
+            stroke="var(--p)"
+            fill="var(--p)"
             fillOpacity={0.15}
+            dot={false}
+            activeDot={{ r: 4 }}
+            isAnimationActive={false}
           />
         </AreaChart>
       </ResponsiveContainer>

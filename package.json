@@ -16,6 +16,7 @@
     "@we-gold/gpxjs": "^1.1.0",
     "leaflet": "^1.9.4",
     "leaflet-gpx": "^2.2.0",
+    "overtype": "^2.1.1",
     "pocketbase": "^0.26.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

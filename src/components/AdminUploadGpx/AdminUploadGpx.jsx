@@ -95,7 +95,12 @@ function buildProfileFromGpxTrackPoints(points, maxPoints = 2000) {
   return out;
 }
 
-export default function UploadGpx({ stageId, defaultType = "Bike" }) {
+export default function AdminUploadGpx({
+  stageId,
+  defaultType = "Bike",
+  activities,
+  setActivities,
+}) {
   const [type, setType] = useState(defaultType);
   const [file, setFile] = useState(null);
 
@@ -220,6 +225,7 @@ export default function UploadGpx({ stageId, defaultType = "Bike" }) {
         .update(activity.id, fdUpdate);
 
       setCreatedActivity(updated);
+      setActivities([updated, ...activities]);
       setStatus("done");
       setMessage("Done ✅");
       setFile(null);
@@ -235,8 +241,6 @@ export default function UploadGpx({ stageId, defaultType = "Bike" }) {
       onSubmit={onSubmit}
       style={{ display: "grid", gap: 12, maxWidth: 520 }}
     >
-      <h3>Upload activity</h3>
-
       <label style={{ display: "grid", gap: 6 }}>
         Activity type
         <select value={type} onChange={(e) => setType(e.target.value)}>

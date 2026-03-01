@@ -22,6 +22,7 @@ import {
   fetchStagesForTripWithActivities,
   summarizeTripFromStages,
 } from "../lib/trips";
+import { formatDateRange } from "../lib/stages";
 
 export default function Trip() {
   const { slug } = useParams();
@@ -48,7 +49,7 @@ export default function Trip() {
     })();
   }, [slug]);
 
-  const totals = useMemo(() => summarizeTripFromStages(stages), [stages]);
+  const tripTotals = useMemo(() => summarizeTripFromStages(stages), [stages]);
 
   return (
     <main className={s.trip}>
@@ -63,36 +64,31 @@ export default function Trip() {
         }
       </div>
       <div className={s.info}>
-        <h1 style={{ color: "var(--p)" }}>{trip?.name ?? status}</h1>
+        <h1>{trip?.name ?? status}</h1>
         {trip?.description && <p>{trip.description}</p>}
       </div>
 
       <div className={s.stages}>
         <section>
-          <h2>Summary</h2>
+          <h2>Trip</h2>
           <div className={s.tripData}>
-            {totals.stageCount != null && (
+            {tripTotals.startTime && (
               <div className={s.tripDataItem}>
-                <LineSegmentsIcon size="14" />
-                {totals.stageCount} stages
+                <span>
+                  {formatDateRange(tripTotals.startTime, tripTotals.endTime)}
+                </span>
               </div>
             )}
-            {totals.activityCount != null && (
-              <div className={s.tripDataItem}>
-                <LineSegmentIcon size="14" />
-                {totals.activityCount} activities
-              </div>
-            )}
-            {totals.distanceM != null && (
+            {tripTotals.distanceM != null && (
               <div className={s.tripDataItem}>
                 <ArrowsHorizontalIcon size="14" />
-                <span>{totals.distanceM} km</span>
+                <span>{(tripTotals.distanceM / 1000).toFixed(1)} km</span>
               </div>
             )}
-            {totals.elevationM != null && (
+            {tripTotals.elevationM != null && (
               <div className={s.tripDataItem}>
                 <ArrowUpRightIcon size="14" />
-                {totals.elevationM} m
+                {tripTotals.elevationM.toFixed(0)} m
               </div>
             )}
           </div>
@@ -101,7 +97,10 @@ export default function Trip() {
         <Divider />
 
         <section>
-          <h2>Stages</h2>
+          <h2>
+            Stages
+            <sup className={s.sup}>{stages.length}</sup>
+          </h2>
           <StageList stages={stages} clickedStage={clickedStage} />
         </section>
       </div>

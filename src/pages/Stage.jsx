@@ -1,9 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import { pb } from "../lib/pb";
 import StageMap from "../components/Map/StageMap";
+import ActivityList from "../components/ActivityList/ActivityList";
 import s from "./Stage.module.css";
+import Divider from "../components/Divider/Divider";
 
 import {
   formatDateRange,
@@ -12,15 +15,23 @@ import {
 } from "../lib/stages";
 import Heightmap from "../components/Map/Heightmap";
 
+import {
+  PersonSimpleBikeIcon,
+  PersonSimpleHikeIcon,
+  ArrowUpRightIcon,
+  ArrowsHorizontalIcon,
+  ClockIcon,
+} from "@phosphor-icons/react";
+
 export default function Stage() {
   const { slug } = useParams();
   const [stage, setStage] = useState([]);
   const [trip, setTrip] = useState(null);
   const [activities, setActivities] = useState([]);
   const [selectedActivity, setSelectedActivity] = useState(null);
-  const [hoverIndex, setHoverIndex] = useState(null);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("Idle");
+  const mapRef = useRef(null);
 
   useEffect(() => {
     (async () => {
@@ -29,6 +40,7 @@ export default function Stage() {
         const stageRes = await pb
           .collection("stages")
           .getFirstListItem(`slug='${slug}'`, {
+            sort: "-startDate",
             expand: "trip,activities_via_stage",
           });
 
@@ -41,6 +53,11 @@ export default function Stage() {
         setStage(stageRes);
         setTrip(stageRes.expand?.trip || null);
         setActivities(activitiesRes);
+
+        if (activitiesRes.length == 1) {
+          setSelectedActivity(activitiesRes[0].id);
+        }
+        console.log("Loaded stage", stageRes, activitiesRes);
       } catch (e) {
         console.error(e, e?.data);
         setError(e?.message || "Failed to load stage");
@@ -49,118 +66,97 @@ export default function Stage() {
     })();
   }, [slug]);
 
-  const { start, end } = useMemo(
-    () => getStageDateRangeFromActivities(activities),
-    [activities]
+  const dateLabel = useMemo(
+    () => formatDateRange(stage?.startDate, stage?.startDate),
+    [stage?.startDate, stage?.startDate]
   );
-
-  const dateLabel = useMemo(() => formatDateRange(start, end), [start, end]);
-
   const summary = useMemo(() => summarizeActivities(activities), [activities]);
 
   return (
     <main className={s.stage}>
-      {/* Map loads activities itself based on stage */}
-      <div className={s.map}>
-        <StageMap
-          stage={stage}
-          trip={trip}
-          selectedActivity={selectedActivity}
-          setSelectedActivity={setSelectedActivity}
-          hoverIndex={hoverIndex}
-          setHoverIndex={setHoverIndex}
-        />
-      </div>
+      {activities.length > 0 && (
+        <div className={s.map}>
+          <StageMap
+            ref={mapRef}
+            stage={stage}
+            trip={trip}
+            selectedActivity={selectedActivity}
+            setSelectedActivity={setSelectedActivity}
+          />
+          <div className={s.heightmap}>
+            <Heightmap
+              stage={stage}
+              selectedActivity={selectedActivity}
+              setSelectedActivity={setSelectedActivity}
+              onHoverPoint={(pt) => mapRef.current?.setHoverPoint(pt)}
+              onHoverEnd={() => mapRef.current?.clearHover()}
+            />
+          </div>
+        </div>
+      )}
+
       <div className={s.info}>
+        {dateLabel && <p>{dateLabel}</p>}
         <h1 style={{ color: "var(--p)" }}>{stage?.name ?? status}</h1>
 
-        {dateLabel && <p>{dateLabel}</p>}
-
-        {(summary.bikeCount > 0 ||
-          summary.hikeCount > 0 ||
-          summary.distanceM != null ||
-          summary.elevationM != null ||
-          summary.duration) && (
-          <p>
+        <div className={s.stageData}>
+          <div className={s.stageDataType}>
             {summary.bikeCount > 0 && (
-              <>
-                🚴 {summary.bikeCount}
-                {(summary.hikeCount > 0 ||
-                  summary.distanceM != null ||
-                  summary.elevationM != null ||
-                  summary.duration) &&
-                  " • "}
-              </>
+              <div className={(s.stageDataItem, s.activityCount)}>
+                <PersonSimpleBikeIcon size="18" />
+                <span>{summary.bikeCount}</span>
+              </div>
             )}
-
             {summary.hikeCount > 0 && (
-              <>
-                🚶 {summary.hikeCount}
-                {(summary.distanceM != null ||
-                  summary.elevationM != null ||
-                  summary.duration) &&
-                  " • "}
-              </>
+              <div className={(s.stageDataItem, s.activityCount)}>
+                <PersonSimpleHikeIcon size="18" />
+                <span>{summary.hikeCount}</span>
+              </div>
             )}
+          </div>
 
-            {summary.distanceKm != null && (
-              <>
-                {summary.distanceM.toFixed(1)} km
-                {(summary.elevationM != null || summary.duration) && " • "}
-              </>
-            )}
+          {summary.distanceM != null && (
+            <div className={s.stageDataItem}>
+              <ArrowsHorizontalIcon size="14" />
+              {(summary.distanceM / 1000).toFixed(1)} km
+            </div>
+          )}
 
-            {summary.elevationM != null && (
-              <>
-                {Math.round(summary.elevationM)} m{summary.duration && " • "}
-              </>
-            )}
+          {summary.elevationM != null && (
+            <div className={s.stageDataItem}>
+              <ArrowUpRightIcon size="14" />
+              {Math.round(summary.elevationM)} m
+            </div>
+          )}
 
-            {summary.duration && <>{summary.duration}</>}
-          </p>
+          {summary.duration && (
+            <div className={s.stageDataItem}>
+              <ClockIcon size="14" />
+              {summary.duration}
+            </div>
+          )}
+        </div>
+
+        {activities.length > 1 && (
+          <>
+            <Divider />
+
+            <h3>Activities</h3>
+
+            <ActivityList
+              activities={activities}
+              selectedActivity={selectedActivity}
+              setSelectedActivity={setSelectedActivity}
+            />
+          </>
         )}
+      </div>
 
-        <h2>Activities</h2>
-        {activities.length === 0 ? (
-          <p>No activities found for this stage.</p>
-        ) : (
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {activities.map((a) => {
-              const aDateLabel = formatDateRange(a.startTime, a.endTime);
-
-              return (
-                <li key={a.id} style={{ padding: "12px 0" }}>
-                  <div>
-                    {a.type ? a.type : ""}
-                    {a.type && aDateLabel ? " • " : ""}
-                    {aDateLabel || ""}
-                  </div>
-
-                  {a.distanceKm || a.elevationM ? (
-                    <div>
-                      <div>
-                        {a.distanceKm ? `${Math.round(a.distanceKm)} km` : ""}
-                      </div>
-                      <div>
-                        {a.elevationM ? `${Math.round(a.elevationM)} m` : ""}
-                      </div>
-                    </div>
-                  ) : null}
-                </li>
-              );
-            })}
-          </ul>
-        )}
+      <div className={s.return}>
+        <Link to={`/trips/${trip?.slug}`}>← Go back</Link>
       </div>
 
       <div className={s.body}>
-        <Heightmap
-          stage={stage}
-          selectedActivity={selectedActivity}
-          setSelectedActivity={setSelectedActivity}
-          hoverIndex={hoverIndex}
-          setHoverIndex={setHoverIndex}
-        />
         <ReactMarkdown>
           {stage?.body ?? "No additional information for this stage."}
         </ReactMarkdown>

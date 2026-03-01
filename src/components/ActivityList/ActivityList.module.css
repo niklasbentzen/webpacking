@@ -1,0 +1,44 @@
+.activityList {
+  display: flex;
+  flex-direction: column;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.activity {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.activityHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.activityData {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  margin-left: 26px;
+  align-items: center;
+}
+
+.activityDataItem {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+
+  font-weight: 600;
+  font-size: 0.8em;
+  opacity: 0.6;
+}
+
+.selected {
+  background-color: var(--bg-dark);
+}

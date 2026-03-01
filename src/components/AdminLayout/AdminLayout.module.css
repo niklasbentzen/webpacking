@@ -1,0 +1,29 @@
+/* src/components/AdminLayout/AdminLayout.module.css */
+.adminWrap {
+  padding: 16px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.brand {
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.logout {
+  cursor: pointer;
+}

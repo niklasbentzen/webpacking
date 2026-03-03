@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import Sparkline from "../Sparklinetest/SparkLine";
+import Sparkline from "../Sparkline/Sparkline";
 import s from "./StageList.module.css";
 
 import {

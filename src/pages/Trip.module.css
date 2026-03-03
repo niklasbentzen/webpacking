@@ -12,6 +12,7 @@
 }
 .map {
   grid-area: 1 / 1 / 2 / 3;
+  position: relative;
 }
 .stages {
   grid-area: 1 / 3 / 3 / 4;
@@ -110,4 +111,33 @@
 
 .info p {
   font-size: 0.8em;
+}
+
+.mapControls {
+  position: absolute;
+  bottom: 1em;
+  left: 1em;
+  z-index: 999;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.mapControl {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5em;
+  width: fit-content;
+
+  padding: 0.5em;
+  background-color: var(--bg);
+  border: 1px solid var(--b);
+  border-radius: 6px;
+
+  cursor: pointer;
+}
+.mapControl:hover {
+  color: var(--p);
 }

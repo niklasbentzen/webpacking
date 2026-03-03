@@ -13,6 +13,7 @@ import {
   ClockIcon,
   LineSegmentIcon,
   LineSegmentsIcon,
+  GpsFixIcon,
 } from "@phosphor-icons/react";
 
 import {
@@ -66,10 +67,13 @@ export default function Trip() {
           />
           <PlannedRoute trip={trip} />
         </Map>
-        <div>
-          <button onClick={() => layerRef.current?.locate()}>
-            Locate last position
-          </button>
+        <div className={s.mapControls}>
+          <div
+            className={s.mapControl}
+            onClick={() => layerRef.current?.locate()}
+          >
+            <GpsFixIcon size="20" />
+          </div>
         </div>
       </div>
       <div className={s.info}>

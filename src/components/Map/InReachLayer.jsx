@@ -47,7 +47,7 @@ const InReachLayer = forwardRef(function InReachLayer({ limit = 10 }, ref) {
           weight: 2,
           color: "red",
           fillColor: "red",
-          fillOpacity: 0.5,
+          fillOpacity: 0.4,
         });
 
         dot.bindTooltip(

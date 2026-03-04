@@ -24,8 +24,9 @@ export default function App() {
           <Route index element={<AdminHome />} />
           <Route path="trips/:tripId" element={<AdminTrip />} />
           <Route path="stages/:stageId" element={<AdminStage />} />
-          <Route path="test" element={<AdminTest />} />
         </Route>
+
+        <Route path="test" element={<AdminTest />} />
       </Routes>
     </>
   );

@@ -82,19 +82,19 @@ export default function Trip() {
 
         <div className={s.mapControls}>
           {isLoggedIn ? (
-            <button className={s.mapControl} onClick={() => logout()}>
+            <button className="button-secondary" onClick={() => logout()}>
               Log out
             </button>
           ) : (
             <button
-              className={s.mapControl}
+              className="button-secondary"
               onClick={() => setIsLoginOpen(true)}
             >
               Login
             </button>
           )}
           <button
-            className={s.mapControl}
+            className="button-secondary button-icon"
             onClick={() => layerRef.current?.locate()}
             disabled={!isLoggedIn}
             title={
@@ -106,7 +106,7 @@ export default function Trip() {
             <GpsFixIcon size="20" />
           </button>
           <button
-            className={s.mapControl}
+            className="button-secondary button-icon"
             onClick={() => tripLayerRef.current?.fitBounds()}
             title="See entire route"
           >

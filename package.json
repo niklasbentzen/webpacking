@@ -14,6 +14,7 @@
     "@tmcw/togeojson": "^7.1.2",
     "@turf/simplify": "^7.3.3",
     "@we-gold/gpxjs": "^1.1.0",
+    "fit-file-parser": "^2.3.3",
     "leaflet": "^1.9.4",
     "leaflet-gpx": "^2.2.0",
     "overtype": "^2.1.1",

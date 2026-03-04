@@ -1,0 +1,54 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center; /* use flex-end instead of end */
+  background-color: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* modal becomes a flex column that has a fixed height */
+.modal {
+  width: min(540px, 100%);
+  background: var(--bg);
+  height: auto;
+  padding: 2em;
+  box-sizing: border-box;
+  border-radius: 6px;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+  min-height: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex: 0 0 auto;
+}
+
+.title {
+  margin: 0;
+}
+
+/* new: content area that actually scrolls */
+.content {
+  flex: 1 1 auto;
+  min-height: 0; /* IMPORTANT in flex layouts */
+  overflow: auto;
+}
+
+.close {
+  cursor: pointer;
+  height: 24px;
+  width: 24px;
+}
+.close:hover {
+  color: var(--p);
+}

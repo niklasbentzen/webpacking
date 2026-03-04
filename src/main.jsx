@@ -5,11 +5,14 @@ import App from "./App.jsx";
 
 import "leaflet/dist/leaflet.css";
 import "./lib/leafletIcons";
+import { AuthProvider } from "./lib/contexts/AuthContext.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

@@ -5,7 +5,6 @@ import s from "./StageList.module.css";
 import {
   PersonSimpleBikeIcon,
   PersonSimpleHikeIcon,
-  ArrowUpRightIcon,
   ArrowsHorizontalIcon,
   ClockIcon,
 } from "@phosphor-icons/react";

@@ -2,6 +2,13 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { pb } from "../lib/pb";
 
+function safeNext(next) {
+  // Prevent open-redirects. Only allow internal paths.
+  if (!next) return null;
+  if (next.startsWith("/") && !next.startsWith("//")) return next;
+  return null;
+}
+
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -14,7 +21,8 @@ export default function Login() {
   const [error, setError] = useState("");
 
   // if user was redirected here from a protected page
-  const next = new URLSearchParams(location.search).get("next") || "/admin";
+  const nextParam = new URLSearchParams(location.search).get("next");
+  const next = safeNext(nextParam);
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -24,14 +32,16 @@ export default function Login() {
     try {
       await pb.collection("users").authWithPassword(username.trim(), password);
 
-      // Optional: basic "admin" gate right here
       const isAdmin = !!pb.authStore.model?.admin;
-      if (!isAdmin) {
-        pb.authStore.clear();
-        throw new Error("Your account does not have admin access.");
-      }
 
-      navigate(next, { replace: true });
+      // Default landing pages per role
+      const defaultDest = isAdmin ? "/admin" : "/";
+
+      // If `next` exists but the user isn't allowed there, ignore it.
+      const dest =
+        next && (!next.startsWith("/admin") || isAdmin) ? next : defaultDest;
+
+      navigate(dest, { replace: true });
     } catch (err) {
       console.error(err);
       setError(err?.message || "Login failed");
@@ -62,12 +72,11 @@ export default function Login() {
         }}
       >
         <h1 style={{ margin: 0 }}>Log in</h1>
-        <p style={{ margin: 0, opacity: 0.75 }}>Admin access required.</p>
 
         <label style={{ display: "grid", gap: 6 }}>
           Username
           <input
-            type="username"
+            type="text"
             autoComplete="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -86,13 +95,15 @@ export default function Login() {
           />
         </label>
 
-        <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <input
-            type="checkbox"
-            checked={showPw}
-            onChange={(e) => setShowPw(e.target.checked)}
-          />
-          Show password
+        <label style={{ display: "flex", gap: 8, alignItems: "start" }}>
+          <div>
+            <input
+              type="checkbox"
+              checked={showPw}
+              onChange={(e) => setShowPw(e.target.checked)}
+            />
+            <span> Show password</span>
+          </div>
         </label>
 
         {error && (
@@ -120,6 +131,7 @@ export default function Login() {
           style={{
             background: "transparent",
             border: "1px solid rgba(0,0,0,0.15)",
+            color: "var(--contrast)",
           }}
         >
           Cancel

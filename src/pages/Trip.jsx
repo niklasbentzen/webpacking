@@ -1,19 +1,19 @@
 import { act, useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import StageList from "../components/StageList/StageList";
 import Divider from "../components/Divider/Divider";
 
 import s from "./Trip.module.css";
 
 import {
-  PersonSimpleBikeIcon,
-  PersonSimpleHikeIcon,
   ArrowUpRightIcon,
   ArrowsHorizontalIcon,
-  ClockIcon,
-  LineSegmentIcon,
-  LineSegmentsIcon,
   GpsFixIcon,
+  LockIcon,
+  LockOpenIcon,
+  Log,
+  PathIcon,
+  SelectionIcon,
 } from "@phosphor-icons/react";
 
 import {
@@ -26,6 +26,11 @@ import Map from "../components/Map/Map";
 import TripLayer from "../components/Map/TripLayer";
 import PlannedRoute from "../components/Map/PlannedRoute";
 import InReachLayer from "../components/Map/InReachLayer";
+import React from "react";
+import { pb } from "../lib/pb";
+import Login from "../components/Login/Login";
+import Modal from "../components/Modal/Modal";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 export default function Trip() {
   const { slug } = useParams();
@@ -35,6 +40,12 @@ export default function Trip() {
   const [error, setError] = useState("");
   const [status, setStatus] = useState("Idle");
   const layerRef = useRef();
+  const tripLayerRef = useRef();
+
+  const { isLoggedIn, logout } = useAuth();
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+
+  const [hoverLogin, setHoverLogin] = useState(false);
 
   useEffect(() => {
     setStatus("Loading...");
@@ -59,21 +70,48 @@ export default function Trip() {
     <main className={s.trip}>
       <div className={s.map}>
         <Map>
-          <InReachLayer ref={layerRef} />
+          {isLoggedIn && <InReachLayer ref={layerRef} />}
           <TripLayer
+            ref={tripLayerRef}
             stages={stages}
             clickedStage={clickedStage}
             setClickedStage={setClickedStage}
           />
           <PlannedRoute trip={trip} />
         </Map>
+
         <div className={s.mapControls}>
-          <div
+          {isLoggedIn ? (
+            <button className={s.mapControl} onClick={() => logout()}>
+              Log out
+            </button>
+          ) : (
+            <button
+              className={s.mapControl}
+              onClick={() => setIsLoginOpen(true)}
+            >
+              Login
+            </button>
+          )}
+          <button
             className={s.mapControl}
             onClick={() => layerRef.current?.locate()}
+            disabled={!isLoggedIn}
+            title={
+              isLoggedIn
+                ? "Last location from Garmin InReach"
+                : "Login to see last location from Garmin InReach"
+            }
           >
             <GpsFixIcon size="20" />
-          </div>
+          </button>
+          <button
+            className={s.mapControl}
+            onClick={() => tripLayerRef.current?.fitBounds()}
+            title="See entire route"
+          >
+            <PathIcon size="20" />
+          </button>
         </div>
       </div>
       <div className={s.info}>
@@ -83,7 +121,9 @@ export default function Trip() {
 
       <div className={s.stages}>
         <section>
-          <h2>Trip</h2>
+          <div className={s.tripHeader}>
+            <h2>Trip</h2>
+          </div>
           <div className={s.tripData}>
             {tripTotals.startTime && (
               <div className={s.tripDataItem}>
@@ -117,6 +157,18 @@ export default function Trip() {
           <StageList stages={stages} clickedStage={clickedStage} />
         </section>
       </div>
+      <Modal
+        open={isLoginOpen}
+        title="Login"
+        onClose={() => setIsLoginOpen(false)}
+      >
+        <Login
+          onSuccess={({ isAdmin }) => {
+            setIsLoginOpen(false);
+            navigate(isAdmin ? "/admin" : "/");
+          }}
+        />
+      </Modal>
     </main>
   );
 }

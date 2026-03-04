@@ -1,6 +1,7 @@
 import React, { forwardRef, useImperativeHandle, useRef } from "react";
-import { MapContainer, TileLayer } from "react-leaflet";
+import { MapContainer, TileLayer, ZoomControl } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import "./Map.css";
 
 import HoverDot from "./HoverDot";
 
@@ -24,7 +25,7 @@ const Map = forwardRef(function Map(
     tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     tileAttribution = "&copy; OpenStreetMap contributors",
   },
-  ref
+  ref,
 ) {
   const hoverDotRef = useRef(null);
 
@@ -53,8 +54,10 @@ const Map = forwardRef(function Map(
         center={center}
         zoom={zoom}
         style={{ height: "100%", width: "100%" }}
+        zoomControl={false}
       >
         <TileLayer attribution={tileAttribution} url={tileUrl} />
+        <ZoomControl position="bottomright" />
 
         {children}
 

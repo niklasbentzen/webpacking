@@ -37,6 +37,11 @@ label {
   opacity: 0.6;
 }
 
+a {
+  color: var(--text);
+  text-decoration: underline;
+}
+
 main {
   max-width: 2000px;
   margin: auto;
@@ -71,4 +76,39 @@ sub {
 
 .bottom {
   align-items: flex-end;
+}
+
+input {
+  padding: 1em;
+  border: 1px solid var(--b);
+  border-radius: 6px;
+  background: transparent;
+  color: black !important;
+}
+input:focus {
+  outline: 2px solid var(--p);
+}
+
+button {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5em;
+  width: fit-content;
+
+  padding: 0.5em;
+  background-color: var(--bg);
+  border: 1px solid var(--b);
+  border-radius: 6px;
+  color: var(--text);
+
+  cursor: pointer;
+}
+button:hover {
+  color: var(--p);
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: var(--text);
 }

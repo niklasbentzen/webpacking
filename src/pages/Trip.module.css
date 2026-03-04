@@ -120,24 +120,27 @@
   z-index: 999;
 
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 0.5em;
 }
 
-.mapControl {
+.tripHeader {
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.5em;
-  width: fit-content;
-
-  padding: 0.5em;
-  background-color: var(--bg);
-  border: 1px solid var(--b);
-  border-radius: 6px;
-
-  cursor: pointer;
+  gap: 1em;
 }
-.mapControl:hover {
-  color: var(--p);
+
+.userActions {
+  grid-area: 2 / 1 / 3 / 2;
+  width: fit-content;
+}
+
+.userAction {
+  font-size: 0.8em;
+  border: 1px solid var(--b);
+  padding: 0.5em 1em;
+  border-radius: 6px;
+  cursor: pointer;
 }

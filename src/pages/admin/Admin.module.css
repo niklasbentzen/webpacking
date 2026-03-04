@@ -50,7 +50,7 @@ label {
   color: var(text-muted);
 }
 
-input {
+.admin input {
   font-size: 1em;
   width: 100%;
   box-sizing: border-box;
@@ -110,7 +110,7 @@ textarea {
   align-items: center;
 }
 
-button {
+.admin button {
   border: none;
   padding: 0.5em 1em;
   font-weight: 600;
@@ -120,12 +120,12 @@ button {
 
   cursor: pointer;
 }
-button:disabled {
+.admin button:disabled {
   opacity: 0.5;
   cursor: default;
 }
 
-.secondary {
+.admin .secondary {
   background-color: transparent;
   color: var(--text);
   border: solid 1px var(--b);

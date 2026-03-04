@@ -12,7 +12,7 @@ import AdminTest from "./pages/admin/AdminTest.jsx";
 
 export default function App() {
   return (
-    <div>
+    <>
       <Routes>
         <Route path="/login" element={<Login />} />
 
@@ -27,6 +27,6 @@ export default function App() {
           <Route path="test" element={<AdminTest />} />
         </Route>
       </Routes>
-    </div>
+    </>
   );
 }

@@ -1,15 +1,24 @@
-import { useEffect, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 import { pb } from "../../lib/pb";
 
-export default function TripLayer({
-  stages,
-  clickedStage,
-  setClickedStage,
-  fitBounds = true,
-  padding = [20, 20],
-}) {
+const TripLayer = forwardRef(function TripLayer(
+  {
+    stages,
+    clickedStage,
+    setClickedStage,
+    fitBounds = true,
+    padding = [20, 20],
+  },
+  ref,
+) {
   const map = useMap();
   const groupRef = useRef(L.featureGroup());
   const suppressNextMapClickRef = useRef(false);
@@ -31,25 +40,10 @@ export default function TripLayer({
     return v || fallback;
   };
 
-  // Extract activities when stages change
-  useEffect(() => {
-    if (!stages?.length) {
-      setActivities([]);
-      return;
-    }
-
-    const allActivities = stages.flatMap(
-      (stage) => stage.expand?.activities_via_stage ?? []
-    );
-
-    setActivities(allActivities);
-  }, [stages]);
-
   // Style all stage lines based on hovered/clicked state
   const applyStageStyles = () => {
     const selectedColor = cssVar("--p", "#ff6600");
     const unselectedColor = "green";
-
     const hoveredStage = hoveredStageRef.current;
 
     for (const [stageId, lines] of lineLayersByStageRef.current.entries()) {
@@ -66,13 +60,50 @@ export default function TripLayer({
     }
   };
 
-  // Helper: fit bounds for the whole stage
+  // Helper: fit bounds for a single stage
   const fitStageBounds = (stageId) => {
     const bounds = stageBoundsByIdRef.current.get(stageId);
     if (bounds && bounds.isValid()) {
       map.fitBounds(bounds, { padding });
     }
   };
+
+  // Helper: fit bounds for whole trip (everything in the featureGroup)
+  const fitAllBounds = () => {
+    const group = groupRef.current;
+    const bounds = group?.getBounds?.();
+    if (bounds && bounds.isValid()) {
+      map.fitBounds(bounds, { padding });
+    }
+  };
+
+  // ✅ Expose methods to parent via ref (your button can call these)
+  useImperativeHandle(
+    ref,
+    () => ({
+      fitBounds: fitAllBounds,
+      fitStageBounds,
+      // optional: useful for debugging
+      getBounds: () => groupRef.current?.getBounds?.(),
+    }),
+    // padding changes should update the behavior
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [map, padding],
+  );
+
+  // Extract activities when stages change
+  useEffect(() => {
+    if (!stages?.length) {
+      setActivities([]);
+      return;
+    }
+
+    const allActivities = stages.flatMap(
+      (stage) => stage.expand?.activities_via_stage ?? [],
+    );
+
+    setActivities(allActivities);
+  }, [stages]);
 
   // Build layers once per activities change
   useEffect(() => {
@@ -124,7 +155,7 @@ export default function TripLayer({
             const existing = stageBoundsByIdRef.current.get(activity.stage);
             stageBoundsByIdRef.current.set(
               activity.stage,
-              existing ? existing.extend(activityBounds) : activityBounds
+              existing ? existing.extend(activityBounds) : activityBounds,
             );
           }
 
@@ -165,11 +196,8 @@ export default function TripLayer({
 
       // initial fit (whole group)
       if (fitBounds && !didInitialFitRef.current) {
-        const bounds = group.getBounds();
-        if (bounds.isValid()) {
-          map.fitBounds(bounds, { padding });
-          didInitialFitRef.current = true;
-        }
+        fitAllBounds();
+        didInitialFitRef.current = true;
       }
 
       applyStageStyles();
@@ -203,4 +231,6 @@ export default function TripLayer({
   }, [map, setClickedStage]);
 
   return null;
-}
+});
+
+export default TripLayer;

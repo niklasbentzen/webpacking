@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import s from "./Admin.module.css";
 import ReactMarkdown from "react-markdown";
 import AdminModal from "../../components/AdminModal/AdminModal";
-import AdminUploadGpx from "../../components/AdminUploadGpx/AdminUploadGpx";
+import AdminUploadActivity from "../../components/AdminUploadActivity/AdminUploadActivity";
 
 import {
   fetchStageByIdWithActivities,
@@ -402,7 +402,7 @@ export default function AdminStage() {
                   <ClockIcon size={14} />
                   <p>
                     {formatDuration(
-                      new Date(activity.endTime) - new Date(activity.startTime)
+                      new Date(activity.endTime) - new Date(activity.startTime),
                     )}
                   </p>
                 </div>
@@ -472,13 +472,13 @@ export default function AdminStage() {
                       try {
                         const updated = await deleteStageImage(
                           stage.id,
-                          filename
+                          filename,
                         );
 
                         setStage((prev) =>
                           prev
                             ? { ...prev, images: updated.images } // or updated.images ?? []
-                            : prev
+                            : prev,
                         );
                       } catch (err) {
                         console.error(err);
@@ -510,7 +510,7 @@ export default function AdminStage() {
         onClose={() => setIsAddActivityOpen(false)}
       >
         {stage && (
-          <AdminUploadGpx
+          <AdminUploadActivity
             stageId={stage.id}
             activities={activities}
             setActivities={setActivities}

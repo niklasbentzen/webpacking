@@ -23,7 +23,7 @@ export default function AdminHome() {
             <h3>{trip.name}</h3>
           </Link>
           <label>Recent stages</label>
-          {trip.expand["stages_via_trip"].slice(0, 3).map((stage) => (
+          {trip.expand["stages_via_trip"]?.slice(0, 3).map((stage) => (
             <div key={stage.id}>
               <Link to={`/admin/stages/${stage.id}`}>{stage.name}</Link>
             </div>

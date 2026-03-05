@@ -1,4 +1,4 @@
-import AdminUploadActivity from "../../components/AdminUploadGpx/AdminUploadActivity";
+import AdminUploadActivity from "../../components/AdminUploadActivity/AdminUploadActivity";
 
 export default function AdminTest() {
   return <AdminUploadActivity stageId="test" />;

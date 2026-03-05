@@ -201,20 +201,40 @@ function parseFitArrayBuffer(arrayBuffer) {
   });
 }
 
+function normalizeLat(value) {
+  const x = Number(value);
+  if (!Number.isFinite(x)) return NaN;
+
+  // Already degrees?
+  if (Math.abs(x) <= 90) return x;
+
+  // Likely semicircles
+  return semicirclesToDegrees(x);
+}
+
+function normalizeLng(value) {
+  const x = Number(value);
+  if (!Number.isFinite(x)) return NaN;
+
+  // Already degrees?
+  if (Math.abs(x) <= 180) return x;
+
+  // Likely semicircles
+  return semicirclesToDegrees(x);
+}
+
 function fitDataToTrackPoints(fitData) {
-  // Most libraries expose "records" containing the time series
   const records = fitData?.records || fitData?.record || [];
   const out = [];
 
   for (const r of records) {
-    const lat = semicirclesToDegrees(
-      r.position_lat ?? r.positionLat ?? r.latitude,
-    );
-    const lng = semicirclesToDegrees(
-      r.position_long ?? r.positionLong ?? r.longitude,
-    );
+    // fit-file-parser commonly uses these keys
+    const rawLat = r.position_lat ?? r.positionLat ?? r.latitude;
+    const rawLng = r.position_long ?? r.positionLong ?? r.longitude;
 
-    // altitude can be "altitude" (meters) depending on parser options
+    const lat = normalizeLat(rawLat);
+    const lng = normalizeLng(rawLng);
+
     const eleRaw = r.altitude ?? r.enhanced_altitude ?? r.elevation;
     const ele =
       eleRaw == null || !Number.isFinite(Number(eleRaw))
@@ -224,7 +244,6 @@ function fitDataToTrackPoints(fitData) {
     const ts = r.timestamp ?? r.time_created ?? r.time;
     const time = ts ? new Date(ts).toISOString() : null;
 
-    // Only keep points that have coordinates
     if (lat === lat && lng === lng) {
       out.push({ lat, lng, ele, time });
     }

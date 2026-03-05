@@ -149,7 +149,7 @@ export default function Trip() {
 
         <Divider />
 
-        <section>
+        <section style={{ flex: "1 1 0%" }}>
           <h2>
             Stages
             <sup className={s.sup}>{stages.length}</sup>

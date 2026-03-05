@@ -10,6 +10,12 @@
   overflow: scroll;
 }
 
+@media (max-width: 960px) {
+  .stageList {
+    height: 100%;
+  }
+}
+
 .stageItem {
   display: flex;
   flex-direction: row;

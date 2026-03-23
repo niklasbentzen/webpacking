@@ -1,0 +1,29 @@
+.no-map {
+  --bg-test: hsl(45, 18%, 96%);
+  --bg-dark-test: hsl(45, 18%, 50%);
+}
+
+.no-map {
+  background: var(--bg-test);
+}
+
+/* Give the map pane the same base tone */
+.no-map .leaflet-container {
+  background: var(--bg-test);
+}
+
+/* Recolor the black/white raster tiles */
+.no-map .leaflet-tile {
+  filter: url(#no-map-duotone);
+}
+
+/* Optional: make attribution match better */
+.no-map .leaflet-control-attribution {
+  background: color-mix(in srgb, var(--bg-test) 88%, transparent);
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.no-map,
+.no-map .leaflet-container {
+  background: var(--bg);
+}

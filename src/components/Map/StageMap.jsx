@@ -237,8 +237,9 @@ function StageLayers({
               L.DomEvent.stopPropagation(e);
 
               // Selection triggers styling+fit via selectedActivity effect
-              setSelectedActivity?.(activity.id);
-
+              if (!!activity.id) {
+                setSelectedActivity?.(activity.id);
+              }
               setTimeout(() => {
                 suppressNextMapClickRef.current = false;
               }, 0);
@@ -287,34 +288,20 @@ function StageLayers({
 
   // ✅ Selection effect: styles + fit (works from map click OR external buttons)
   useEffect(() => {
-    applySelectionStyles(selectedActivity ?? null);
+    if (!selectedActivity) return;
 
-    if (selectedActivity) {
-      const didFit = fitToActivity(selectedActivity);
-      pendingFitIdRef.current = didFit ? null : selectedActivity;
-    } else {
-      pendingFitIdRef.current = null;
-    }
+    applySelectionStyles(selectedActivity);
+
+    const didFit = fitToActivity(selectedActivity);
+    pendingFitIdRef.current = didFit ? null : selectedActivity;
   }, [selectedActivity]);
-
-  useEffect(() => {
-    if (!setSelectedActivity) return;
-
-    const onMapClick = () => {
-      if (suppressNextMapClickRef.current) return;
-      setSelectedActivity(null);
-    };
-
-    map.on("click", onMapClick);
-    return () => map.off("click", onMapClick);
-  }, [map, setSelectedActivity]);
 
   return null;
 }
 
 const StageMap = forwardRef(function StageMap(
   { stage, trip, selectedActivity, setSelectedActivity },
-  ref
+  ref,
 ) {
   const hoverDotRef = useRef(null);
 

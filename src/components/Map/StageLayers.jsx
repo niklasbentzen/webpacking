@@ -41,15 +41,15 @@ export default function StageLayers({
     if (!bounds || !bounds.isValid?.()) return false;
 
     map.fitBounds(bounds, {
-      paddingTopLeft: [4, 4],
-      paddingBottomRight: [4, 200],
+      paddingTopLeft: [50, 50],
+      paddingBottomRight: [50, 220],
     });
 
     return true;
   };
 
   const applySelectionStyles = (selectedId) => {
-    const selectedColor = cssVar("--p", "#ff6600");
+    const selectedColor = "green";
     const unselectedColor = "green";
 
     for (const [activityId, line] of lineByActivityIdRef.current.entries()) {
@@ -96,11 +96,11 @@ export default function StageLayers({
           if (cancelled) return;
 
           const outline = L.geoJSON(data, {
-            style: () => ({ color: "#ffffff", weight: 8, opacity: 1 }),
+            style: () => ({ color: "#ffffff", weight: 8, opacity: 0.5 }),
           });
 
           const line = L.geoJSON(data, {
-            style: () => ({ color: unselectedColor, weight: 4, opacity: 0.5 }),
+            style: () => ({ color: unselectedColor, weight: 4, opacity: 0.2 }),
           });
 
           lineByActivityIdRef.current.set(activity.id, line);
@@ -153,8 +153,8 @@ export default function StageLayers({
         const bounds = group.getBounds();
         if (bounds.isValid()) {
           map.fitBounds(bounds, {
-            paddingTopLeft: [padding[0], padding[1]],
-            paddingBottomRight: [padding[0], 200],
+            paddingTopLeft: [padding[20], padding[20]],
+            paddingBottomRight: [padding[20], 200],
           });
           didInitialFitRef.current = true;
         }
@@ -185,7 +185,7 @@ export default function StageLayers({
 
     const onMapClick = () => {
       if (suppressNextMapClickRef.current) return;
-      setSelectedActivity(null);
+      //setSelectedActivity(null);
     };
 
     map.on("click", onMapClick);

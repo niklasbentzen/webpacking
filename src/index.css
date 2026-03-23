@@ -44,17 +44,16 @@
 }
 
 @font-face {
-  font-family: "Satoshi";
-  src: url("./assets/fonts/Satoshi-Variable.woff2") format("woff2-variations");
+  font-family: "Lora";
+  src: url("/src/assets/fonts/Lora-Variable.woff2") format("woff2");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Satoshi";
-  src: url("./assets/fonts/Satoshi-VariableItalic.woff2")
-    format("woff2-variations");
+  font-family: "Lora";
+  src: url("/src/assets/fonts/Lora-VariableItalic.woff2") format("woff2");
   font-weight: 100 900;
   font-style: italic;
   font-display: swap;

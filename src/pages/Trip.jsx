@@ -37,6 +37,7 @@ export default function Trip() {
   const [trip, setTrip] = useState(null);
   const [stages, setStages] = useState([]);
   const [clickedStage, setClickedStage] = useState(null);
+  const [hoveredStage, setHoveredStage] = useState(null);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("Idle");
   const layerRef = useRef();
@@ -70,17 +71,19 @@ export default function Trip() {
     <main className={s.trip}>
       <div className={s.map}>
         <Map>
+          <PlannedRoute trip={trip} />
           {isLoggedIn && <InReachLayer ref={layerRef} />}
           <TripLayer
             ref={tripLayerRef}
             stages={stages}
             clickedStage={clickedStage}
             setClickedStage={setClickedStage}
+            hoveredStage={hoveredStage}
+            setHoveredStage={setHoveredStage}
           />
-          <PlannedRoute trip={trip} />
         </Map>
 
-        <div className={s.mapControls}>
+        <div className={`${s.mapControls} ${s.topLeft}`}>
           {isLoggedIn ? (
             <button className="button-secondary" onClick={() => logout()}>
               Log out
@@ -93,6 +96,8 @@ export default function Trip() {
               Login
             </button>
           )}
+        </div>
+        <div className={`${s.mapControls} ${s.bottomLeft}`}>
           <button
             className="button-secondary button-icon"
             onClick={() => layerRef.current?.locate()}
@@ -154,7 +159,13 @@ export default function Trip() {
             Stages
             <sup className={s.sup}>{stages.length}</sup>
           </h2>
-          <StageList stages={stages} clickedStage={clickedStage} />
+          <StageList
+            stages={stages}
+            clickedStage={clickedStage}
+            setClickedStage={setClickedStage}
+            hoveredStage={hoveredStage}
+            setHoveredStage={setHoveredStage}
+          />
         </section>
       </div>
       <Modal

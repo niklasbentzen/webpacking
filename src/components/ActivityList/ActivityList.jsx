@@ -20,49 +20,48 @@ export default function ActivityList({
   selectedActivity,
   setSelectedActivity,
 }) {
-  if (!activities?.length)
-    return <p style={{ color: "var(--text-faded" }}>Found no activities...</p>;
+  if (!activities?.length) return <></>;
 
   return (
-    <ul className={s.activityList}>
+    <div className={s.activityList}>
       {activities.map((activity) => (
-        <li
+        <div
           key={activity.id}
-          className={activity.id === selectedActivity ? ` ${s.selected}` : ""}
+          className={`${s.activity} ${selectedActivity == activity.id ? s.selected : ""}`}
           onClick={() => setSelectedActivity(activity.id)}
         >
-          <div className={s.activity}>
-            <div className={s.activityHeader}>
-              {typeIcons[activity.type]}
-              <span>{formatStartTime(activity.startTime)}</span>
-            </div>
-            <div className={s.activityData}>
-              {activity.distanceM != null && (
-                <div className={s.activityDataItem}>
-                  <ArrowsHorizontalIcon size="14" />
-                  <span>{(activity.distanceM / 1000).toFixed(1)} km</span>
-                </div>
-              )}
-              {activity.elevationGainM != null && (
-                <div className={s.activityDataItem}>
-                  <ArrowUpRightIcon size="14" />
-                  <span>{Math.round(activity.elevationGainM)} m</span>
-                </div>
-              )}
-              {activity.startTime != null && (
-                <div className={s.activityDataItem}>
-                  <ClockIcon size="14" />
-                  <span>
-                    {formatDuration(
-                      new Date(activity.endTime) - new Date(activity.startTime)
-                    )}
-                  </span>
-                </div>
-              )}
-            </div>
+          <div className={s.activityHeader}>
+            {typeIcons[activity.type]}
+            <span>{formatStartTime(activity.startTime)}</span>
           </div>
-        </li>
+          {/*
+          <div className={s.activityData}>
+            {activity.distanceM != null && (
+              <div className={s.activityDataItem}>
+                <ArrowsHorizontalIcon size="14" />
+                <span>{(activity.distanceM / 1000).toFixed(1)} km</span>
+              </div>
+            )}
+            {activity.elevationGainM != null && (
+              <div className={s.activityDataItem}>
+                <ArrowUpRightIcon size="14" />
+                <span>{Math.round(activity.elevationGainM)} m</span>
+              </div>
+            )}
+            {activity.startTime != null && (
+              <div className={s.activityDataItem}>
+                <ClockIcon size="14" />
+                <span>
+                  {formatDuration(
+                    new Date(activity.endTime) - new Date(activity.startTime),
+                  )}
+                </span>
+              </div>
+            )}
+          </div>
+          */}
+        </div>
       ))}
-    </ul>
+    </div>
   );
 }

@@ -17,6 +17,7 @@ export default function PlannedRoute({ trip }) {
     if (!trip || !file) return;
 
     const url = pb.files.getURL(trip, file);
+    console.log(file);
     if (!url) return;
 
     group.addTo(map);

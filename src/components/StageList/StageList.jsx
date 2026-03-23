@@ -10,13 +10,15 @@ import {
   ClockIcon,
 } from "@phosphor-icons/react";
 
-import {
-  formatDateRange,
-  getStageDateRangeFromActivities,
-  summarizeActivities,
-} from "../../lib/stages";
+import { formatDateRange, summarizeActivities } from "../../lib/stages";
 
-export default function StageList({ stages, clickedStage }) {
+export default function StageList({
+  stages,
+  clickedStage,
+  setClickedStage,
+  hoveredStage,
+  setHoveredStage,
+}) {
   const clickedElRef = useRef(null);
 
   useEffect(() => {
@@ -25,7 +27,7 @@ export default function StageList({ stages, clickedStage }) {
 
     clickedElRef.current.scrollIntoView({
       behavior: "smooth",
-      block: "start", // keeps it inside the scroll box nicely
+      block: "start",
       inline: "nearest",
     });
   }, [clickedStage]);
@@ -43,18 +45,27 @@ export default function StageList({ stages, clickedStage }) {
           const dateLabel = formatDateRange(stage.startDate, stage.endDate);
 
           const isClicked = stage.id === clickedStage;
+          const isHovered = stage.id === hoveredStage;
 
           return (
             <li key={stage.id} ref={isClicked ? clickedElRef : null}>
-              <Link
-                className={`${s.stageItem} ${isClicked ? s.clickedStage : ""}`}
-                to={`/stages/${stage.slug}`}
+              <div
+                className={`${s.stageItem} ${isClicked ? s.clickedStage : ""} ${isHovered ? s.hoveredStage : ""}`}
+                onMouseEnter={() => setHoveredStage?.(stage.id)}
+                onMouseLeave={() => setHoveredStage?.(null)}
               >
-                <Sparkline activities={stageActs} />
+                <div
+                  className={s.sparkline}
+                  onClick={() => setClickedStage(stage.id)}
+                >
+                  <Sparkline activities={stageActs} />
+                </div>
 
                 <div className={s.col}>
                   {dateLabel && <label>{dateLabel}</label>}
-                  <h3 className={s.stageTitle}>{stage.name}</h3>
+                  <Link to={`/stages/${stage.slug}`}>
+                    <h3 className={s.stageTitle}>{stage.name}</h3>
+                  </Link>
 
                   {stageActs.length > 0 && (
                     <div className={s.stageData}>
@@ -93,7 +104,7 @@ export default function StageList({ stages, clickedStage }) {
                     </div>
                   )}
                 </div>
-              </Link>
+              </div>
             </li>
           );
         })}

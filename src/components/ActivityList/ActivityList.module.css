@@ -1,21 +1,32 @@
 .activityList {
   display: flex;
   flex-direction: column;
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
+  gap: 4px;
+  width: 100%;
 }
 
 .activity {
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  padding: 10px;
+  padding: 1em;
+
+  background-color: color-mix(in srgb, var(--bg) 50%, transparent);
+  backdrop-filter: blur(2px);
+  border: 1px solid transparent;
+  border-radius: 6px;
+
   cursor: pointer;
+  transition: 0.2s ease;
+}
+.activity:hover {
+  border: 1px solid var(--p);
 }
 
 .activityHeader {
   display: flex;
   align-items: center;
+
   gap: 8px;
   font-weight: 500;
 }
@@ -40,5 +51,6 @@
 }
 
 .selected {
-  background-color: var(--bg-dark);
+  background-color: color-mix(in srgb, var(--bg-light) 100%, transparent);
+  border: 1px solid var(--p);
 }

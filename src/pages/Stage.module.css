@@ -1,101 +1,118 @@
 .stage {
   display: grid;
-  grid-template-columns: minmax(320px, 1fr) 2fr minmax(320px, 1fr);
+  grid-template-columns: 2fr 3fr 2fr;
   grid-template-rows: auto;
-  grid-column-gap: 2em;
-  grid-row-gap: 2em;
+  grid-column-gap: 4em;
+  grid-row-gap: 4em;
 
-  padding: 2rem;
+  padding: 4em 2em;
   box-sizing: border-box;
 }
-.map {
-  grid-area: 1 / 1 / 2 / 3;
-  position: relative;
-  height: 80vh;
+.title {
+  grid-area: 1 / 2 / 2 / 3;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
 }
-.info {
-  grid-area: 1 / 3 / 2 / 4;
+.map {
+  grid-area: 2 / 3 / 3 / 4;
+
+  border: 1px solid var(--bg-light);
+  border-radius: 10px;
+}
+.activities {
+  grid-area: 2 / 3 / 3 / 4;
 
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  gap: 1em;
+  gap: 2em;
 
-  position: sticky;
-  top: 0em;
-  align-self: end;
+  align-self: start;
 }
+
 .body {
   grid-area: 2 / 2 / 3 / 3;
   display: flex;
   flex-direction: column;
+
+  font-family: "Lora", serif;
 }
 
-@media (max-width: 1280px) {
-  .body {
-    grid-area: 2 / 1 / 3 / 3;
-  }
-  .return {
-    display: none;
-  }
-}
-@media (max-width: 1280px) {
-  .stage {
-    grid-template-columns: 2fr minmax(320px, 1fr);
-    grid-template-rows: 80vh auto;
-    grid-column-gap: 1em;
-    grid-row-gap: 1em;
+.haikus {
+  grid-area: 2 / 1 / 3 / 2;
 
-    padding: 1em;
-  }
-  .map {
-    grid-area: 1 / 1 / 2 / 3;
-  }
-  .info {
-    grid-area: 2 / 2 / 3 / 3;
+  border-radius: 6px;
 
-    display: flex;
-    flex-direction: column;
-    align-self: start;
-  }
-  .body {
-    grid-area: 2 / 1 / 3 / 2;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+
+  text-align: center;
+
+  align-self: start;
 }
-@media (max-width: 960px) {
-  .stage {
-    grid-template-columns: 1fr;
-    padding: 0.8em;
-  }
-  .map {
-    grid-area: 1 / 1 / 2 / 2;
-  }
-  .body {
-    grid-area: 3 / 1 / 4 / 2;
-  }
-  .info {
-    grid-area: 2 / 1 / 3 / 2;
-    position: relative;
-  }
+
+.haikus p {
+  font-family: "Lora", serif;
+  margin-bottom: 1em;
+  font-size: 1.2em;
+}
+
+.noMap {
+  height: 500px;
+  position: relative;
+
+  gap: 1em;
+
+  border: 1px solid var(--b);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.mapControls {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+  z-index: 999;
+
+  aspect-ratio: 1 / 1;
+  padding: 8px;
+
+  color: var(--text);
+  background-color: var(--bg-light);
+  border: 1px solid var(--b);
+}
+.mapControls:hover {
+  color: var(--p);
 }
 
 .heightmap {
   position: absolute;
-  bottom: 0em;
-  left: 0;
+  bottom: 1em;
+  left: 1em;
+  right: 1em;
   z-index: 999;
-  width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--bg);
+  border-top: 1px solid var(--bg-light);
+
+  padding: 1em;
+  box-sizing: border-box;
+
+  background: color-mix(in srgb, var(--bg-dark) 50%, transparent);
+  backdrop-filter: blur(4px);
+
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
 }
 
-.return {
-  grid-area: 2 / 1 / 3 / 2;
-}
-.return a {
-  font-weight: 500;
-}
-.return a:hover {
-  text-decoration: underline;
-  cursor: pointer;
+.title h1 {
+  font-size: 3em;
+  font-family: "Lora", serif;
 }
 
 .stageData {
@@ -133,6 +150,18 @@
   line-height: 1;
 }
 
+.activityData {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.activityDataItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .body h1 {
   font-size: 1.5em;
   margin-top: 1.5em;
@@ -148,5 +177,20 @@
   max-width: 100%;
   height: auto;
   max-height: 80vh;
-  margin: 2em auto;
+
+  border-radius: 6px;
+  border: 1px solid var(--b);
+}
+
+.body em {
+  display: block;
+  text-align: center;
+  font-size: 0.8em;
+  margin-top: 1em;
+  color: var(--text-faded);
+}
+
+.body p {
+  font-size: 1.2em;
+  margin-bottom: 2em;
 }

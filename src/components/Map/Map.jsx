@@ -44,7 +44,6 @@ const Map = forwardRef(function Map(
       className={className}
       style={{
         height: "100%",
-        borderRadius: 10,
         overflow: "hidden",
         position: "relative",
         ...style,
@@ -57,7 +56,6 @@ const Map = forwardRef(function Map(
         zoomControl={false}
       >
         <TileLayer attribution={tileAttribution} url={tileUrl} />
-        <ZoomControl position="bottomright" />
 
         {children}
 

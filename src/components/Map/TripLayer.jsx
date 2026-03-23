@@ -2,233 +2,266 @@ import React, {
   forwardRef,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
-  useState,
 } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 import { pb } from "../../lib/pb";
+
+const PADDING = [20, 20];
 
 const TripLayer = forwardRef(function TripLayer(
   {
     stages,
     clickedStage,
     setClickedStage,
+    hoveredStage,
+    setHoveredStage,
     fitBounds = true,
-    padding = [20, 20],
   },
   ref,
 ) {
   const map = useMap();
-  const groupRef = useRef(L.featureGroup());
-  const suppressNextMapClickRef = useRef(false);
-  const didInitialFitRef = useRef(false);
 
-  // stageId -> array of line layers for that stage
-  const lineLayersByStageRef = useRef(new Map());
+  const tripRef = useRef({
+    group: L.featureGroup(),
+    layersByStage: new Map(),
+    boundsByStage: new Map(),
+    suppressNextMapClick: false,
+    didInitialFit: false,
+  });
 
-  // stageId -> L.LatLngBounds for that stage
-  const stageBoundsByIdRef = useRef(new Map());
+  const activities = useMemo(() => {
+    if (!stages?.length) return [];
+    return stages.flatMap((stage) => stage.expand?.activities_via_stage ?? []);
+  }, [stages]);
 
-  const hoveredStageRef = useRef(null);
-  const [activities, setActivities] = useState([]);
+  const clickedStageRef = useRef(clickedStage);
+  const hoveredStageRef = useRef(hoveredStage);
 
-  const cssVar = (name, fallback) => {
-    const v = getComputedStyle(document.documentElement)
-      .getPropertyValue(name)
-      .trim();
-    return v || fallback;
-  };
-
-  // Style all stage lines based on hovered/clicked state
   const applyStageStyles = () => {
-    const selectedColor = cssVar("--p", "#ff6600");
+    const selectedColor = "green";
     const unselectedColor = "green";
-    const hoveredStage = hoveredStageRef.current;
 
-    for (const [stageId, lines] of lineLayersByStageRef.current.entries()) {
-      const isClicked = clickedStage === stageId;
-      const isHovered = hoveredStage === stageId;
+    const clickedStageValue = clickedStageRef.current;
+    const hoveredStageValue = hoveredStageRef.current;
+
+    for (const [
+      stageId,
+      layerSets,
+    ] of tripRef.current.layersByStage.entries()) {
+      const isClicked = clickedStageValue === stageId;
+      const isHovered = hoveredStageValue === stageId;
 
       const color = isClicked ? selectedColor : unselectedColor;
       const opacity = isHovered || isClicked ? 1 : 0.5;
 
-      for (const line of lines) {
+      for (const { outline, line, hit } of layerSets) {
         line.setStyle?.({ color, opacity, weight: 4 });
-        if (isClicked) line.bringToFront?.();
+
+        if (isClicked) {
+          outline.bringToFront?.();
+          line.bringToFront?.();
+          hit.bringToFront?.();
+        }
       }
     }
   };
 
-  // Helper: fit bounds for a single stage
+  useEffect(() => {
+    clickedStageRef.current = clickedStage;
+
+    if (clickedStageRef.current != null) {
+      fitStageBounds(clickedStageRef.current);
+    }
+
+    applyStageStyles();
+  }, [clickedStage]);
+
+  useEffect(() => {
+    hoveredStageRef.current = hoveredStage;
+    applyStageStyles();
+  }, [hoveredStage]);
+
   const fitStageBounds = (stageId) => {
-    const bounds = stageBoundsByIdRef.current.get(stageId);
-    if (bounds && bounds.isValid()) {
-      map.fitBounds(bounds, { padding });
-    }
+    const bounds = tripRef.current.boundsByStage.get(stageId);
+    if (!bounds?.isValid?.()) return false;
+
+    map.fitBounds(bounds, { padding: PADDING });
+    return true;
   };
 
-  // Helper: fit bounds for whole trip (everything in the featureGroup)
   const fitAllBounds = () => {
-    const group = groupRef.current;
-    const bounds = group?.getBounds?.();
-    if (bounds && bounds.isValid()) {
-      map.fitBounds(bounds, { padding });
-    }
+    const bounds = tripRef.current.group.getBounds?.();
+    if (!bounds?.isValid?.()) return false;
+
+    map.fitBounds(bounds, { padding: PADDING });
+    return true;
   };
 
-  // ✅ Expose methods to parent via ref (your button can call these)
   useImperativeHandle(
     ref,
     () => ({
       fitBounds: fitAllBounds,
       fitStageBounds,
-      // optional: useful for debugging
-      getBounds: () => groupRef.current?.getBounds?.(),
+      getBounds: () => tripRef.current.group.getBounds?.(),
     }),
-    // padding changes should update the behavior
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [map, padding],
+    [map],
   );
 
-  // Extract activities when stages change
   useEffect(() => {
-    if (!stages?.length) {
-      setActivities([]);
-      return;
-    }
+    const rebuildTripLayers = async () => {
+      const trip = tripRef.current;
+      const group = trip.group;
 
-    const allActivities = stages.flatMap(
-      (stage) => stage.expand?.activities_via_stage ?? [],
-    );
+      group.clearLayers();
+      group.addTo(map);
 
-    setActivities(allActivities);
-  }, [stages]);
+      trip.layersByStage.clear();
+      trip.boundsByStage.clear();
 
-  // Build layers once per activities change
-  useEffect(() => {
-    const group = groupRef.current;
-    group.clearLayers();
-    group.addTo(map);
+      const results = await Promise.all(
+        activities.map(async (activity) => {
+          const file = activity.geoJSONSmall || activity.geoJSON;
+          if (!file) return null;
 
-    lineLayersByStageRef.current.clear();
-    stageBoundsByIdRef.current.clear();
-    didInitialFitRef.current = false;
+          const url = pb.files.getURL(activity, file);
+          if (!url) return null;
 
-    let cancelled = false;
-
-    (async () => {
-      for (const activity of activities) {
-        if (!activity?.geoJSONSmall && !activity?.geoJSON) continue;
-
-        const file = activity.geoJSONSmall || activity.geoJSON;
-        const url = pb.files.getURL(activity, file);
-        if (!url) continue;
-
-        try {
           const res = await fetch(url);
-          if (!res.ok) throw new Error(`Failed to fetch GeoJSON ${res.status}`);
+          if (!res.ok) return null;
+
           const data = await res.json();
-          if (cancelled) return;
+          return { activity, data };
+        }),
+      );
 
-          const outline = L.geoJSON(data, {
-            style: () => ({ color: "#ffffff", weight: 8, opacity: 1 }),
-          });
+      for (const result of results) {
+        if (!result) continue;
 
-          const line = L.geoJSON(data, {
-            style: () => ({ color: "green", weight: 4, opacity: 0.5 }),
-          });
+        const { activity, data } = result;
 
-          const hit = L.geoJSON(data, {
-            style: () => ({ color: "#000", weight: 22, opacity: 0 }),
-          });
+        const outline = L.geoJSON(data, {
+          style: () => ({ color: "#fff", weight: 8, opacity: 1 }),
+        });
 
-          // register line under stage id
-          if (!lineLayersByStageRef.current.has(activity.stage)) {
-            lineLayersByStageRef.current.set(activity.stage, []);
-          }
-          lineLayersByStageRef.current.get(activity.stage).push(line);
+        const line = L.geoJSON(data, {
+          style: () => ({ color: "green", weight: 4, opacity: 0.5 }),
+        });
 
-          // accumulate stage bounds (union of all activity bounds)
-          const activityBounds = line.getBounds();
-          if (activityBounds?.isValid?.()) {
-            const existing = stageBoundsByIdRef.current.get(activity.stage);
-            stageBoundsByIdRef.current.set(
-              activity.stage,
-              existing ? existing.extend(activityBounds) : activityBounds,
-            );
-          }
+        const hit = L.geoJSON(data, {
+          style: () => ({ color: "#000", weight: 22, opacity: 0 }),
+        });
 
-          // interaction: hover highlights entire stage; click fits entire stage
-          hit.eachLayer((hitLayer) => {
-            hitLayer.on("click", (e) => {
-              suppressNextMapClickRef.current = true;
-              L.DomEvent.stopPropagation(e);
-
-              setClickedStage?.(activity.stage);
-              fitStageBounds(activity.stage);
-
-              setTimeout(() => {
-                suppressNextMapClickRef.current = false;
-              }, 0);
-            });
-
-            hitLayer.on("mouseover", () => {
-              map.getContainer().style.cursor = "pointer";
-              hoveredStageRef.current = activity.stage;
-              applyStageStyles();
-            });
-
-            hitLayer.on("mouseout", () => {
-              map.getContainer().style.cursor = "";
-              hoveredStageRef.current = null;
-              applyStageStyles();
-            });
-          });
-
-          outline.addTo(group);
-          line.addTo(group);
-          hit.addTo(group);
-        } catch (e) {
-          console.warn("Failed to load GeoJSON:", url, e);
+        if (!trip.layersByStage.has(activity.stage)) {
+          trip.layersByStage.set(activity.stage, []);
         }
+        trip.layersByStage.get(activity.stage).push({
+          outline,
+          line,
+          hit,
+        });
+
+        const bounds = line.getBounds();
+        if (bounds?.isValid?.()) {
+          const prev = trip.boundsByStage.get(activity.stage);
+          trip.boundsByStage.set(
+            activity.stage,
+            prev ? prev.extend(bounds) : bounds,
+          );
+        }
+
+        hit.eachLayer((hitLayer) => {
+          hitLayer.on("click", (e) => {
+            trip.suppressNextMapClick = true;
+            L.DomEvent.stopPropagation(e);
+
+            setClickedStage?.(activity.stage);
+            fitStageBounds(activity.stage);
+
+            setTimeout(() => {
+              trip.suppressNextMapClick = false;
+            }, 0);
+          });
+
+          hitLayer.on("mouseover", () => {
+            map.getContainer().style.cursor = "pointer";
+            hoveredStageRef.current = activity.stage;
+            setHoveredStage?.(activity.stage);
+            console.log(activity.stage, "is hovered");
+            applyStageStyles();
+          });
+
+          hitLayer.on("mouseout", () => {
+            map.getContainer().style.cursor = "";
+            hoveredStageRef.current = null;
+            setHoveredStage?.(null);
+            applyStageStyles();
+          });
+        });
+
+        outline.addTo(group);
+        line.addTo(group);
+        hit.addTo(group);
       }
 
-      // initial fit (whole group)
-      if (fitBounds && !didInitialFitRef.current) {
-        fitAllBounds();
-        didInitialFitRef.current = true;
+      if (fitBounds && !trip.didInitialFit) {
+        requestAnimationFrame(() => {
+          map.invalidateSize();
+
+          const didFit = fitAllBounds();
+          if (didFit) {
+            trip.didInitialFit = true;
+          }
+        });
       }
 
       applyStageStyles();
-    })();
+    };
+
+    let cancelled = false;
+
+    const run = async () => {
+      await rebuildTripLayers();
+      if (cancelled) return;
+    };
+
+    run();
 
     return () => {
       cancelled = true;
+      const group = tripRef.current.group;
       group.clearLayers();
       if (map.hasLayer(group)) map.removeLayer(group);
     };
-    // important: no clickedStage dependency; style handled below
-  }, [map, activities, fitBounds, padding, setClickedStage]);
+  }, [map, activities, fitBounds, setClickedStage, setHoveredStage]);
 
-  // Re-apply styles when clickedStage changes (no rebuild)
   useEffect(() => {
     applyStageStyles();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    if (clickedStageRef.current != null) {
+      fitStageBounds(clickedStageRef.current);
+    }
   }, [clickedStage]);
 
-  // Click blank map to clear selection
   useEffect(() => {
-    if (!setClickedStage) return;
+    if (!setClickedStage && !setHoveredStage) return;
 
     const onMapClick = () => {
-      if (suppressNextMapClickRef.current) return;
-      setClickedStage(null);
+      if (tripRef.current.suppressNextMapClick) return;
+
+      setClickedStage?.(null);
+      setHoveredStage?.(null);
+
+      hoveredStageRef.current = null;
+      map.getContainer().style.cursor = "";
+      applyStageStyles();
     };
 
     map.on("click", onMapClick);
     return () => map.off("click", onMapClick);
-  }, [map, setClickedStage]);
+  }, [map, setClickedStage, setHoveredStage]);
 
   return null;
 });

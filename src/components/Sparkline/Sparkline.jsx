@@ -133,6 +133,7 @@ export default function Sparkline({ activities, width = 60, height = 60 }) {
         scrollWheelZoom={false}
         doubleClickZoom={false}
         attributionControl={false}
+        zoomSnap={0.1}
       >
         <RouteLayers items={items} />
       </MapContainer>

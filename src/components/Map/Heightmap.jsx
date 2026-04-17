@@ -39,6 +39,8 @@ export default function Heightmap({
   setSelectedActivity,
   onHoverPoint,
   onHoverEnd,
+  height = 130,
+  padding = "0",
 }) {
   const [activities, setActivities] = useState([]);
   const [profilesById, setProfilesById] = useState({}); // { [activityId]: profileArray }
@@ -119,59 +121,61 @@ export default function Heightmap({
   const pad = Math.max(5, Math.round((maxE - minE) * 0.08));
 
   return (
-    <ResponsiveContainer width="100%" height={100} minHeight={10}>
-      <AreaChart
-        style={{ left: "-10px" }}
-        data={data}
-        onMouseMove={(state) => {
-          if (!state?.isTooltipActive) return;
+    <div style={{ padding }}>
+      <ResponsiveContainer width="100%" height={height} minHeight={10}>
+        <AreaChart
+          style={{ boxSizing: "border-box" }}
+          data={data}
+          onMouseMove={(state) => {
+            if (!state?.isTooltipActive) return;
 
-          const idx = Number(state.activeTooltipIndex);
+            const idx = Number(state.activeTooltipIndex);
 
-          const p = data[idx];
-          if (!p || p.lat == null || p.lng == null) return;
+            const p = data[idx];
+            if (!p || p.lat == null || p.lng == null) return;
 
-          // call the imperative bridge with lat/lng (and anything else you want)
-          onHoverPoint?.({
-            lat: p.lat,
-            lng: p.lng,
-            distM: p.distM,
-            ele: p.ele,
-            i: p.i,
-            activityId: selectedActivity,
-          });
-        }}
-        onMouseLeave={() => onHoverEnd?.()}
-      >
-        <XAxis
-          dataKey="distM"
-          tickFormatter={(v) => `${formatKm(v)} km`}
-          tickCount={5}
-          minTickGap={30}
-          height={12}
-          tick={{ fontSize: 10, fill: "var(--text)" }}
-        />
-        <YAxis
-          dataKey="ele"
-          domain={["auto", "auto"]}
-          tickCount={10}
-          tickFormatter={(v) => `${Math.round(v)} m`}
-          width={55}
-          tick={{ fontSize: 10, fill: "var(--text)" }}
-        />
-        <Tooltip content={<ElevationTooltip />} />
-        <Area
-          type="monotone"
-          dataKey="ele"
-          strokeWidth={1}
-          stroke="var(--p)"
-          fill="var(--p)"
-          fillOpacity={0.15}
-          dot={false}
-          activeDot={{ r: 4 }}
-          isAnimationActive={true}
-        />
-      </AreaChart>
-    </ResponsiveContainer>
+            // call the imperative bridge with lat/lng (and anything else you want)
+            onHoverPoint?.({
+              lat: p.lat,
+              lng: p.lng,
+              distM: p.distM,
+              ele: p.ele,
+              i: p.i,
+              activityId: selectedActivity,
+            });
+          }}
+          onMouseLeave={() => onHoverEnd?.()}
+        >
+          <XAxis
+            dataKey="distM"
+            tickFormatter={(v) => `${formatKm(v)} km`}
+            tickCount={5}
+            minTickGap={30}
+            height={12}
+            tick={{ fontSize: 10, fill: "var(--text)" }}
+          />
+          <YAxis
+            dataKey="ele"
+            domain={["auto", "auto"]}
+            tickCount={10}
+            tickFormatter={(v) => `${Math.round(v)} m`}
+            width={48}
+            tick={{ fontSize: 10, fill: "var(--text)" }}
+          />
+          <Tooltip content={<ElevationTooltip />} />
+          <Area
+            type="monotone"
+            dataKey="ele"
+            strokeWidth={1}
+            stroke="var(--p)"
+            fill="var(--p)"
+            fillOpacity={0.15}
+            dot={false}
+            activeDot={{ r: 4 }}
+            isAnimationActive={true}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

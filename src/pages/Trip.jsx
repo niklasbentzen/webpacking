@@ -1,4 +1,4 @@
-import { act, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import StageList from "../components/StageList/StageList";
 import Divider from "../components/Divider/Divider";
@@ -17,11 +17,10 @@ import {
 } from "@phosphor-icons/react";
 
 import {
-  fetchTripBySlug,
-  fetchStagesForTripWithActivities,
+  fetchTripBySlugWithAll,
   summarizeTripFromStages,
 } from "../lib/trips";
-import { formatDateRange } from "../lib/stages";
+import { formatDateRange } from "../lib/stageFormatters";
 import Map from "../components/Map/Map";
 import TripLayer from "../components/Map/TripLayer";
 import PlannedRoute from "../components/Map/PlannedRoute";
@@ -31,6 +30,7 @@ import { pb } from "../lib/pb";
 import Login from "../components/Login/Login";
 import Modal from "../components/Modal/Modal";
 import { useAuth } from "@/lib/hooks/useAuth";
+import StageActivityPanel from "@/components/StageActivityPanel/StageActivityPanel";
 
 export default function Trip() {
   const { slug } = useParams();
@@ -38,25 +38,25 @@ export default function Trip() {
   const [stages, setStages] = useState([]);
   const [clickedStage, setClickedStage] = useState(null);
   const [hoveredStage, setHoveredStage] = useState(null);
+  const [selectedActivity, setSelectedActivity] = useState(null);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("Idle");
   const layerRef = useRef();
   const tripLayerRef = useRef();
+  const mapRef = useRef();
 
   const { isLoggedIn, logout } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-
-  const [hoverLogin, setHoverLogin] = useState(false);
 
   useEffect(() => {
     setStatus("Loading...");
     (async () => {
       try {
-        const tripRes = await fetchTripBySlug(slug);
-        const stageRes = await fetchStagesForTripWithActivities(tripRes.id);
-
+        const tripRes = await fetchTripBySlugWithAll(slug);
+        const stages = (tripRes.expand?.stages_via_trip ?? [])
+          .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
         setTrip(tripRes);
-        setStages(stageRes);
+        setStages(stages);
       } catch (e) {
         console.error(e, e?.data);
         setError(e?.message || "Failed to load trip");
@@ -65,12 +65,32 @@ export default function Trip() {
     })();
   }, [slug]);
 
+  useEffect(() => {
+    if (!clickedStage) { setSelectedActivity(null); return; }
+    const stage = stages.find((s) => s.id === clickedStage);
+    const first = stage?.expand?.activities_via_stage?.[0];
+    setSelectedActivity(first?.id ?? null);
+  }, [clickedStage, stages]);
+
+  const selectedStage = stages.find((s) => s.id === clickedStage) ?? null;
   const tripTotals = useMemo(() => summarizeTripFromStages(stages), [stages]);
 
   return (
     <main className={s.trip}>
+      {isLoggedIn ? (
+        <button className="button-secondary" onClick={() => logout()}>
+          Log out
+        </button>
+      ) : (
+        <button
+          className="button-secondary"
+          onClick={() => setIsLoginOpen(true)}
+        >
+          Login
+        </button>
+      )}
       <div className={s.map}>
-        <Map>
+        <Map ref={mapRef}>
           <PlannedRoute trip={trip} />
           {isLoggedIn && <InReachLayer ref={layerRef} />}
           <TripLayer
@@ -80,24 +100,12 @@ export default function Trip() {
             setClickedStage={setClickedStage}
             hoveredStage={hoveredStage}
             setHoveredStage={setHoveredStage}
+            selectedActivity={selectedActivity}
+            setSelectedActivity={setSelectedActivity}
           />
         </Map>
 
         <div className={`${s.mapControls} ${s.topLeft}`}>
-          {isLoggedIn ? (
-            <button className="button-secondary" onClick={() => logout()}>
-              Log out
-            </button>
-          ) : (
-            <button
-              className="button-secondary"
-              onClick={() => setIsLoginOpen(true)}
-            >
-              Login
-            </button>
-          )}
-        </div>
-        <div className={`${s.mapControls} ${s.bottomLeft}`}>
           <button
             className="button-secondary button-icon"
             onClick={() => layerRef.current?.locate()}
@@ -118,16 +126,23 @@ export default function Trip() {
             <PathIcon size="20" />
           </button>
         </div>
-      </div>
-      <div className={s.info}>
-        <h1>{trip?.name ?? status}</h1>
-        {trip?.description && <p>{trip.description}</p>}
+
+        {selectedStage && (
+          <div className={`${s.mapControls} ${s.bottomLeft}`}>
+            <StageActivityPanel
+              stage={selectedStage}
+              mapRef={mapRef}
+              selectedActivity={selectedActivity}
+              setSelectedActivity={setSelectedActivity}
+            />
+          </div>
+        )}
       </div>
 
       <div className={s.stages}>
         <section>
           <div className={s.tripHeader}>
-            <h2>Trip</h2>
+            <h2>{trip?.name ?? status}</h2>
           </div>
           <div className={s.tripData}>
             {tripTotals.startTime && (
@@ -150,6 +165,7 @@ export default function Trip() {
               </div>
             )}
           </div>
+          {trip?.description && <p>{trip.description}</p>}
         </section>
 
         <Divider />

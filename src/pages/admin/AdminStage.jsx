@@ -7,12 +7,11 @@ import AdminUploadActivity from "../../components/AdminUploadActivity/AdminUploa
 
 import {
   fetchStageByIdWithActivities,
-  formatDuration,
   updateStage,
   deleteActivity,
-  uploadStageImage,
-  deleteStageImage,
 } from "../../lib/stages";
+import { formatDuration } from "../../lib/stageFormatters";
+import { uploadStageImage, deleteStageImage } from "../../lib/stageImages";
 
 import Divider from "../../components/Divider/Divider";
 import {

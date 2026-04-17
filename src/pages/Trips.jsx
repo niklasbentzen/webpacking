@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { pb } from "../lib/pb";
+import { fetchAllTrips } from "../lib/trips";
 
 export default function Trips() {
   const [trips, setTrips] = useState([]);
@@ -9,10 +9,7 @@ export default function Trips() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await pb.collection("trips").getFullList({
-          filter: "published = true",
-          sort: "-startDate",
-        });
+        const res = await fetchAllTrips();
         setTrips(res);
       } catch (e) {
         setError(e?.message || "Failed to load trips");

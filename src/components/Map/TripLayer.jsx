@@ -5,9 +5,25 @@ import React, {
   useMemo,
   useRef,
 } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
+import {
+  PersonSimpleBikeIcon,
+  PersonSimpleHikeIcon,
+  BoatIcon,
+  TrainIcon,
+  BusIcon,
+} from "@phosphor-icons/react";
 import { pb } from "../../lib/pb";
+
+const typeIconMap = {
+  Bike: PersonSimpleBikeIcon,
+  Hike: PersonSimpleHikeIcon,
+  Ferry: BoatIcon,
+  Train: TrainIcon,
+  Bus: BusIcon,
+};
 
 const PADDING = [20, 20];
 
@@ -18,6 +34,8 @@ const TripLayer = forwardRef(function TripLayer(
     setClickedStage,
     hoveredStage,
     setHoveredStage,
+    selectedActivity,
+    setSelectedActivity,
     fitBounds = true,
   },
   ref,
@@ -32,6 +50,8 @@ const TripLayer = forwardRef(function TripLayer(
     didInitialFit: false,
   });
 
+  const geoJSONCache = useRef(new Map());
+
   const activities = useMemo(() => {
     if (!stages?.length) return [];
     return stages.flatMap((stage) => stage.expand?.activities_via_stage ?? []);
@@ -39,13 +59,13 @@ const TripLayer = forwardRef(function TripLayer(
 
   const clickedStageRef = useRef(clickedStage);
   const hoveredStageRef = useRef(hoveredStage);
+  const selectedActivityRef = useRef(selectedActivity);
+  const hoveredActivityRef = useRef(null);
 
   const applyStageStyles = () => {
-    const selectedColor = "green";
-    const unselectedColor = "green";
-
     const clickedStageValue = clickedStageRef.current;
     const hoveredStageValue = hoveredStageRef.current;
+    const selectedActivityValue = selectedActivityRef.current;
 
     for (const [
       stageId,
@@ -54,16 +74,38 @@ const TripLayer = forwardRef(function TripLayer(
       const isClicked = clickedStageValue === stageId;
       const isHovered = hoveredStageValue === stageId;
 
-      const color = isClicked ? selectedColor : unselectedColor;
-      const opacity = isHovered || isClicked ? 1 : 0.5;
+      for (const { outline, line, hit, marker, activityId } of layerSets) {
+        const isSelectedActivity =
+          isClicked && activityId === selectedActivityValue;
+        const isHoveredActivity =
+          isClicked && activityId === hoveredActivityRef.current;
 
-      for (const { outline, line, hit } of layerSets) {
-        line.setStyle?.({ color, opacity, weight: 4 });
+        const lineOpacity = isClicked || isHovered ? 1 : 0.5;
+        const outlineColor = isSelectedActivity
+          ? "hsl(87, 77%, 47%)"
+          : isHoveredActivity
+            ? "#ddd"
+            : "#fff";
+        const outlineOpacity = isHoveredActivity ? 1 : 0.5;
 
-        if (isClicked) {
+        line.setStyle?.({ color: "green", opacity: lineOpacity, weight: 4 });
+        outline.setStyle?.({
+          color: outlineColor,
+          opacity: outlineOpacity,
+          weight: 8,
+        });
+        marker?.setOpacity(lineOpacity);
+
+        if (
+          isSelectedActivity ||
+          (isClicked && selectedActivityValue == null)
+        ) {
           outline.bringToFront?.();
           line.bringToFront?.();
+          marker?.setZIndexOffset?.(1000);
           hit.bringToFront?.();
+        } else {
+          marker?.setZIndexOffset?.(0);
         }
       }
     }
@@ -83,6 +125,11 @@ const TripLayer = forwardRef(function TripLayer(
     hoveredStageRef.current = hoveredStage;
     applyStageStyles();
   }, [hoveredStage]);
+
+  useEffect(() => {
+    selectedActivityRef.current = selectedActivity;
+    applyStageStyles();
+  }, [selectedActivity]);
 
   const fitStageBounds = (stageId) => {
     const bounds = tripRef.current.boundsByStage.get(stageId);
@@ -126,6 +173,11 @@ const TripLayer = forwardRef(function TripLayer(
           const file = activity.geoJSONSmall || activity.geoJSON;
           if (!file) return null;
 
+          const cacheKey = `${activity.id}:${file}`;
+          if (geoJSONCache.current.has(cacheKey)) {
+            return { activity, data: geoJSONCache.current.get(cacheKey) };
+          }
+
           const url = pb.files.getURL(activity, file);
           if (!url) return null;
 
@@ -133,6 +185,7 @@ const TripLayer = forwardRef(function TripLayer(
           if (!res.ok) return null;
 
           const data = await res.json();
+          geoJSONCache.current.set(cacheKey, data);
           return { activity, data };
         }),
       );
@@ -154,6 +207,32 @@ const TripLayer = forwardRef(function TripLayer(
           style: () => ({ color: "#000", weight: 22, opacity: 0 }),
         });
 
+        const coords = data.features?.[0]?.geometry?.coordinates;
+        let marker = null;
+        if (coords?.length) {
+          const mid = coords[Math.floor(coords.length / 2)];
+          const Icon = typeIconMap[activity.type];
+          const iconHtml = Icon
+            ? renderToStaticMarkup(
+                React.createElement(Icon, {
+                  size: 14,
+                  color: "#fff",
+                  weight: "bold",
+                }),
+              )
+            : "";
+          const divIcon = L.divIcon({
+            className: "",
+            html: `<div class="activity-type-marker">${iconHtml}</div>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12],
+          });
+          marker = L.marker([mid[1], mid[0]], {
+            icon: divIcon,
+            interactive: false,
+          });
+        }
+
         if (!trip.layersByStage.has(activity.stage)) {
           trip.layersByStage.set(activity.stage, []);
         }
@@ -161,6 +240,8 @@ const TripLayer = forwardRef(function TripLayer(
           outline,
           line,
           hit,
+          marker,
+          activityId: activity.id,
         });
 
         const bounds = line.getBounds();
@@ -178,6 +259,7 @@ const TripLayer = forwardRef(function TripLayer(
             L.DomEvent.stopPropagation(e);
 
             setClickedStage?.(activity.stage);
+            setSelectedActivity?.(activity.id);
             fitStageBounds(activity.stage);
 
             setTimeout(() => {
@@ -189,7 +271,9 @@ const TripLayer = forwardRef(function TripLayer(
             map.getContainer().style.cursor = "pointer";
             hoveredStageRef.current = activity.stage;
             setHoveredStage?.(activity.stage);
-            console.log(activity.stage, "is hovered");
+            if (clickedStageRef.current === activity.stage) {
+              hoveredActivityRef.current = activity.id;
+            }
             applyStageStyles();
           });
 
@@ -197,6 +281,7 @@ const TripLayer = forwardRef(function TripLayer(
             map.getContainer().style.cursor = "";
             hoveredStageRef.current = null;
             setHoveredStage?.(null);
+            hoveredActivityRef.current = null;
             applyStageStyles();
           });
         });
@@ -204,6 +289,7 @@ const TripLayer = forwardRef(function TripLayer(
         outline.addTo(group);
         line.addTo(group);
         hit.addTo(group);
+        marker?.addTo(group);
       }
 
       if (fitBounds && !trip.didInitialFit) {
@@ -236,14 +322,6 @@ const TripLayer = forwardRef(function TripLayer(
       if (map.hasLayer(group)) map.removeLayer(group);
     };
   }, [map, activities, fitBounds, setClickedStage, setHoveredStage]);
-
-  useEffect(() => {
-    applyStageStyles();
-
-    if (clickedStageRef.current != null) {
-      fitStageBounds(clickedStageRef.current);
-    }
-  }, [clickedStage]);
 
   useEffect(() => {
     if (!setClickedStage && !setHoveredStage) return;

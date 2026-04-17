@@ -42,15 +42,15 @@ export default function StageLayers({
 
     map.fitBounds(bounds, {
       paddingTopLeft: [50, 50],
-      paddingBottomRight: [50, 220],
+      paddingBottomRight: [50, 300],
     });
 
     return true;
   };
 
   const applySelectionStyles = (selectedId) => {
-    const selectedColor = "green";
-    const unselectedColor = "green";
+    const selectedColor = cssVar("--p");
+    const unselectedColor = "white";
 
     for (const [activityId, line] of lineByActivityIdRef.current.entries()) {
       const isSelected = activityId === selectedId;
@@ -96,7 +96,7 @@ export default function StageLayers({
           if (cancelled) return;
 
           const outline = L.geoJSON(data, {
-            style: () => ({ color: "#ffffff", weight: 8, opacity: 0.5 }),
+            style: () => ({ color: "#ffffff", weight: 8, opacity: 0 }),
           });
 
           const line = L.geoJSON(data, {
@@ -154,7 +154,7 @@ export default function StageLayers({
         if (bounds.isValid()) {
           map.fitBounds(bounds, {
             paddingTopLeft: [padding[20], padding[20]],
-            paddingBottomRight: [padding[20], 200],
+            paddingBottomRight: [padding[20], 300],
           });
           didInitialFitRef.current = true;
         }

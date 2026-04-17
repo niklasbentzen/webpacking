@@ -58,3 +58,13 @@
   font-style: italic;
   font-display: swap;
 }
+
+.activity-type-marker {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: green;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

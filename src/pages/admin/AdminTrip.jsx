@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { fetchTripByIdWithStages, updateTrip } from "../../lib/trips";
-import { createStage } from "../../lib/stages"; // <-- add this
+import { createStage } from "../../lib/stages";
 import s from "./Admin.module.css";
 import Divider from "../../components/Divider/Divider";
 import { ArrowLeftIcon } from "@phosphor-icons/react";

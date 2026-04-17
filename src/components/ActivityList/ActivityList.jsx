@@ -1,6 +1,6 @@
-import { formatStartTime } from "../../lib/stages";
+import { useEffect, useRef } from "react";
+import { formatStartTime, formatDuration } from "../../lib/stageFormatters";
 import s from "./ActivityList.module.css";
-import { formatDuration } from "../../lib/stages";
 
 import {
   PersonSimpleBikeIcon,
@@ -20,6 +20,16 @@ export default function ActivityList({
   selectedActivity,
   setSelectedActivity,
 }) {
+  const selectedRef = useRef(null);
+
+  useEffect(() => {
+    selectedRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "start",
+    });
+  }, [selectedActivity]);
+
   if (!activities?.length) return <></>;
 
   return (
@@ -27,6 +37,7 @@ export default function ActivityList({
       {activities.map((activity) => (
         <div
           key={activity.id}
+          ref={selectedActivity == activity.id ? selectedRef : null}
           className={`${s.activity} ${selectedActivity == activity.id ? s.selected : ""}`}
           onClick={() => setSelectedActivity(activity.id)}
         >

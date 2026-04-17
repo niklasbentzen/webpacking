@@ -1,22 +1,14 @@
 // src/components/AdminLayout/AdminLayout.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { pb } from "../../lib/pb";
+import { useAuth } from "../../lib/hooks/useAuth";
 import s from "./AdminLayout.module.css";
 import a from "../../pages/admin/Admin.module.css";
 
 export default function AdminLayout({ requireAuth = true }) {
   const navigate = useNavigate();
   const location = useLocation();
-
-  const [isLoggedIn, setIsLoggedIn] = useState(pb.authStore.isValid);
-
-  useEffect(() => {
-    // keep in sync with login/logout
-    return pb.authStore.onChange(() => {
-      setIsLoggedIn(pb.authStore.isValid);
-    });
-  }, []);
+  const { isLoggedIn, logout } = useAuth();
 
   useEffect(() => {
     if (!requireAuth) return;
@@ -26,7 +18,7 @@ export default function AdminLayout({ requireAuth = true }) {
   }, [isLoggedIn, requireAuth, navigate, location.pathname]);
 
   function handleLogout() {
-    pb.authStore.clear();
+    logout();
     navigate("/login", { replace: true });
   }
 

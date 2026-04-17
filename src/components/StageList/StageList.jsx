@@ -10,7 +10,7 @@ import {
   ClockIcon,
 } from "@phosphor-icons/react";
 
-import { formatDateRange, summarizeActivities } from "../../lib/stages";
+import { formatDateRange, summarizeActivities } from "../../lib/stageFormatters";
 
 export default function StageList({
   stages,

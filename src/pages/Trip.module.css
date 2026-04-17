@@ -137,9 +137,9 @@
 
 .tripHeader {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: space-between;
-  align-items: center;
+  align-items: start;
   gap: 1em;
 }
 

@@ -1,6 +1,5 @@
 // src/lib/trips.js
 import { pb } from "./pb";
-import { getExpandedActivitiesForStage } from "./stages";
 
 /**
  * Fetch all published trips, sorted by startDate descending
@@ -38,6 +37,15 @@ export async function fetchTripByIdWithStages(tripId) {
  */
 export async function fetchTripBySlug(slug) {
   return pb.collection("trips").getFirstListItem(`slug='${slug}'`);
+}
+
+/**
+ * Fetch a trip by slug with stages and activities in a single request
+ */
+export async function fetchTripBySlugWithAll(slug) {
+  return pb.collection("trips").getFirstListItem(`slug='${slug}'`, {
+    expand: "stages_via_trip,stages_via_trip.activities_via_stage",
+  });
 }
 
 /**

@@ -79,21 +79,27 @@ const InReachLayer = forwardRef(function InReachLayer({ limit = 10 }, ref) {
     };
 
     const init = async () => {
-      const res = await pb.collection("inreach").getList(1, limit, {
-        sort: "-timestamp",
-      });
+      try {
+        const res = await pb.collection("inreach").getList(1, limit, {
+          sort: "-timestamp",
+        });
 
-      if (cancelled) return;
+        if (cancelled) return;
 
-      pointsRef.current = [];
-      [...res.items].reverse().forEach(pushPoint);
-      redraw();
-
-      await pb.collection("inreach").subscribe("*", (e) => {
-        if (e.action !== "create") return;
-        pushPoint(e.record);
+        pointsRef.current = [];
+        [...res.items].reverse().forEach(pushPoint);
         redraw();
-      });
+
+        await pb.collection("inreach").subscribe("*", (e) => {
+          if (e.action !== "create") return;
+          pushPoint(e.record);
+          redraw();
+        });
+      } catch (err) {
+        if (err?.status === 401) {
+          pb.authStore.clear();
+        }
+      }
     };
 
     init();

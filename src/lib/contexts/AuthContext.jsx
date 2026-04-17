@@ -16,6 +16,18 @@ export function AuthProvider({ children }) {
     return () => unsub();
   }, []);
 
+  useEffect(() => {
+    if (!pb.authStore.isValid) {
+      // Token already expired locally — clear it so isLoggedIn goes false
+      pb.authStore.clear();
+      return;
+    }
+    // Token looks valid locally — verify with the server
+    pb.collection("users").authRefresh().catch(() => {
+      pb.authStore.clear();
+    });
+  }, []);
+
   const login = async (usernameOrEmail, password) => {
     const authData = await pb
       .collection("users")

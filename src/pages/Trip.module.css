@@ -120,15 +120,24 @@
 .mapControls {
   position: absolute;
   z-index: 999;
+  width: calc(100% - 2em);
+  left: 1em;
+  right: 1em;
 
   display: flex;
   flex-direction: row;
   gap: 0.5em;
+  pointer-events: none;
+}
+
+.mapControls > * {
+  pointer-events: auto;
 }
 
 .bottomLeft {
   bottom: 1em;
   left: 1em;
+  right: 1em;
 }
 .topLeft {
   top: 1em;

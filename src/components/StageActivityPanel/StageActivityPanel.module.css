@@ -1,5 +1,7 @@
 .panel {
-  width: 320px;
+  min-width: 320px;
+  width: 100%;
+  max-width: 640px;
   background: color-mix(in srgb, var(--bg-dark) 70%, transparent);
   backdrop-filter: blur(6px);
   border: 1px solid var(--b);
@@ -7,30 +9,80 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  padding-bottom: 1em;
 }
 
-.stageName {
+.header {
   margin: 0;
-  padding: 0.75em 1em;
   font-size: 0.9em;
-  font-family: "Lora", serif;
+
   border-bottom: 1px solid var(--b);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header .stageName {
+  margin: 0;
+  padding: 0.6em 1em;
+  font-size: 1.2em;
+}
+
+.header button {
+  background: none;
+  border: none;
+  border-left: 1px solid var(--b);
+  color: var(--text);
+  padding: 1em 1.4em;
+  font-size: 1em;
+  border-radius: 0px;
+  box-shadow: none !important;
+  transition: 0.1s;
+  height: 100%;
+  text-wrap: nowrap;
+}
+
+.header button:hover {
+  background: color-mix(in srgb, var(--bg-dark) 40%, transparent);
+  cursor: pointer;
 }
 
 .stats {
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
   gap: 1em;
   padding: 0.6em 1em;
-  border-bottom: 1px solid var(--b);
 }
 
 .statItem {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   gap: 4px;
-  font-size: 0.8em;
+  flex-grow: 1;
+}
+
+.statValue {
+  font-size: 1.2em;
   font-weight: 600;
-  opacity: 0.7;
+  line-height: 1;
+  text-align: center;
+}
+
+.statItem p {
+  font-size: 0.8em;
+  font-weight: 400;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .statValue {
+    font-size: 1em;
+  }
+
+  .statItem p {
+    font-size: 0.6em;
+  }
 }

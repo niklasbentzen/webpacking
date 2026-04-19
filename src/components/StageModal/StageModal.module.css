@@ -1,13 +1,68 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.dialog {
+  background: var(--bg);
+  border-radius: 8px;
+  border: 1px solid var(--b);
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  cursor: default;
+}
+
+.header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  padding: 2em 2em;
+  border-bottom: 1px solid var(--b, rgba(255, 255, 255, 0.1));
+  flex-shrink: 0;
+}
+
+.title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.close {
+  background: none;
+  border: 1px solid var(--b);
+  cursor: pointer;
+  color: var(--text-faded);
+  padding: 0.6em;
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+  box-shadow: none !important;
+}
+
+.close:hover {
+  color: var(--text-faded);
+}
+
 .body {
   display: flex;
   flex-direction: column;
   gap: 2em;
   overflow-y: auto;
-  padding: 0.5em 0;
+  padding: 2em;
+  padding-bottom: 2em;
 }
 
 .date {
-  font-size: 0.85em;
+  font-size: 0.8em;
   opacity: 0.6;
   margin: 0;
 }
@@ -20,7 +75,7 @@
 }
 
 .haiku label {
-  font-size: 0.75em;
+  font-size: 0.8em;
   opacity: 0.5;
   display: block;
   margin-bottom: 0.4em;
@@ -28,13 +83,13 @@
 
 .haiku p {
   font-family: "Lora", serif;
-  font-size: 1.1em;
+  font-size: 1em;
   margin: 0;
 }
 
 .story {
   font-family: "Lora", serif;
-  font-size: 0.95em;
+  font-size: 1em;
   line-height: 1.7;
 }
 

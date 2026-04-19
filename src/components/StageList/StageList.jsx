@@ -10,7 +10,10 @@ import {
   ClockIcon,
 } from "@phosphor-icons/react";
 
-import { formatDateRange, summarizeActivities } from "../../lib/stageFormatters";
+import {
+  formatDateRange,
+  summarizeActivities,
+} from "../../lib/stageFormatters";
 
 export default function StageList({
   stages,
@@ -24,6 +27,7 @@ export default function StageList({
   useEffect(() => {
     if (!clickedStage) return;
     if (!clickedElRef.current) return;
+    if (window.innerWidth <= 960) return;
 
     clickedElRef.current.scrollIntoView({
       behavior: "smooth",
@@ -51,21 +55,18 @@ export default function StageList({
             <li key={stage.id} ref={isClicked ? clickedElRef : null}>
               <div
                 className={`${s.stageItem} ${isClicked ? s.clickedStage : ""} ${isHovered ? s.hoveredStage : ""}`}
+                onClick={() => setClickedStage(stage.id)}
                 onMouseEnter={() => setHoveredStage?.(stage.id)}
                 onMouseLeave={() => setHoveredStage?.(null)}
               >
-                <div
-                  className={s.sparkline}
-                  onClick={() => setClickedStage(stage.id)}
-                >
+                <div className={s.sparkline}>
                   <Sparkline activities={stageActs} />
                 </div>
 
                 <div className={s.col}>
                   {dateLabel && <label>{dateLabel}</label>}
-                  <Link to={`/stages/${stage.slug}`}>
-                    <h3 className={s.stageTitle}>{stage.name}</h3>
-                  </Link>
+
+                  <h3 className={s.stageTitle}>{stage.name}</h3>
 
                   {stageActs.length > 0 && (
                     <div className={s.stageData}>

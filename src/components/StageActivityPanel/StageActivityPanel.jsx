@@ -10,6 +10,9 @@ import {
   ArrowUpRightIcon,
   ArrowsHorizontalIcon,
   ClockIcon,
+  ArticleIcon,
+  ArticleNyTimesIcon,
+  BookIcon,
 } from "@phosphor-icons/react";
 
 import s from "./StageActivityPanel.module.css";
@@ -19,6 +22,7 @@ export default function StageActivityPanel({
   mapRef,
   selectedActivity: selectedActivityProp,
   setSelectedActivity: setSelectedActivityProp,
+  onReadStory,
 }) {
   const activities = stage?.expand?.activities_via_stage ?? [];
 
@@ -50,7 +54,13 @@ export default function StageActivityPanel({
 
   return (
     <div className={s.panel}>
-      <h3 className={s.stageName}>{stage?.name}</h3>
+      <div className={s.header}>
+        <h3 className={s.stageName}>{stage?.name}</h3>
+        <button onClick={onReadStory}>
+          <BookIcon size={18} />
+          Read story
+        </button>
+      </div>
 
       {activities.length > 1 && (
         <ActivityList
@@ -60,46 +70,46 @@ export default function StageActivityPanel({
         />
       )}
 
-      <div className={s.stats}>
-        {activityData?.type === "Bike" && (
-          <div className={s.statItem}>
-            <PersonSimpleBikeIcon size={14} />
-          </div>
-        )}
-        {activityData?.type === "Hike" && (
-          <div className={s.statItem}>
-            <PersonSimpleHikeIcon size={14} />
-          </div>
-        )}
-        {summary.distanceM != null && (
-          <div className={s.statItem}>
-            <ArrowsHorizontalIcon size={14} />
-            {(summary.distanceM / 1000).toFixed(1)} km
-          </div>
-        )}
-        {summary.elevationM != null && (
-          <div className={s.statItem}>
-            <ArrowUpRightIcon size={14} />
-            {Math.round(summary.elevationM)} m
-          </div>
-        )}
-        {summary.duration && (
-          <div className={s.statItem}>
-            <ClockIcon size={14} />
-            {summary.duration}
-          </div>
-        )}
-      </div>
-
       <Heightmap
         stage={stage}
         selectedActivity={selectedActivity}
         setSelectedActivity={setSelectedActivity}
         onHoverPoint={(pt) => mapRef?.current?.setHoverPoint(pt)}
         onHoverEnd={() => mapRef?.current?.clearHover()}
-        height={100}
-        padding="0"
+        height={120}
+        padding="10px"
       />
+
+      <div className={s.stats}>
+        {activityData?.type != null && (
+          <div className={s.statItem}>
+            <p>Activity type</p>
+            <span className={s.statValue}>{activityData?.type}</span>
+          </div>
+        )}
+        {summary.distanceM != null && (
+          <div className={s.statItem}>
+            <p>Distance</p>
+            <span className={s.statValue}>
+              {(summary.distanceM / 1000).toFixed(1)} km
+            </span>
+          </div>
+        )}
+        {summary.elevationM != null && (
+          <div className={s.statItem}>
+            <p>Elevation gain</p>
+            <span className={s.statValue}>
+              {Math.round(summary.elevationM)} m
+            </span>
+          </div>
+        )}
+        {summary.duration && (
+          <div className={s.statItem}>
+            <p>Total duration</p>
+            <span className={s.statValue}>{summary.duration}</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

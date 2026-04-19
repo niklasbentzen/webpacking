@@ -25,8 +25,6 @@ const typeIconMap = {
   Bus: BusIcon,
 };
 
-const PADDING = [20, 20];
-
 const TripLayer = forwardRef(function TripLayer(
   {
     stages,
@@ -37,6 +35,8 @@ const TripLayer = forwardRef(function TripLayer(
     selectedActivity,
     setSelectedActivity,
     fitBounds = true,
+    paddingTopLeft = [20, 20],
+    paddingBottomRight = [20, 20],
   },
   ref,
 ) {
@@ -135,7 +135,12 @@ const TripLayer = forwardRef(function TripLayer(
     const bounds = tripRef.current.boundsByStage.get(stageId);
     if (!bounds?.isValid?.()) return false;
 
-    map.fitBounds(bounds, { padding: PADDING });
+    map.fitBounds(bounds, {
+      paddingTopLeft,
+      paddingBottomRight,
+      animate: true,
+      duration: 0.5,
+    });
     return true;
   };
 
@@ -143,7 +148,12 @@ const TripLayer = forwardRef(function TripLayer(
     const bounds = tripRef.current.group.getBounds?.();
     if (!bounds?.isValid?.()) return false;
 
-    map.fitBounds(bounds, { padding: PADDING });
+    map.fitBounds(bounds, {
+      paddingTopLeft: [20, 20],
+      paddingBottomRight: [20, 20],
+      animate: true,
+      duration: 0.5,
+    });
     return true;
   };
 
@@ -296,8 +306,13 @@ const TripLayer = forwardRef(function TripLayer(
         requestAnimationFrame(() => {
           map.invalidateSize();
 
-          const didFit = fitAllBounds();
-          if (didFit) {
+          const bounds = tripRef.current.group.getBounds?.();
+          if (bounds?.isValid?.()) {
+            map.fitBounds(bounds, {
+              paddingTopLeft: [20, 20],
+              paddingBottomRight: [20, 20],
+              animate: false,
+            });
             trip.didInitialFit = true;
           }
         });

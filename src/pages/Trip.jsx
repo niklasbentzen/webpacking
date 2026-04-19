@@ -16,10 +16,7 @@ import {
   SelectionIcon,
 } from "@phosphor-icons/react";
 
-import {
-  fetchTripBySlugWithAll,
-  summarizeTripFromStages,
-} from "../lib/trips";
+import { fetchTripBySlugWithAll, summarizeTripFromStages } from "../lib/trips";
 import { formatDateRange } from "../lib/stageFormatters";
 import Map from "../components/Map/Map";
 import TripLayer from "../components/Map/TripLayer";
@@ -31,6 +28,7 @@ import Login from "../components/Login/Login";
 import Modal from "../components/Modal/Modal";
 import { useAuth } from "@/lib/hooks/useAuth";
 import StageActivityPanel from "@/components/StageActivityPanel/StageActivityPanel";
+import StageModal from "@/components/StageModal/StageModal";
 
 export default function Trip() {
   const { slug } = useParams();
@@ -47,14 +45,16 @@ export default function Trip() {
 
   const { isLoggedIn, logout } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isStageModalOpen, setIsStageModalOpen] = useState(false);
 
   useEffect(() => {
     setStatus("Loading...");
     (async () => {
       try {
         const tripRes = await fetchTripBySlugWithAll(slug);
-        const stages = (tripRes.expand?.stages_via_trip ?? [])
-          .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+        const stages = (tripRes.expand?.stages_via_trip ?? []).sort(
+          (a, b) => new Date(a.startDate) - new Date(b.startDate),
+        );
         setTrip(tripRes);
         setStages(stages);
       } catch (e) {
@@ -66,7 +66,10 @@ export default function Trip() {
   }, [slug]);
 
   useEffect(() => {
-    if (!clickedStage) { setSelectedActivity(null); return; }
+    if (!clickedStage) {
+      setSelectedActivity(null);
+      return;
+    }
     const stage = stages.find((s) => s.id === clickedStage);
     const first = stage?.expand?.activities_via_stage?.[0];
     setSelectedActivity(first?.id ?? null);
@@ -102,6 +105,7 @@ export default function Trip() {
             setHoveredStage={setHoveredStage}
             selectedActivity={selectedActivity}
             setSelectedActivity={setSelectedActivity}
+            paddingBottomRight={[20, 250]}
           />
         </Map>
 
@@ -134,6 +138,7 @@ export default function Trip() {
               mapRef={mapRef}
               selectedActivity={selectedActivity}
               setSelectedActivity={setSelectedActivity}
+              onReadStory={() => setIsStageModalOpen(true)}
             />
           </div>
         )}
@@ -196,6 +201,11 @@ export default function Trip() {
           }}
         />
       </Modal>
+      <StageModal
+        stage={selectedStage}
+        open={isStageModalOpen}
+        onClose={() => setIsStageModalOpen(false)}
+      />
     </main>
   );
 }

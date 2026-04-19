@@ -39,10 +39,8 @@
 }
 
 .stageItem,
-.stageItem {
-  cursor: default !important;
-}
-
+stageItem *,
+label,
 .sparkline * {
   cursor: pointer !important;
 }
@@ -52,9 +50,8 @@
   margin: 0;
   transition: 0.1s ease-in-out;
   padding-bottom: 0em;
-  cursor: pointer;
 }
-.stageTitle:hover {
+.stageItem:hover .stageTitle {
   color: var(--p);
 }
 

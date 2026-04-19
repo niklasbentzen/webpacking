@@ -1,3 +1,11 @@
+// Format date
+export function formatDate(date) {
+  if (!date) return null;
+  const d = new Date(date);
+  const month = d.toLocaleString(undefined, { month: "short" });
+  return `${month} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
 /**
  * Formats:
  * - May 7, 2026
@@ -11,13 +19,13 @@ export function formatDateRange(start, end) {
   const startDate = new Date(start);
   const endDate = end ? new Date(end) : null;
 
+  if (!endDate || startDate.toDateString() === endDate.toDateString()) {
+    return formatDate(startDate);
+  }
+
   const startMonth = startDate.toLocaleString(undefined, { month: "short" });
   const startDay = startDate.getDate();
   const startYear = startDate.getFullYear();
-
-  if (!endDate || startDate.toDateString() === endDate.toDateString()) {
-    return `${startMonth} ${startDay}, ${startYear}`;
-  }
 
   const endMonth = endDate.toLocaleString(undefined, { month: "short" });
   const endDay = endDate.getDate();

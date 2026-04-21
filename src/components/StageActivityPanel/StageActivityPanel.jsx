@@ -23,6 +23,7 @@ export default function StageActivityPanel({
   selectedActivity: selectedActivityProp,
   setSelectedActivity: setSelectedActivityProp,
   onReadStory,
+  flat = false,
 }) {
   const activities = stage?.expand?.activities_via_stage ?? [];
 
@@ -53,7 +54,7 @@ export default function StageActivityPanel({
   if (!activities.length) return null;
 
   return (
-    <div className={s.panel}>
+    <div className={`${s.panel} ${flat ? s.panelFlat : ""}`}>
       <div className={s.header}>
         <h3 className={s.stageName}>{stage?.name}</h3>
         <button onClick={onReadStory}>

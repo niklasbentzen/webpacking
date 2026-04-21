@@ -8,7 +8,10 @@ import s from "./Trip.module.css";
 import {
   ArrowUpRightIcon,
   ArrowsHorizontalIcon,
+  AtIcon,
+  EnvelopeSimpleIcon,
   GpsFixIcon,
+  InstagramLogoIcon,
   LockIcon,
   LockOpenIcon,
   Log,
@@ -29,6 +32,7 @@ import Modal from "../components/Modal/Modal";
 import { useAuth } from "@/lib/hooks/useAuth";
 import StageActivityPanel from "@/components/StageActivityPanel/StageActivityPanel";
 import StageModal from "@/components/StageModal/StageModal";
+import MobileBottomSheet from "../components/MobileBottomSheet/MobileBottomSheet";
 
 export default function Trip() {
   const { slug } = useParams();
@@ -80,18 +84,6 @@ export default function Trip() {
 
   return (
     <main className={s.trip}>
-      {isLoggedIn ? (
-        <button className="button-secondary" onClick={() => logout()}>
-          Log out
-        </button>
-      ) : (
-        <button
-          className="button-secondary"
-          onClick={() => setIsLoginOpen(true)}
-        >
-          Login
-        </button>
-      )}
       <div className={s.map}>
         <Map ref={mapRef}>
           <PlannedRoute trip={trip} />
@@ -105,11 +97,13 @@ export default function Trip() {
             setHoveredStage={setHoveredStage}
             selectedActivity={selectedActivity}
             setSelectedActivity={setSelectedActivity}
-            paddingBottomRight={[20, 250]}
+            paddingBottomRight={[20, 300]}
           />
         </Map>
 
-        <div className={`${s.mapControls} ${s.topLeft}`}>
+        <div className={s.mapLogo}>Bagfra</div>
+
+        <div className={`${s.mapControls}`}>
           <button
             className="button-secondary button-icon"
             onClick={() => layerRef.current?.locate()}
@@ -132,7 +126,7 @@ export default function Trip() {
         </div>
 
         {selectedStage && (
-          <div className={`${s.mapControls} ${s.bottomLeft}`}>
+          <div className={`${s.activityPanel}`}>
             <StageActivityPanel
               stage={selectedStage}
               mapRef={mapRef}
@@ -142,9 +136,46 @@ export default function Trip() {
             />
           </div>
         )}
+
+        <MobileBottomSheet
+          trip={trip}
+          tripTotals={tripTotals}
+          stages={stages}
+          clickedStage={clickedStage}
+          setClickedStage={setClickedStage}
+          hoveredStage={hoveredStage}
+          setHoveredStage={setHoveredStage}
+          selectedStage={selectedStage}
+          selectedActivity={selectedActivity}
+          setSelectedActivity={setSelectedActivity}
+          mapRef={mapRef}
+          onReadStory={() => setIsStageModalOpen(true)}
+          isLoggedIn={isLoggedIn}
+          logout={logout}
+          onLoginOpen={() => setIsLoginOpen(true)}
+        />
       </div>
 
       <div className={s.stages}>
+        <section className={s.header}>
+          {isLoggedIn ? (
+            <button onClick={() => logout()}>Log out</button>
+          ) : (
+            <button onClick={() => setIsLoginOpen(true)}>Login</button>
+          )}
+          <div className={s.headerIcons}>
+            <a
+              href="https://www.instagram.com/bagfra/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <InstagramLogoIcon size={18} weight="bold" className={s.icons} />
+            </a>
+            <a href="mailto:niklas@bentzen.it">
+              <AtIcon size={18} weight="bold" className={s.icons} />
+            </a>
+          </div>
+        </section>
         <section>
           <div className={s.tripHeader}>
             <h2>{trip?.name ?? status}</h2>

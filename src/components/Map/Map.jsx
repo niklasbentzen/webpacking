@@ -54,6 +54,8 @@ const Map = forwardRef(function Map(
         zoom={zoom}
         style={{ height: "100%", width: "100%" }}
         zoomControl={false}
+        zoomSnap={0.5}
+        zoomDelta={1}
       >
         <TileLayer attribution={tileAttribution} url={tileUrl} />
 

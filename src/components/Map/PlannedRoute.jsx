@@ -43,6 +43,7 @@ export default function PlannedRoute({ trip }) {
         });
 
         layer.addTo(group);
+        group.bringToBack();
       } catch (err) {
         console.warn("Planned GeoJSON load error:", url, err);
       }

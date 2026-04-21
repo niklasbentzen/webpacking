@@ -102,10 +102,10 @@ const TripLayer = forwardRef(function TripLayer(
         ) {
           outline.bringToFront?.();
           line.bringToFront?.();
-          marker?.setZIndexOffset?.(1000);
+          marker?.setZIndexOffset?.(6000);
           hit.bringToFront?.();
         } else {
-          marker?.setZIndexOffset?.(0);
+          marker?.setZIndexOffset?.(5000);
         }
       }
     }
@@ -180,6 +180,7 @@ const TripLayer = forwardRef(function TripLayer(
 
       const results = await Promise.all(
         activities.map(async (activity) => {
+          if (cancelled) return null;
           const file = activity.geoJSONSmall || activity.geoJSON;
           if (!file) return null;
 
@@ -199,6 +200,8 @@ const TripLayer = forwardRef(function TripLayer(
           return { activity, data };
         }),
       );
+
+      if (cancelled) return;
 
       for (const result of results) {
         if (!result) continue;
@@ -302,6 +305,8 @@ const TripLayer = forwardRef(function TripLayer(
         marker?.addTo(group);
       }
 
+      group.bringToFront();
+
       if (fitBounds && !trip.didInitialFit) {
         requestAnimationFrame(() => {
           map.invalidateSize();
@@ -323,12 +328,7 @@ const TripLayer = forwardRef(function TripLayer(
 
     let cancelled = false;
 
-    const run = async () => {
-      await rebuildTripLayers();
-      if (cancelled) return;
-    };
-
-    run();
+    rebuildTripLayers();
 
     return () => {
       cancelled = true;

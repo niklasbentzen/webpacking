@@ -77,6 +77,16 @@
   text-align: center;
 }
 
+.panelFlat {
+  background: transparent;
+  backdrop-filter: none;
+  border: none;
+  min-width: unset;
+  max-width: unset;
+  border-radius: 0;
+  padding-bottom: 0;
+}
+
 @media (max-width: 640px) {
   .statValue {
     font-size: 1em;

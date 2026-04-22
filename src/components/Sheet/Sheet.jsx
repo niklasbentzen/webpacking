@@ -4,15 +4,22 @@ import {
   ArrowUpRightIcon,
   ArrowsHorizontalIcon,
   AtIcon,
+  BookIcon,
+  CaretDownIcon,
+  CaretUpIcon,
+  ChartLineIcon,
   InstagramLogoIcon,
+  XIcon,
 } from "@phosphor-icons/react";
 import StageList from "../StageList/StageList";
 import StageActivityPanel from "../StageActivityPanel/StageActivityPanel";
 import Divider from "../Divider/Divider";
 import { formatDateRange } from "../../lib/stageFormatters";
-import s from "./MobileBottomSheet.module.css";
+import { useMediaQuery } from "../../lib/hooks/useMediaQuery";
+import s from "./Sheet.module.css";
+import Story from "../Story/Story";
 
-export default function MobileBottomSheet({
+export default function Sheet({
   trip,
   tripTotals,
   stages,
@@ -24,16 +31,24 @@ export default function MobileBottomSheet({
   selectedActivity,
   setSelectedActivity,
   mapRef,
-  onReadStory,
   isLoggedIn,
   logout,
   onLoginOpen,
 }) {
-  const [sheetState, setSheetState] = useState("peek");
+  const isDesktop = useMediaQuery("(min-width: 961px)");
+  const [sheetState, setSheetState] = useState(() =>
+    window.matchMedia("(min-width: 961px)").matches ? "closed" : "peek",
+  );
   const isBackNavRef = useRef(false);
   const prevClickedRef = useRef(clickedStage);
+  const [isStory, setIsStory] = useState(false);
 
   useEffect(() => {
+    if (isDesktop) {
+      setSheetState(clickedStage ? "detail" : "closed");
+      return;
+    }
+
     const wasNonNull = prevClickedRef.current !== null;
     prevClickedRef.current = clickedStage;
 
@@ -43,24 +58,33 @@ export default function MobileBottomSheet({
     } else if (wasNonNull && !isBackNavRef.current) {
       setSheetState("peek");
     }
-  }, [clickedStage]);
+  }, [clickedStage, isDesktop]);
 
   const handleBack = () => {
     isBackNavRef.current = true;
     setClickedStage(null);
-    setSheetState("list");
+    setSheetState(isDesktop ? "closed" : "list");
   };
 
   return (
     <div className={s.sheet} data-state={sheetState}>
-      <div
-        className={s.handleArea}
-        onClick={() => sheetState === "peek" && setSheetState("list")}
-      >
-        <div className={s.handle} />
-      </div>
+      {!isDesktop && sheetState !== "detail" && (
+        <div
+          className={s.handleArea}
+          onClick={() => {
+            if (sheetState === "peek") setSheetState("list");
+            else if (sheetState === "list") setSheetState("peek");
+          }}
+        >
+          {sheetState === "peek" ? (
+            <CaretUpIcon size={18} weight="bold" />
+          ) : (
+            <CaretDownIcon size={18} weight="bold" />
+          )}
+        </div>
+      )}
 
-      {sheetState === "peek" && (
+      {!isDesktop && sheetState === "peek" && (
         <div className={s.peekContent} onClick={() => setSheetState("list")}>
           <span className={s.tripName}>{trip?.name}</span>
           <div className={s.peekStats}>
@@ -80,10 +104,10 @@ export default function MobileBottomSheet({
         </div>
       )}
 
-      {sheetState !== "peek" && (
+      {sheetState !== "peek" && sheetState !== "closed" && (
         <div className={s.inner}>
-          {sheetState === "list" && (
-            <>
+          <div className={s.expand} data-expanded={sheetState === "list"}>
+            <div className={s.listBody}>
               <section className={s.header}>
                 {isLoggedIn ? (
                   <button onClick={logout}>Log out</button>
@@ -131,7 +155,9 @@ export default function MobileBottomSheet({
                 </div>
                 {trip?.description && <p>{trip.description}</p>}
               </section>
+
               <Divider />
+
               <section>
                 <h2>
                   Stages <sup className={s.sup}>{stages.length}</sup>
@@ -144,25 +170,69 @@ export default function MobileBottomSheet({
                   setHoveredStage={setHoveredStage}
                 />
               </section>
-            </>
-          )}
+            </div>
+          </div>
 
-          {sheetState === "detail" && selectedStage && (
-            <>
-              <button className={s.backBtn} onClick={handleBack}>
-                <ArrowLeftIcon size={16} />
-                Back
-              </button>
-              <StageActivityPanel
-                flat
-                stage={selectedStage}
-                mapRef={mapRef}
-                selectedActivity={selectedActivity}
-                setSelectedActivity={setSelectedActivity}
-                onReadStory={onReadStory}
-              />
-            </>
-          )}
+          <div className={s.expand} data-expanded={sheetState === "detail"}>
+            <div>
+              {selectedStage && (
+                <>
+                  <div className={s.detailHeader}>
+                    <button className={s.back} onClick={handleBack}>
+                      {isDesktop ? (
+                        <>
+                          <XIcon size={16} />
+                          Close
+                        </>
+                      ) : (
+                        <>
+                          <ArrowLeftIcon size={16} />
+                          Back
+                        </>
+                      )}
+                    </button>
+                    <h3>{selectedStage.name}</h3>
+                    <button
+                      className={s.story}
+                      onClick={() => setIsStory(!isStory)}
+                    >
+                      {isStory ? (
+                        <>
+                          <ChartLineIcon size={16} />
+                          Statistics
+                        </>
+                      ) : (
+                        <>
+                          <BookIcon size={16} />
+                          Story
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <div className={s.detailBody}>
+                    <div className={s.expand} data-expanded={!isStory}>
+                      <div>
+                        <StageActivityPanel
+                          flat
+                          stage={selectedStage}
+                          mapRef={mapRef}
+                          selectedActivity={selectedActivity}
+                          setSelectedActivity={setSelectedActivity}
+                          onReadStory={() => setIsStory(true)}
+                        />
+                      </div>
+                    </div>
+                    <div className={s.expand} data-expanded={isStory}>
+                      <div>
+                        <Story stage={selectedStage} />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

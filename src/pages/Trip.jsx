@@ -30,9 +30,8 @@ import { pb } from "../lib/pb";
 import Login from "../components/Login/Login";
 import Modal from "../components/Modal/Modal";
 import { useAuth } from "@/lib/hooks/useAuth";
-import StageActivityPanel from "@/components/StageActivityPanel/StageActivityPanel";
 import StageModal from "@/components/StageModal/StageModal";
-import MobileBottomSheet from "../components/MobileBottomSheet/MobileBottomSheet";
+import Sheet from "../components/Sheet/Sheet";
 
 export default function Trip() {
   const { slug } = useParams();
@@ -125,19 +124,7 @@ export default function Trip() {
           </button>
         </div>
 
-        {selectedStage && (
-          <div className={`${s.activityPanel}`}>
-            <StageActivityPanel
-              stage={selectedStage}
-              mapRef={mapRef}
-              selectedActivity={selectedActivity}
-              setSelectedActivity={setSelectedActivity}
-              onReadStory={() => setIsStageModalOpen(true)}
-            />
-          </div>
-        )}
-
-        <MobileBottomSheet
+        <Sheet
           trip={trip}
           tripTotals={tripTotals}
           stages={stages}
@@ -154,6 +141,7 @@ export default function Trip() {
           logout={logout}
           onLoginOpen={() => setIsLoginOpen(true)}
         />
+
       </div>
 
       <div className={s.stages}>

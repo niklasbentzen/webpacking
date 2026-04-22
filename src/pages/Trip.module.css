@@ -52,9 +52,6 @@
   .stages {
     display: none;
   }
-  .activityPanel {
-    display: none !important;
-  }
   .mapLogo {
     display: none;
   }
@@ -163,24 +160,8 @@
   right: 1em;
 }
 
-.mapControls > *,
-.activityPanel > * {
+.mapControls > * {
   pointer-events: auto;
-}
-
-.activityPanel {
-  position: absolute;
-  z-index: 999;
-  width: calc(100% - 2em);
-
-  display: flex;
-  flex-direction: row;
-  gap: 0.5em;
-  pointer-events: none;
-
-  bottom: 1em;
-  left: 1em;
-  right: 1em;
 }
 
 .tripHeader {

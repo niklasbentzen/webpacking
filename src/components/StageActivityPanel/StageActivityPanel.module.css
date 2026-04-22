@@ -2,50 +2,11 @@
   min-width: 320px;
   width: 100%;
   max-width: 640px;
-  background: color-mix(in srgb, var(--bg-dark) 70%, transparent);
-  backdrop-filter: blur(6px);
-  border: 1px solid var(--b);
   border-radius: 6px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   padding-bottom: 1em;
-}
-
-.header {
-  margin: 0;
-  font-size: 0.9em;
-
-  border-bottom: 1px solid var(--b);
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header .stageName {
-  margin: 0;
-  padding: 0.6em 1em;
-  font-size: 1.2em;
-}
-
-.header button {
-  background: none;
-  border: none;
-  border-left: 1px solid var(--b);
-  color: var(--text);
-  padding: 1em 1.4em;
-  font-size: 1em;
-  border-radius: 0px;
-  box-shadow: none !important;
-  transition: 0.1s;
-  height: 100%;
-  text-wrap: nowrap;
-}
-
-.header button:hover {
-  background: color-mix(in srgb, var(--bg-dark) 40%, transparent);
-  cursor: pointer;
 }
 
 .stats {
@@ -75,16 +36,6 @@
   font-size: 0.8em;
   font-weight: 400;
   text-align: center;
-}
-
-.panelFlat {
-  background: transparent;
-  backdrop-filter: none;
-  border: none;
-  min-width: unset;
-  max-width: unset;
-  border-radius: 0;
-  padding-bottom: 0;
 }
 
 @media (max-width: 640px) {

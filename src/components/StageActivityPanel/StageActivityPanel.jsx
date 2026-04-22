@@ -4,17 +4,6 @@ import ActivityList from "../ActivityList/ActivityList";
 import Heightmap from "../Map/Heightmap";
 import { summarizeActivities } from "../../lib/stageFormatters";
 
-import {
-  PersonSimpleBikeIcon,
-  PersonSimpleHikeIcon,
-  ArrowUpRightIcon,
-  ArrowsHorizontalIcon,
-  ClockIcon,
-  ArticleIcon,
-  ArticleNyTimesIcon,
-  BookIcon,
-} from "@phosphor-icons/react";
-
 import s from "./StageActivityPanel.module.css";
 
 export default function StageActivityPanel({
@@ -22,8 +11,6 @@ export default function StageActivityPanel({
   mapRef,
   selectedActivity: selectedActivityProp,
   setSelectedActivity: setSelectedActivityProp,
-  onReadStory,
-  flat = false,
 }) {
   const activities = stage?.expand?.activities_via_stage ?? [];
 
@@ -54,15 +41,7 @@ export default function StageActivityPanel({
   if (!activities.length) return null;
 
   return (
-    <div className={`${s.panel} ${flat ? s.panelFlat : ""}`}>
-      <div className={s.header}>
-        <h3 className={s.stageName}>{stage?.name}</h3>
-        <button onClick={onReadStory}>
-          <BookIcon size={18} />
-          Read story
-        </button>
-      </div>
-
+    <div className={s.panel}>
       {activities.length > 1 && (
         <ActivityList
           activities={activities}

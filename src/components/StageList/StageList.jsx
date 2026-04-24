@@ -23,24 +23,35 @@ export default function StageList({
   setHoveredStage,
 }) {
   const clickedElRef = useRef(null);
+  const listRef = useRef(null);
 
   useEffect(() => {
     if (!clickedStage) return;
     if (!clickedElRef.current) return;
     if (window.innerWidth <= 960) return;
 
-    clickedElRef.current.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-      inline: "nearest",
-    });
+    const el = clickedElRef.current;
+    const container = listRef.current;
+    if (!container) return;
+
+    const elRect = el.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const isInView =
+      elRect.top >= containerRect.top && elRect.bottom <= containerRect.bottom;
+    if (!isInView) {
+      el.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+        inline: "nearest",
+      });
+    }
   }, [clickedStage]);
 
   if (!stages?.length)
     return <i style={{ color: "var(--text-faded" }}>Found no stages...</i>;
 
   return (
-    <ul className={s.stageList}>
+    <ul className={s.stageList} ref={listRef}>
       {[...stages]
         .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
         .map((stage) => {

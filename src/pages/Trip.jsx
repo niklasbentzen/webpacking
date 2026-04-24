@@ -9,14 +9,10 @@ import {
   ArrowUpRightIcon,
   ArrowsHorizontalIcon,
   AtIcon,
-  EnvelopeSimpleIcon,
   GpsFixIcon,
   InstagramLogoIcon,
-  LockIcon,
-  LockOpenIcon,
-  Log,
   PathIcon,
-  SelectionIcon,
+  UserCheckIcon,
   UserIcon,
 } from "@phosphor-icons/react";
 
@@ -27,7 +23,6 @@ import TripLayer from "../components/Map/TripLayer";
 import PlannedRoute from "../components/Map/PlannedRoute";
 import InReachLayer from "../components/Map/InReachLayer";
 import React from "react";
-import { pb } from "../lib/pb";
 import Login from "../components/Login/Login";
 import Modal from "../components/Modal/Modal";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -101,7 +96,9 @@ export default function Trip() {
           />
         </Map>
 
-        <div className={s.mapLogo}>Bagfra</div>
+        <Link to={"/"} className={s.mapLogo}>
+          Bagfra
+        </Link>
 
         <div className={`${s.mapControls}`}>
           <button
@@ -123,13 +120,24 @@ export default function Trip() {
           >
             <PathIcon size="20" />
           </button>
-          <button
-            className="button-secondary button-icon"
-            onClick={() => tripLayerRef.current?.fitBounds()}
-            title="Login"
-          >
-            <UserIcon size="20" />
-          </button>
+          {isLoggedIn ? (
+            <button
+              className="button-secondary button-icon"
+              onClick={() => {
+                if (window.confirm("Are you sure you want to logout?"))
+                  logout();
+              }}
+            >
+              <UserCheckIcon size="20" />
+            </button>
+          ) : (
+            <button
+              className="button-secondary button-icon"
+              onClick={() => setIsLoginOpen(true)}
+            >
+              <UserIcon size="20" />
+            </button>
+          )}
         </div>
 
         <Sheet
@@ -152,28 +160,40 @@ export default function Trip() {
       </div>
 
       <div className={s.stages}>
-        <section className={s.header}>
-          {isLoggedIn ? (
-            <button onClick={() => logout()}>Log out</button>
-          ) : (
-            <button onClick={() => setIsLoginOpen(true)}>Login</button>
-          )}
-          <div className={s.headerIcons}>
-            <a
-              href="https://www.instagram.com/bagfra/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <InstagramLogoIcon size={18} weight="bold" className={s.icons} />
-            </a>
-            <a href="mailto:niklas@bentzen.it">
-              <AtIcon size={18} weight="bold" className={s.icons} />
-            </a>
-          </div>
-        </section>
         <section>
           <div className={s.tripHeader}>
             <h2>{trip?.name ?? status}</h2>
+            <div className={s.headerIcons}>
+              <a
+                href="https://www.strava.com/athletes/23904741"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <svg
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={s.icons}
+                  style={{ width: 18, height: 18 }}
+                >
+                  <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169" />
+                </svg>
+              </a>
+              <a
+                href="https://www.instagram.com/bagfra/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <InstagramLogoIcon
+                  size={18}
+                  weight="bold"
+                  className={s.icons}
+                />
+              </a>
+              <a href="mailto:niklas@bentzen.it">
+                <AtIcon size={18} weight="bold" className={s.icons} />
+              </a>
+            </div>
           </div>
           <div className={s.tripData}>
             {tripTotals.startTime && (
@@ -202,10 +222,10 @@ export default function Trip() {
         <Divider />
 
         <section style={{ flex: "1 1 0%" }}>
-          <h2>
+          <h3>
             Stages
             <sup className={s.sup}>{stages.length}</sup>
-          </h2>
+          </h3>
           <StageList
             stages={stages}
             clickedStage={clickedStage}
@@ -227,11 +247,6 @@ export default function Trip() {
           }}
         />
       </Modal>
-      <StageModal
-        stage={selectedStage}
-        open={isStageModalOpen}
-        onClose={() => setIsStageModalOpen(false)}
-      />
     </main>
   );
 }

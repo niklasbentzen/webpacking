@@ -83,7 +83,7 @@ input {
   border: 1px solid var(--b);
   border-radius: 6px;
   background: transparent;
-  color: black !important;
+  color: var(--text) !important;
 }
 input:focus {
   outline: 2px solid var(--p);

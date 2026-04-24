@@ -2,7 +2,7 @@
 .leaflet-touch .leaflet-bar {
   border: none !important;
   box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2) !important;
-  border-radius: 6px !important;
+  border-radius: px !important;
 }
 
 .leaflet-right .leaflet-control {

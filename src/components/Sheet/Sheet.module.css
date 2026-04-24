@@ -31,7 +31,7 @@
 }
 
 .sheet[data-state="peek"] {
-  height: 90px;
+  height: 100px;
   cursor: pointer;
 }
 
@@ -70,7 +70,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 1em 0.75em;
+  padding: 0.5em 1em;
   gap: 1em;
 }
 
@@ -171,6 +171,8 @@
   grid-column: 2;
   justify-self: center;
   width: fit-content;
+  text-align: center;
+  line-height: 1.2em;
 }
 
 .stageHeader button {
@@ -225,7 +227,7 @@
 }
 
 .stagesHeading {
-  margin: 0;
+  margin: 0 0.2em;
   font-size: 1em;
   font-weight: 700;
   color: var(--text-faded);

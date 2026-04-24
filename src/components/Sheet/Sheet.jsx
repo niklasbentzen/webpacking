@@ -87,17 +87,22 @@ export default function Sheet({
       <div className={s.sheetHeader}>
         {sheetState === "peek" && (
           <div className={s.peekHeader} onClick={() => setSheetState("trip")}>
-            <span className={s.tripName}>{trip?.name}</span>
+            <h2>{trip?.name}</h2>
             <div className={s.peekStats}>
+              {tripTotals?.startTime && (
+                <div className={s.tripMetaItem}>
+                  {formatDateRange(tripTotals.startTime, tripTotals.endTime)}
+                </div>
+              )}
               {tripTotals?.distanceM != null && (
                 <span>
-                  <ArrowsHorizontalIcon size={12} />{" "}
+                  <ArrowsHorizontalIcon size={14} />
                   {(tripTotals.distanceM / 1000).toFixed(1)} km
                 </span>
               )}
               {tripTotals?.elevationM != null && (
                 <span>
-                  <ArrowUpRightIcon size={12} />{" "}
+                  <ArrowUpRightIcon size={14} />
                   {tripTotals.elevationM.toFixed(0)} m
                 </span>
               )}

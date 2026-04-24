@@ -17,6 +17,7 @@ import {
   Log,
   PathIcon,
   SelectionIcon,
+  UserIcon,
 } from "@phosphor-icons/react";
 
 import { fetchTripBySlugWithAll, summarizeTripFromStages } from "../lib/trips";
@@ -122,6 +123,13 @@ export default function Trip() {
           >
             <PathIcon size="20" />
           </button>
+          <button
+            className="button-secondary button-icon"
+            onClick={() => tripLayerRef.current?.fitBounds()}
+            title="Login"
+          >
+            <UserIcon size="20" />
+          </button>
         </div>
 
         <Sheet
@@ -141,7 +149,6 @@ export default function Trip() {
           logout={logout}
           onLoginOpen={() => setIsLoginOpen(true)}
         />
-
       </div>
 
       <div className={s.stages}>

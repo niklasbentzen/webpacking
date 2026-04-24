@@ -23,7 +23,7 @@ function ElevationTooltip({ active, payload, label }) {
         background: "color-mix(in srgb, var(--bg-dark) 50%, transparent)",
         color: "var(--text)",
         borderRadius: "6px",
-        padding: 10,
+        padding: 0,
         fontSize: 12,
       }}
     >
@@ -148,6 +148,8 @@ export default function Heightmap({
         >
           <XAxis
             dataKey="distM"
+            type="number"
+            domain={["dataMin", "dataMax"]}
             tickFormatter={(v) => `${formatKm(v)} km`}
             tickCount={5}
             minTickGap={30}
@@ -173,6 +175,7 @@ export default function Heightmap({
             dot={false}
             activeDot={{ r: 4 }}
             isAnimationActive={true}
+            animationDuration={800}
           />
         </AreaChart>
       </ResponsiveContainer>

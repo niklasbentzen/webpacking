@@ -1,12 +1,10 @@
 .panel {
   min-width: 320px;
-  width: 100%;
-  max-width: 640px;
   border-radius: 6px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding-bottom: 1em;
+  padding-bottom: 1em !important;
 }
 
 .stats {

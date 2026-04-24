@@ -105,6 +105,19 @@ export function summarizeTripFromStages(stages) {
   };
 }
 
+export async function fetchAllTripsWithAll() {
+  return pb.collection("trips").getFullList({
+    filter: "published = true",
+    sort: "-startDate",
+    expand: "stages_via_trip,stages_via_trip.activities_via_stage",
+  });
+}
+
+export function getTripHeroImageUrl(trip) {
+  if (!trip?.heroImage) return null;
+  return pb.getFileUrl(trip, trip.heroImage);
+}
+
 export function updateTrip(tripId, data) {
   return pb.collection("trips").update(tripId, data);
 }

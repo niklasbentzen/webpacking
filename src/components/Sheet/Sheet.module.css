@@ -14,13 +14,13 @@
 
   display: flex;
   flex-direction: column;
-  max-width: 640px;
+  max-width: 960px;
   margin: 0 auto;
+  overflow: hidden;
 
   transition:
     height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
 }
 
 .sheet[data-state="closed"] {
@@ -33,12 +33,14 @@
   cursor: pointer;
 }
 
-.sheet[data-state="list"],
-.sheet[data-state="detail"] {
-  max-height: 80%;
+.sheet[data-state="trip"],
+.sheet[data-state="stage"] {
+  max-height: 90%;
 }
 
-.handleArea {
+/* ── Handle ─────────────────────────────────────────────── */
+
+.sheetHandle {
   flex-shrink: 0;
   display: flex;
   justify-content: center;
@@ -48,12 +50,20 @@
   cursor: pointer;
   transition: 0.2s;
 }
-.handleArea:hover {
+
+.sheetHandle:hover {
   background: color-mix(in srgb, var(--bg-light) 20%, transparent);
   color: var(--p);
 }
 
-.peekContent {
+/* ── Header (always visible, never scrolls) ─────────────── */
+
+.sheetHeader {
+  flex-shrink: 0;
+}
+
+/* peek state */
+.peekHeader {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -86,34 +96,23 @@
   color: var(--text-faded);
 }
 
-.inner {
-  flex: 1;
+/* trip state header */
+.tripHeader {
   display: flex;
   flex-direction: column;
-  overflow-y: scroll;
-  overflow-x: hidden;
+  gap: 0.25em;
+  padding: 0 1em;
 }
 
-.inner section {
-  display: flex;
-  gap: 1em;
-  padding: 1em;
-  box-sizing: border-box;
-}
-
-.detailBody {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.header {
+.tripHeaderActions {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 0.5em;
 }
 
-.header button {
+.tripHeaderActions button {
   font-size: 0.8em;
   padding: 0.5em 0;
   background: none;
@@ -123,7 +122,7 @@
   cursor: pointer;
 }
 
-.header button:hover {
+.tripHeaderActions button:hover {
   color: var(--p);
 }
 
@@ -139,7 +138,7 @@
   cursor: pointer;
 }
 
-.tripData {
+.tripMeta {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -147,7 +146,7 @@
   gap: 1em;
 }
 
-.tripDataItem {
+.tripMetaItem {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -157,27 +156,22 @@
   color: var(--text-faded);
 }
 
-.sup {
-  font-size: 0.6em;
-}
-
-.detailHeader {
+/* stage state header */
+.stageHeader {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   padding: 0.5em 1em;
   border-bottom: 1px solid var(--b);
-  position: sticky;
-  top: 0;
-  z-index: 1;
 }
-.detailHeader h3 {
+
+.stageHeader h3 {
   grid-column: 2;
   justify-self: center;
   width: fit-content;
 }
 
-.detailHeader button {
+.stageHeader button {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -191,29 +185,50 @@
   padding: 0;
 }
 
-.detailHeader button:hover {
+.stageHeader button:hover {
   color: var(--p);
 }
 
-.detailHeader button.back {
+.back {
   grid-column: 1;
 }
 
-.detailHeader button.story {
+.storyToggle {
   grid-column: 3;
   justify-self: end;
 }
 
-.expand {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* ── Body (scrollable) ──────────────────────────────────── */
+
+.sheetBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  gap: 1em;
+  padding: 0 0em;
 }
 
-.expand[data-expanded="true"] {
-  grid-template-rows: 1fr;
+.sheetBody > * {
+  padding: 0 1em;
 }
 
-.expand > div {
-  overflow: hidden;
+.tripDescription {
+  font-size: 1em;
+  color: var(--text-faded);
+  padding: 1em;
+  border-bottom: 1px solid var(--b);
+}
+
+.stagesHeading {
+  margin: 0;
+  font-size: 1em;
+  font-weight: 700;
+  color: var(--text-faded);
+}
+
+.sup {
+  font-size: 0.6em;
 }

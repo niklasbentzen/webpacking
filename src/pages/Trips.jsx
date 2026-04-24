@@ -1,6 +1,20 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { fetchAllTrips } from "../lib/trips";
+import {
+  fetchAllTripsWithAll,
+  getTripHeroImageUrl,
+  summarizeTripFromStages,
+} from "../lib/trips";
+import styles from "./Trips.module.css";
+
+function formatDateRange(startTime, endTime) {
+  if (!startTime) return null;
+  const fmt = (d) =>
+    new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(d);
+  if (!endTime) return fmt(startTime);
+  const start = new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(startTime);
+  return `${start} → ${fmt(endTime)}`;
+}
 
 export default function Trips() {
   const [trips, setTrips] = useState([]);
@@ -9,7 +23,7 @@ export default function Trips() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetchAllTrips();
+        const res = await fetchAllTripsWithAll();
         setTrips(res);
       } catch (e) {
         setError(e?.message || "Failed to load trips");
@@ -20,15 +34,33 @@ export default function Trips() {
   if (error) return <p>{error}</p>;
 
   return (
-    <>
-      <h1>Trips</h1>
-      <ul>
-        {trips.map((t) => (
-          <li key={t.id}>
-            <Link to={`/trips/${t.slug}`}>{t.name}</Link>
-          </li>
-        ))}
-      </ul>
-    </>
+    <div className={styles.page}>
+      {trips.map((trip) => {
+        const stages = trip.expand?.stages_via_trip || [];
+        const { distanceM, elevationM, startTime, endTime, stageCount } =
+          summarizeTripFromStages(stages);
+        const heroUrl = getTripHeroImageUrl(trip);
+        const dateRange = formatDateRange(startTime, endTime);
+        const distanceKm = distanceM ? (distanceM / 1000).toFixed(1) : null;
+        const elevation = elevationM ? Math.round(elevationM) : null;
+
+        return (
+          <Link key={trip.id} to={`/trips/${trip.slug}`} className={styles.card}>
+            {heroUrl && (
+              <img src={heroUrl} alt={trip.name} className={styles.heroImage} />
+            )}
+            <div className={styles.overlay}>
+              <h2 className={styles.name}>{trip.name}</h2>
+              <div className={styles.meta}>
+                {dateRange && <span>{dateRange}</span>}
+                {distanceKm && <span>↔ {distanceKm} km</span>}
+                {elevation && <span>↗ {elevation} m</span>}
+                {stageCount > 0 && <span>{stageCount} stages</span>}
+              </div>
+            </div>
+          </Link>
+        );
+      })}
+    </div>
   );
 }

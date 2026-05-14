@@ -35,7 +35,7 @@ export default function ActivityList({
   return (
     <div className={s.activityList}>
       {activities.map((activity) => (
-        <div
+        <button
           key={activity.id}
           ref={selectedActivity == activity.id ? selectedRef : null}
           className={`${s.activity} ${selectedActivity == activity.id ? s.selected : ""}`}
@@ -71,7 +71,7 @@ export default function ActivityList({
             )}
           </div>
           */}
-        </div>
+        </button>
       ))}
     </div>
   );

@@ -9,12 +9,16 @@
   margin: 0;
   height: 0px;
   flex-grow: 1;
+}
+
+.stageList.scroll {
   overflow: scroll;
 }
 
 @media (max-width: 960px) {
   .stageList {
     height: 100%;
+    overflow: visible;
   }
 }
 

@@ -26,8 +26,7 @@ import React from "react";
 import Login from "../components/Login/Login";
 import Modal from "../components/Modal/Modal";
 import { useAuth } from "@/lib/hooks/useAuth";
-import StageModal from "@/components/StageModal/StageModal";
-import Sheet from "../components/Sheet/Sheet";
+import Sheet2 from "../components/Sheet2/Sheet2";
 
 export default function Trip() {
   const { slug } = useParams();
@@ -44,7 +43,6 @@ export default function Trip() {
 
   const { isLoggedIn, logout } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [isStageModalOpen, setIsStageModalOpen] = useState(false);
 
   useEffect(() => {
     setStatus("Loading...");
@@ -56,6 +54,8 @@ export default function Trip() {
         );
         setTrip(tripRes);
         setStages(stages);
+
+        document.title = "Bagfra — " + tripRes.name;
       } catch (e) {
         console.error(e, e?.data);
         setError(e?.message || "Failed to load trip");
@@ -140,7 +140,7 @@ export default function Trip() {
           )}
         </div>
 
-        <Sheet
+        <Sheet2
           trip={trip}
           tripTotals={tripTotals}
           stages={stages}
@@ -148,14 +148,9 @@ export default function Trip() {
           setClickedStage={setClickedStage}
           hoveredStage={hoveredStage}
           setHoveredStage={setHoveredStage}
-          selectedStage={selectedStage}
           selectedActivity={selectedActivity}
           setSelectedActivity={setSelectedActivity}
           mapRef={mapRef}
-          onReadStory={() => setIsStageModalOpen(true)}
-          isLoggedIn={isLoggedIn}
-          logout={logout}
-          onLoginOpen={() => setIsLoginOpen(true)}
         />
       </div>
 
@@ -164,6 +159,17 @@ export default function Trip() {
           <div className={s.tripHeader}>
             <h2>{trip?.name ?? status}</h2>
             <div className={s.headerIcons}>
+              <a
+                href="https://www.instagram.com/bagfra/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <InstagramLogoIcon
+                  size={18}
+                  weight="bold"
+                  className={s.icons}
+                />
+              </a>
               <a
                 href="https://www.strava.com/athletes/23904741"
                 target="_blank"
@@ -179,17 +185,7 @@ export default function Trip() {
                   <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169" />
                 </svg>
               </a>
-              <a
-                href="https://www.instagram.com/bagfra/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <InstagramLogoIcon
-                  size={18}
-                  weight="bold"
-                  className={s.icons}
-                />
-              </a>
+
               <a href="mailto:niklas@bentzen.it">
                 <AtIcon size={18} weight="bold" className={s.icons} />
               </a>
@@ -232,6 +228,7 @@ export default function Trip() {
             setClickedStage={setClickedStage}
             hoveredStage={hoveredStage}
             setHoveredStage={setHoveredStage}
+            scroll={true}
           />
         </section>
       </div>

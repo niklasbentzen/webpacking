@@ -21,6 +21,7 @@ export default function StageList({
   setClickedStage,
   hoveredStage,
   setHoveredStage,
+  scroll,
 }) {
   const clickedElRef = useRef(null);
   const listRef = useRef(null);
@@ -51,7 +52,7 @@ export default function StageList({
     return <i style={{ color: "var(--text-faded" }}>Found no stages...</i>;
 
   return (
-    <ul className={s.stageList} ref={listRef}>
+    <ul className={`${s.stageList} ${scroll ? s.scroll : ""}`} ref={listRef}>
       {[...stages]
         .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
         .map((stage) => {

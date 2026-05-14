@@ -67,17 +67,23 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 0.5rem;
 }
 
 .navigation button {
-  background: none;
+  background: color-mix(in srgb, var(--bg) 0%, transparent);
+
   border: none;
   color: var(--text);
   font-size: 1rem;
   cursor: pointer;
   box-shadow: none !important;
-  border: 1px solid var(--bg-light);
+  border: none;
+  transition: 0.2s ease;
+}
+
+.navigation button:hover {
+  color: var(--p);
+  background: color-mix(in srgb, var(--bg) 50%, transparent);
 }
 
 .header {
@@ -87,9 +93,7 @@
   align-items: start;
   padding: 1rem 1rem 0rem 1rem;
 }
-.full .header {
-  border-bottom: 1px solid var(--bg-light);
-}
+
 .header h2 {
   font-size: 1rem;
   transition: 0.2s ease;
@@ -145,6 +149,7 @@
   cursor: pointer;
   padding: 0.5rem 0;
   box-shadow: none !important;
+  border-radius: 12px 12px 0 0;
 }
 .expandStoryButton:hover {
   color: var(--p);

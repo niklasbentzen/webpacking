@@ -2,6 +2,8 @@ import s from "./Sheet2.module.css";
 import {
   ArrowsHorizontalIcon,
   ArrowUpRightIcon,
+  BookIcon,
+  CaretLineDownIcon,
   XIcon,
 } from "@phosphor-icons/react";
 import { formatDateRange } from "@/lib/stageFormatters";
@@ -10,6 +12,7 @@ import Story from "../Story/Story";
 import { useSheetDrag } from "@/lib/hooks/useSheetDrag";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import StageActivityPanel from "../StageActivityPanel/StageActivityPanel";
+import { useEffect } from "react";
 
 export default function Sheet2({
   trip,
@@ -36,6 +39,10 @@ export default function Sheet2({
     onPointerCancel,
   } = useSheetDrag("peek");
 
+  useEffect(() => {
+    if (!isMobile && clickedStage) snapTo("half");
+  }, [clickedStage, isMobile]);
+
   if (!isMobile && !clickedStage) {
     return <></>;
   }
@@ -57,10 +64,16 @@ export default function Sheet2({
 
       {!isMobile && (
         <div className={s.navigation}>
-          <button
-            className={s.closeButton}
-            onClick={() => setClickedStage(null)}
-          >
+          {sheetState === "full" ? (
+            <button onClick={() => snapTo("half")}>
+              <CaretLineDownIcon size={16} />
+            </button>
+          ) : (
+            <button onClick={() => snapTo("full")}>
+              <BookIcon size={16} />
+            </button>
+          )}
+          <button onClick={() => setClickedStage(null)}>
             <XIcon size={16} />
           </button>
         </div>
@@ -124,16 +137,17 @@ export default function Sheet2({
               selectedActivity={selectedActivity}
               setSelectedActivity={setSelectedActivity}
             />
-            <button
-              className={s.expandStoryButton}
-              onClick={() => snapTo(sheetState === "full" ? "half" : "full")}
-            >
-              {sheetState === "full" ? "Collapse story" : "Read the story"}
-            </button>
+
             {sheetState === "full" && <Story stage={selectedStage} />}
           </>
         )}
       </div>
+      <button
+        className={s.expandStoryButton}
+        onClick={() => snapTo(sheetState === "full" ? "half" : "full")}
+      >
+        {sheetState === "full" ? "Collapse story" : "Read the story"}
+      </button>
     </div>
   );
 }

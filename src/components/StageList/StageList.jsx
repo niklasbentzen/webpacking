@@ -65,7 +65,7 @@ export default function StageList({
 
           return (
             <li key={stage.id} ref={isClicked ? clickedElRef : null}>
-              <div
+              <a
                 className={`${s.stageItem} ${isClicked ? s.clickedStage : ""} ${isHovered ? s.hoveredStage : ""}`}
                 onClick={() => setClickedStage(stage.id)}
                 onMouseEnter={() => setHoveredStage?.(stage.id)}
@@ -117,7 +117,7 @@ export default function StageList({
                     </div>
                   )}
                 </div>
-              </div>
+              </a>
             </li>
           );
         })}

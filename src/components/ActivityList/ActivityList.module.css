@@ -5,6 +5,8 @@
   width: 100%;
   overflow: scroll;
   scrollbar-width: none;
+
+  border-bottom: 0.5px solid var(--b);
 }
 
 .activityList::-webkit-scrollbar {
@@ -27,9 +29,11 @@
   transition: 0.2s ease;
 
   font-size: 0.8em;
+  box-shadow: none !important;
 }
 .activity:hover {
   background-color: color-mix(in srgb, var(--bg-light) 50%, transparent);
+  color: var(--text);
 }
 .selected {
   background-color: color-mix(in srgb, var(--bg-light) 50%, transparent);

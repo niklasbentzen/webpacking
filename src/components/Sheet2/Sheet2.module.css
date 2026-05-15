@@ -31,7 +31,7 @@
   }
 
   &.half {
-    height: auto;
+    height: 310px;
   }
 
   &.full {
@@ -43,7 +43,7 @@
   flex-shrink: 0;
   display: flex;
   justify-content: center;
-  padding: 10px 0 8px;
+  padding: 8px 0 0;
   cursor: grab;
   user-select: none;
 }
@@ -89,9 +89,18 @@
 .header {
   position: static;
   display: flex;
+
+  padding: 0.4rem 1rem;
+  border-bottom: 0.5px solid var(--b);
+}
+.header.trip {
   flex-direction: column;
   align-items: start;
-  padding: 1rem 1rem 0rem 1rem;
+}
+
+.header.stage {
+  flex-direction: row;
+  align-items: center;
 }
 
 .header h2 {
@@ -121,8 +130,18 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 1rem;
+  padding: 0 0rem;
   flex-grow: 1;
+}
+
+.tripContent {
+  padding: 1rem;
+}
+
+.stageContent {
+  &.half {
+    justify-content: center;
+  }
 }
 
 .content {

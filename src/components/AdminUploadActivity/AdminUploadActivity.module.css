@@ -1,0 +1,84 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+}
+
+.fileInputLabel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4em;
+  padding: 1.25em;
+  border: 2px dashed var(--b);
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  min-height: 80px;
+  font-size: 0.9em;
+  color: var(--text-faded);
+  transition: border-color 0.15s;
+}
+
+.fileInputLabel:hover,
+.fileInputLabel:focus-within {
+  border-color: var(--p);
+  color: var(--text);
+}
+
+.fileNames {
+  font-size: 0.85em;
+  color: var(--text);
+}
+
+.hiddenInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.queue {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+}
+
+.queueItem {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em 0.75em;
+  border-radius: 6px;
+  background: var(--bg-light);
+  font-size: 0.85em;
+  border: 1px solid transparent;
+}
+
+.queueItem[data-status="done"] {
+  opacity: 0.6;
+}
+
+.queueItem[data-status="error"] {
+  border-color: #c44;
+  color: #c44;
+}
+
+.queueItem[data-status="uploading"] {
+  border-color: var(--p);
+}
+
+.queueMessage {
+  font-size: 0.8em;
+  color: var(--text-faded);
+}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import s from "./Admin.module.css";
 import ReactMarkdown from "react-markdown";
 import AdminModal from "../../components/AdminModal/AdminModal";
@@ -9,6 +9,7 @@ import {
   fetchStageByIdWithActivities,
   updateStage,
   deleteActivity,
+  createStage,
 } from "../../lib/stages";
 import { formatDuration } from "../../lib/stageFormatters";
 import { uploadStageImage, deleteStageImage } from "../../lib/stageImages";
@@ -27,6 +28,8 @@ import {
 } from "@phosphor-icons/react";
 import AdminEditActivity from "../../components/AdminEditActivity/AdminEditActivity";
 import OverTypeEditor from "../../components/OverTypeEditor/OverTypeEditor";
+import { fetchStatisticsForTrip } from "../../lib/statistics";
+import { fetchActivityStatsForTrip, upsertActivityStat } from "../../lib/activityStats";
 import { pb } from "../../lib/pb";
 
 const activityTypes = {
@@ -55,6 +58,7 @@ export function toLocalInputValue(dateString) {
 
 export default function AdminStage() {
   const { stageId } = useParams();
+  const navigate = useNavigate();
 
   const [isAddActivityOpen, setIsAddActivityOpen] = useState(false);
   const [activityToEdit, setActivityToEdit] = useState(null);
@@ -69,6 +73,9 @@ export default function AdminStage() {
   const [startDate, setStartDate] = useState(""); // <-- string for datetime-local
   const [endDate, setEndDate] = useState(""); // <-- string for datetime-local
   const [body, setBody] = useState("");
+
+  const [statistics, setStatistics] = useState([]);
+  const [activityStats, setActivityStats] = useState([]);
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -91,6 +98,16 @@ export default function AdminStage() {
         setStartDate(toLocalInputValue(stageRes.startDate));
         setEndDate(toLocalInputValue(stageRes.endDate));
         setIsPublic(stageRes.published ?? false);
+
+        if (stageRes.trip) {
+          const [stats, aStats] = await Promise.all([
+            fetchStatisticsForTrip(stageRes.trip),
+            fetchActivityStatsForTrip(stageRes.trip),
+          ]);
+          if (!isMounted) return;
+          setStatistics(stats);
+          setActivityStats(aStats);
+        }
       } catch (err) {
         console.error(err);
         if (!isMounted) return;
@@ -214,6 +231,47 @@ export default function AdminStage() {
     setEndDate(toLocalInputValue(latest));
   }
 
+  function getStatCount(activityId, statisticId) {
+    const match = activityStats.find(
+      (as) => as.activity === activityId && as.statistic === statisticId,
+    );
+    return match?.count ?? 0;
+  }
+
+  async function handleStatCountChange(activityId, statisticId, value) {
+    const count = Math.max(0, parseInt(value, 10) || 0);
+    try {
+      await upsertActivityStat(activityId, statisticId, count);
+      setActivityStats((prev) => {
+        const idx = prev.findIndex(
+          (as) => as.activity === activityId && as.statistic === statisticId,
+        );
+        if (idx >= 0) {
+          const next = [...prev];
+          next[idx] = { ...next[idx], count };
+          return next;
+        }
+        return [...prev, { activity: activityId, statistic: statisticId, count }];
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function handleCreateSiblingStage() {
+    if (!stage) return;
+    try {
+      const newStage = await createStage({
+        trip: stage.trip,
+        name: "New stage",
+        slug: "",
+      });
+      navigate(`/admin/stages/${newStage.id}`);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   const isUnchanged =
     stage &&
     stage.name === name &&
@@ -233,13 +291,25 @@ export default function AdminStage() {
           <p>{stage?.name}</p>
         </div>
 
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isSaving || !stage || isUnchanged}
-        >
-          {isSaving ? "Saving..." : "Save changes"}
-        </button>
+        <div className={s.rowCentered}>
+          {savedMsg && <span className={s.statusMsg}>{savedMsg}</span>}
+          {saveError && <span className={s.statusError}>{saveError}</span>}
+          <button
+            type="button"
+            className={s.secondary}
+            onClick={handleCreateSiblingStage}
+            disabled={!stage || isSaving}
+          >
+            + New stage
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving || !stage || isUnchanged}
+          >
+            {isSaving ? "Saving..." : "Save"}
+          </button>
+        </div>
       </div>
 
       <div className={s.section}>
@@ -378,7 +448,7 @@ export default function AdminStage() {
                   onClick={() => handleDeleteActivity(activity.id)}
                   className={s.iconButton}
                 >
-                  <TrashIcon size={20} style={{ marginTop: "6px" }} />
+                  <TrashIcon size={20} />
                 </div>
               </div>
             </div>
@@ -421,6 +491,25 @@ export default function AdminStage() {
                 </div>
               </div>
             </div>
+
+            {statistics.length > 0 && (
+              <div className={s.activityStats}>
+                {statistics.map((stat) => (
+                  <div key={stat.id} className={s.activityStatRow}>
+                    <span className={s.activityStatLabel}>{stat.name}</span>
+                    <input
+                      className={s.activityStatInput}
+                      type="number"
+                      min="0"
+                      defaultValue={getStatCount(activity.id, stat.id)}
+                      onBlur={(e) =>
+                        handleStatCountChange(activity.id, stat.id, e.target.value)
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -522,12 +611,11 @@ export default function AdminStage() {
         title={"Edit activity"}
         onClose={() => setActivityToEdit(null)}
       >
-        {
-          <AdminEditActivity
-            activity={activityToEdit}
-            setActivities={setActivities}
-          />
-        }
+        <AdminEditActivity
+          activity={activityToEdit}
+          setActivities={setActivities}
+          tripId={stage?.trip}
+        />
       </AdminModal>
       <AdminModal
         open={isEditStoryOpen}

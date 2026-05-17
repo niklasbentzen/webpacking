@@ -1,13 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import s from "../../pages/admin/Admin.module.css";
 import { toLocalInputValue } from "../../pages/admin/AdminStage";
 import { updateActivity } from "../../lib/activities";
+import { fetchStatisticsForTrip } from "../../lib/statistics";
+import {
+  fetchActivityStatsForActivity,
+  upsertActivityStat,
+} from "../../lib/activityStats";
 
-export default function AdminEditActivity({ activity, setActivities }) {
+export default function AdminEditActivity({ activity, setActivities, tripId }) {
   const [type, setType] = useState(activity.type);
 
   const [startTime, setStartTime] = useState(
-    toLocalInputValue(activity.startTime)
+    toLocalInputValue(activity.startTime),
   );
   const [endTime, setEndTime] = useState(toLocalInputValue(activity.endTime));
 
@@ -18,13 +23,65 @@ export default function AdminEditActivity({ activity, setActivities }) {
   const [elevationMaxM, setElevationMaxM] = useState(activity.elevationMaxM);
 
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  const [statistics, setStatistics] = useState([]);
+  const [activityStats, setActivityStats] = useState([]);
+
+  useEffect(() => {
+    if (!tripId || !activity?.id) return;
+    let cancelled = false;
+
+    async function loadStats() {
+      try {
+        const [stats, aStats] = await Promise.all([
+          fetchStatisticsForTrip(tripId),
+          fetchActivityStatsForActivity(activity.id),
+        ]);
+        if (cancelled) return;
+        setStatistics(stats);
+        setActivityStats(aStats);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    loadStats();
+    return () => {
+      cancelled = true;
+    };
+  }, [tripId, activity?.id]);
+
+  function getCount(statisticId) {
+    const match = activityStats.find((as) => as.statistic === statisticId);
+    return match?.count ?? 0;
+  }
+
+  async function handleCountChange(statisticId, value) {
+    const count = Math.max(0, parseInt(value, 10) || 0);
+    try {
+      const updated = await upsertActivityStat(activity.id, statisticId, count);
+      setActivityStats((prev) => {
+        const idx = prev.findIndex((as) => as.statistic === statisticId);
+        if (idx >= 0) {
+          const next = [...prev];
+          next[idx] = { ...next[idx], count };
+          return next;
+        }
+        return [...prev, { ...updated, statistic: statisticId, count }];
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   async function handleSave() {
     setIsSaving(true);
+    setSaveError("");
 
     try {
       const payload = {
-        type, // ✅ now part of the payload
+        type,
         startTime: new Date(startTime).toISOString(),
         endTime: new Date(endTime).toISOString(),
         distanceM: Number(distanceM),
@@ -37,10 +94,10 @@ export default function AdminEditActivity({ activity, setActivities }) {
       const updated = await updateActivity(activity.id, payload);
 
       setActivities((prev) =>
-        prev.map((a) => (a.id === activity.id ? updated : a))
+        prev.map((a) => (a.id === activity.id ? updated : a)),
       );
-    } catch (err) {
-      console.error("Failed to update activity", err);
+    } catch {
+      setSaveError("Could not save activity.");
     } finally {
       setIsSaving(false);
     }
@@ -49,7 +106,8 @@ export default function AdminEditActivity({ activity, setActivities }) {
   return (
     <div className={s.modal}>
       <p>
-        {type} {" on the "}
+        {type}
+        {" on "}
         {new Date(activity.startTime).toLocaleString(undefined, {
           month: "short",
           day: "2-digit",
@@ -78,7 +136,7 @@ export default function AdminEditActivity({ activity, setActivities }) {
 
       <div className={s.general}>
         <div className={s.field}>
-          <label htmlFor="startTime">Start date & time</label>
+          <label htmlFor="startTime">Start</label>
           <input
             type="datetime-local"
             id="startTime"
@@ -89,7 +147,7 @@ export default function AdminEditActivity({ activity, setActivities }) {
         </div>
 
         <div className={s.field}>
-          <label htmlFor="endTime">End date & time</label>
+          <label htmlFor="endTime">End</label>
           <input
             type="datetime-local"
             id="endTime"
@@ -101,7 +159,7 @@ export default function AdminEditActivity({ activity, setActivities }) {
       </div>
 
       <div className={s.field}>
-        <label htmlFor="distanceM">Distance (Meters)</label>
+        <label htmlFor="distanceM">Distance (m)</label>
         <input
           id="distanceM"
           type="number"
@@ -113,7 +171,7 @@ export default function AdminEditActivity({ activity, setActivities }) {
 
       <div className={s.general}>
         <div className={s.field}>
-          <label htmlFor="elevationGainM">Elevation Gain (Meters)</label>
+          <label htmlFor="elevationGainM">Elevation gain (m)</label>
           <input
             id="elevationGainM"
             type="number"
@@ -123,7 +181,7 @@ export default function AdminEditActivity({ activity, setActivities }) {
           />
         </div>
         <div className={s.field}>
-          <label htmlFor="elevationLossM">Elevation Loss (Meters)</label>
+          <label htmlFor="elevationLossM">Elevation loss (m)</label>
           <input
             id="elevationLossM"
             type="number"
@@ -136,7 +194,7 @@ export default function AdminEditActivity({ activity, setActivities }) {
 
       <div className={s.general}>
         <div className={s.field}>
-          <label htmlFor="elevationMinM">Elevation Min (Meters)</label>
+          <label htmlFor="elevationMinM">Elevation min (m)</label>
           <input
             id="elevationMinM"
             type="number"
@@ -146,7 +204,7 @@ export default function AdminEditActivity({ activity, setActivities }) {
           />
         </div>
         <div className={s.field}>
-          <label htmlFor="elevationMaxM">Elevation Max (Meters)</label>
+          <label htmlFor="elevationMaxM">Elevation max (m)</label>
           <input
             id="elevationMaxM"
             type="number"
@@ -157,9 +215,33 @@ export default function AdminEditActivity({ activity, setActivities }) {
         </div>
       </div>
 
-      <button onClick={handleSave} disabled={isSaving}>
-        Save
-      </button>
+      {statistics.length > 0 && (
+        <div className={s.section}>
+          <label>Statistics</label>
+          {statistics.map((stat) => (
+            <div key={stat.id} className={s.general}>
+              <span className={s.statsActivityLabel}>{stat.name}</span>
+              <input
+                className={s.statsInput}
+                type="number"
+                min="0"
+                defaultValue={getCount(stat.id)}
+                onBlur={(e) => handleCountChange(stat.id, e.target.value)}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {statistics.length === 0 && tripId && (
+        <p className={s.statsEmpty}>No statistics defined for this trip.</p>
+      )}
+      <div className={s.row}>
+        <button onClick={handleSave} disabled={isSaving}>
+          {isSaving ? "Saving…" : "Save"}
+        </button>
+        {saveError && <span className={s.statusError}>{saveError}</span>}
+      </div>
     </div>
   );
 }

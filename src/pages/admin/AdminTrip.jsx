@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { fetchTripByIdWithStages, updateTrip } from "../../lib/trips";
+import { fetchTripByIdWithStages, updateTrip, getTripHeroImageUrl } from "../../lib/trips";
 import { createStage } from "../../lib/stages";
 import s from "./Admin.module.css";
 import Divider from "../../components/Divider/Divider";
+import AdminStageStats from "../../components/AdminStageStats/AdminStageStats";
 import { ArrowLeftIcon } from "@phosphor-icons/react";
 
 export default function AdminTrip() {
@@ -16,6 +17,8 @@ export default function AdminTrip() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [heroImageFile, setHeroImageFile] = useState(null);
+  const heroImageInputRef = useRef(null);
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -31,10 +34,9 @@ export default function AdminTrip() {
         const tripData = await fetchTripByIdWithStages(tripId);
         setTrip(tripData);
         setStages(tripData.expand?.stages_via_trip || []);
-
         setName(tripData.name || "");
         setDescription(tripData.description || "");
-      } catch (err) {
+      } catch {
         setError("Failed to load trip.");
       }
     }
@@ -44,9 +46,11 @@ export default function AdminTrip() {
   const isDirty = useMemo(() => {
     if (!trip) return false;
     return (
-      name !== (trip.name || "") || description !== (trip.description || "")
+      name !== (trip.name || "") ||
+      description !== (trip.description || "") ||
+      heroImageFile !== null
     );
-  }, [trip, name, description]);
+  }, [trip, name, description, heroImageFile]);
 
   async function handleSave() {
     if (!trip || !isDirty) return;
@@ -56,19 +60,19 @@ export default function AdminTrip() {
     setSavedMsg("");
 
     try {
-      const updated = await updateTrip(trip.id, { name, description });
+      const data = new FormData();
+      data.append("name", name);
+      data.append("description", description);
+      if (heroImageFile) data.append("heroImage", heroImageFile);
 
-      setTrip((prev) => ({
-        ...prev,
-        ...updated,
-        name: updated?.name ?? name,
-        description: updated?.description ?? description,
-      }));
-
+      const updated = await updateTrip(trip.id, data);
+      setTrip((prev) => ({ ...prev, ...updated }));
+      setHeroImageFile(null);
+      if (heroImageInputRef.current) heroImageInputRef.current.value = "";
       setSavedMsg("Saved!");
       setTimeout(() => setSavedMsg(""), 1500);
-    } catch (err) {
-      setSaveError("Save failed. Please try again.");
+    } catch {
+      setSaveError("Save failed.");
     } finally {
       setIsSaving(false);
     }
@@ -81,20 +85,15 @@ export default function AdminTrip() {
     setCreateStageError("");
 
     try {
-      // you can decide defaults however you want
       const newStage = await createStage({
         trip: trip.id,
         name: "New stage",
         description: "",
         slug: "",
       });
-
-      // update list immediately
       setStages((prev) => [newStage, ...prev]);
-
-      // go to stage edit page
       navigate(`/admin/stages/${newStage.id}`);
-    } catch (err) {
+    } catch {
       setCreateStageError("Could not create stage.");
     } finally {
       setIsCreatingStage(false);
@@ -108,19 +107,23 @@ export default function AdminTrip() {
     <div className={s.admin}>
       <div className={s.controls}>
         <div className={s.rowCentered}>
-          <Link to={`/admin`}>
+          <Link to="/admin">
             <ArrowLeftIcon size={14} />
           </Link>
           <p>{trip?.name}</p>
         </div>
 
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isSaving || !isDirty}
-        >
-          {isSaving ? "Saving..." : "Save changes"}
-        </button>
+        <div className={s.rowCentered}>
+          {savedMsg && <span className={s.statusMsg}>{savedMsg}</span>}
+          {saveError && <span className={s.statusError}>{saveError}</span>}
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving || !isDirty}
+          >
+            {isSaving ? "Saving..." : "Save changes"}
+          </button>
+        </div>
       </div>
 
       <div className={s.section}>
@@ -137,10 +140,37 @@ export default function AdminTrip() {
         </div>
 
         <div className={s.field}>
-          <label>Description</label>
+          <label htmlFor="description">Description</label>
           <textarea
+            id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            disabled={isSaving}
+          />
+        </div>
+
+        <div className={s.field}>
+          <label htmlFor="heroImage">Hero image</label>
+          {trip.heroImage && !heroImageFile && (
+            <img
+              src={getTripHeroImageUrl(trip)}
+              alt="Current hero"
+              style={{ width: "100%", maxHeight: 180, objectFit: "cover", borderRadius: 6, marginBottom: "0.4em" }}
+            />
+          )}
+          {heroImageFile && (
+            <img
+              src={URL.createObjectURL(heroImageFile)}
+              alt="New hero preview"
+              style={{ width: "100%", maxHeight: 180, objectFit: "cover", borderRadius: 6, marginBottom: "0.4em" }}
+            />
+          )}
+          <input
+            id="heroImage"
+            type="file"
+            accept="image/*"
+            ref={heroImageInputRef}
+            onChange={(e) => setHeroImageFile(e.target.files[0] || null)}
             disabled={isSaving}
           />
         </div>
@@ -149,29 +179,51 @@ export default function AdminTrip() {
       <Divider />
 
       <div className={s.section}>
-        <div className={s.stagesHeader}>
-          <h2>
+        <div className={s.sectionHeader}>
+          <h3>
             Stages<sup>{stages.length}</sup>
-          </h2>
-          <div>
-            <button onClick={handleCreateStage} disabled={isCreatingStage}>
-              {isCreatingStage ? "Creating…" : "Create new"}
+          </h3>
+          <div className={s.rowCentered}>
+            <button
+              type="button"
+              className={s.secondary}
+              onClick={handleCreateStage}
+              disabled={isCreatingStage}
+            >
+              {isCreatingStage ? "Creating…" : "New stage"}
             </button>
-            {createStageError && (
-              <span style={{ marginLeft: 8 }}>{createStageError}</span>
-            )}
           </div>
         </div>
 
-        <ul>
-          {stages.map((stage) => (
-            <li key={stage.id}>
-              <Link to={`/admin/stages/${stage.id}`}>
-                <p>{stage.name}</p>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        {createStageError && <p className={s.statusError}>{createStageError}</p>}
+
+        {stages.map((stage) => (
+          <Link
+            key={stage.id}
+            to={`/admin/stages/${stage.id}`}
+            className={s.stageCard}
+          >
+            <p>{stage.name}</p>
+            {stage.startDate && (
+              <span className={s.stageCardDate}>
+                {new Date(stage.startDate).toLocaleDateString(undefined, {
+                  month: "short",
+                  day: "2-digit",
+                  year: "numeric",
+                })}
+              </span>
+            )}
+          </Link>
+        ))}
+      </div>
+
+      <Divider />
+
+      <div className={s.section}>
+        <div className={s.sectionHeader}>
+          <h3>Statistics</h3>
+        </div>
+        <AdminStageStats tripId={trip.id} activities={[]} showCounts={false} />
       </div>
     </div>
   );

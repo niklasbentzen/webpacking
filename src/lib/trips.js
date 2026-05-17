@@ -121,3 +121,7 @@ export function getTripHeroImageUrl(trip) {
 export function updateTrip(tripId, data) {
   return pb.collection("trips").update(tripId, data);
 }
+
+export function createTrip(data) {
+  return pb.collection("trips").create(data);
+}

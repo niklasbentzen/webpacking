@@ -1,29 +1,33 @@
 .admin {
   display: flex;
   flex-direction: column;
-  gap: 3em;
+  gap: 2em;
+  max-width: 720px;
+  margin: auto;
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: 1.5em;
+  gap: 1.2em;
 }
 
 .controls {
   position: sticky;
   z-index: 999;
   top: 1em;
-  padding: 0.5em;
+  padding: 0.5em 0.75em;
   border: 1px solid var(--b);
-  border-radius: 8px;
-  background: var(--bg);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  gap: 0.5em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .general {
@@ -36,18 +40,33 @@
 .published {
   min-width: 100px;
   justify-content: flex-end;
+  align-items: flex-end;
 }
 
+/* Boxed field — label above bare input inside a visible container */
 .field {
   display: flex;
   flex-direction: column;
+  gap: 0.2em;
+  background: var(--bg-light);
+  border: 1px solid var(--b);
+  border-radius: 8px;
+  padding: 0.5em 0.75em;
+  transition: border-color 0.15s ease;
 }
 
-label {
+.field:focus-within {
+  border-color: var(--p);
+}
+
+.admin label {
   display: flex;
   flex-direction: column;
-  font-size: 0.8em;
-  color: var(--text-muted);
+  font-size: 0.72em;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faded);
 }
 
 .admin input {
@@ -57,18 +76,33 @@ label {
   border: none;
   outline: none;
   background: transparent;
+  color: var(--text);
+  font-family: inherit;
 }
 
 input[name="name"] {
   font-size: 1.2em;
   font-weight: 600;
+  font-family: Lora, Georgia, serif;
 }
 
 input[type="checkbox"] {
   width: auto;
 }
 
-textarea {
+.admin select {
+  font-size: 1em;
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.admin textarea {
   font-size: 1em;
   width: 100%;
   height: 100px;
@@ -76,30 +110,86 @@ textarea {
   background: transparent;
   border: none;
   outline: none;
+  color: var(--text);
+  font-family: inherit;
+  resize: vertical;
 }
 
-.stagesHeader {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.activityCard {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5em;
-
-  border: solid 1px var(--b);
+/* Buttons */
+.admin button {
+  border: none;
+  padding: 0.5em 1em;
+  font-weight: 600;
   border-radius: 8px;
-  padding: 1em;
+  color: var(--bg-light);
+  background-color: var(--contrast);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+.admin button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.admin button:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--contrast) 85%, transparent);
+}
+
+.admin .secondary {
+  background-color: transparent;
+  color: var(--text);
+  border: 1px solid var(--b);
+}
+
+.admin .secondary:hover:not(:disabled) {
+  background-color: var(--bg-light);
+  border-color: var(--p);
+  color: var(--p);
+}
+
+/* Icon buttons */
+.iconButton {
+  cursor: pointer;
+  padding: 0.3em;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.iconButton:hover {
+  color: var(--p);
+  background-color: color-mix(in srgb, var(--p) 12%, transparent);
+}
+
+/* Section headings */
+.admin h3 {
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-faded);
+  margin: 0;
 }
 
 .rowCentered {
   display: flex;
   flex-direction: row;
   align-items: center;
+  gap: 0.5em;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
   gap: 0.5em;
 }
 
@@ -110,63 +200,34 @@ textarea {
   align-items: center;
 }
 
-.admin button {
-  border: none;
-  padding: 0.5em 1em;
-  font-weight: 600;
-  border-radius: 6px;
-  color: var(--bg-light);
-  background-color: var(--contrast);
-
-  cursor: pointer;
-}
-.admin button:disabled {
-  opacity: 0.5;
-  cursor: default;
+/* Activity cards */
+.activityCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+  border: 1px solid var(--b);
+  border-radius: 10px;
+  padding: 0.9em 1em;
+  transition: border-color 0.15s ease;
 }
 
-.admin .secondary {
-  background-color: transparent;
-  color: var(--text);
-  border: solid 1px var(--b);
-}
-
-.iconButton {
-  cursor: pointer;
-}
-.iconButton:hover {
-  color: var(--p);
-}
-
-h3 {
-  font-size: 1em;
-  font-weight: 600;
+.activityCard:hover {
+  border-color: color-mix(in srgb, var(--p) 60%, transparent);
 }
 
 .activityData {
   display: flex;
   flex-direction: row;
   gap: 1em;
+  flex-wrap: wrap;
 }
+
 .activityDataItem {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 4px;
-  flex-wrap: wrap;
-}
-
-.storyPreview {
-  background: var(--bg-light);
-  padding: 1em;
-  border-radius: 6px;
-  border: solid 1px var(--b);
-}
-
-.storyPreview img {
-  max-width: 100%;
-  border-radius: 4px;
-  margin: 0.5em 0;
+  font-size: 0.9em;
 }
 
 .type {
@@ -179,67 +240,362 @@ h3 {
 .activityType {
   display: flex;
   flex-direction: row;
-  gap: 0.2em;
+  gap: 0.3em;
   align-items: center;
-
   background: var(--bg);
-  color: var(--text);
-  border: solid 1px var(--b);
+  color: var(--text-faded);
+  border: 1px solid var(--b);
   cursor: default;
-  padding: 0.2em 0.5em;
+  padding: 0.2em 0.6em;
   font-size: 0.8em;
   font-weight: 500;
   border-radius: 6px;
+  transition: background-color 0.15s ease;
 }
 
+/* Stage cards (AdminTrip list) */
+.stagesHeader {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stageCard {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5em;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 0.9em 1em;
+  text-decoration: none;
+  color: var(--text);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.stageCard:hover {
+  border-color: var(--p);
+  background-color: var(--bg-light);
+}
+
+.stageCardDate {
+  font-size: 0.8em;
+  color: var(--text-faded);
+}
+
+/* Trip cards (AdminHome) */
+.tripCard {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5em;
+  padding: 0.9em 1em;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--text);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.tripCard:hover {
+  border-color: var(--p);
+  background-color: var(--bg-light);
+}
+
+.tripName {
+  font-weight: 600;
+  font-size: 1em;
+  margin: 0;
+}
+
+.tripMeta {
+  font-size: 0.8em;
+  color: var(--text-faded);
+  margin: 0.15em 0 0 0;
+}
+
+/* Status messages */
+.statusMsg {
+  font-size: 0.82em;
+  color: var(--text-faded);
+}
+
+.statusError {
+  font-size: 0.82em;
+  color: #c44;
+}
+
+/* Auto-generate slug link */
 .autoGenerate {
   font-size: 0.8em;
-  color: var(--text);
+  color: var(--text-faded);
   font-weight: 400;
   text-decoration: underline;
   cursor: pointer;
+  transition: color 0.15s ease;
 }
 
+.autoGenerate:hover {
+  color: var(--p);
+}
+
+/* Modal content wrapper (AdminEditActivity) */
 .modal {
   display: flex;
   flex-direction: column;
-  gap: 2em;
+  gap: 1.5em;
 }
 
+/* Story preview */
+.storyPreview {
+  background: var(--bg-light);
+  padding: 1em;
+  border-radius: 8px;
+  border: 1px solid var(--b);
+  font-size: 0.95em;
+  line-height: 1.6;
+}
+
+.storyPreview img {
+  max-width: 100%;
+  border-radius: 4px;
+  margin: 0.5em 0;
+}
+
+/* Image gallery */
 .imageGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1em;
-}
-
-.imageCard img {
-  width: 100%;
-  height: 200px;
-  object-fit: contain;
-  display: block;
 }
 
 .imageCard {
   display: flex;
   flex-direction: column;
-  gap: 0.5em;
-
+  gap: 0;
   border: 1px solid var(--b);
-  border-radius: 6px;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.imageCard:hover {
+  border-color: color-mix(in srgb, var(--p) 60%, transparent);
+}
+
+.imageCard img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
 }
 
 .imageControls {
   display: flex;
   flex-direction: row;
-  gap: 2em;
-  justify-content: center;
+  gap: 0;
+  justify-content: stretch;
+  border-top: 1px solid var(--b);
 }
 
 .imageControl {
-  padding: 0.5em;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6em;
   cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
 }
+
 .imageControl:hover {
   color: var(--p);
+  background-color: color-mix(in srgb, var(--p) 8%, transparent);
+}
+
+.imageControl + .imageControl {
+  border-left: 1px solid var(--b);
+}
+
+/* Statistics */
+.statChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+  align-items: center;
+}
+
+.statChip {
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.25em 0.6em;
+  background: var(--bg-light);
+  border: 1px solid var(--b);
+  border-radius: 6px;
+  font-size: 0.82em;
+  transition: border-color 0.15s ease;
+}
+
+.statChip:hover {
+  border-color: color-mix(in srgb, var(--p) 60%, transparent);
+}
+
+.addStatRow {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+}
+
+.addStatInput {
+  flex: 1;
+  padding: 0.5em 0.75em;
+  border: 1px solid var(--b);
+  border-radius: 8px;
+  background: var(--bg-light);
+  min-height: 44px;
+  box-sizing: border-box;
+  font-size: 0.95em;
+  color: var(--text);
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+  outline: none;
+}
+
+.addStatInput:focus {
+  border-color: var(--p);
+}
+
+.statsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+  overflow-x: auto;
+}
+
+.statsHeaderRow {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+  padding-bottom: 0.4em;
+  border-bottom: 1px solid var(--b);
+}
+
+.statsRow {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+  padding: 0.2em 0;
+}
+
+.statsActivityLabel {
+  flex: 1;
+  font-size: 0.82em;
+  color: var(--text-faded);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statsColLabel {
+  width: 64px;
+  font-size: 0.72em;
+  color: var(--text-faded);
+  text-align: center;
+  flex-shrink: 0;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.statsInput {
+  width: 64px;
+  text-align: center;
+  padding: 0.3em;
+  border: 1px solid var(--b);
+  border-radius: 6px;
+  background: var(--bg-light);
+  min-height: 44px;
+  box-sizing: border-box;
+  font-size: 1em;
+  flex-shrink: 0;
+  color: var(--text);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.statsInput:focus {
+  border-color: var(--p);
+}
+
+.statsTotals {
+  display: flex;
+  gap: 1em;
+  flex-wrap: wrap;
+  padding-top: 0.6em;
+  border-top: 1px solid var(--b);
+  font-weight: 600;
+  font-size: 0.88em;
+  color: var(--text-faded);
+}
+
+.statsEmpty {
+  font-size: 0.85em;
+  color: var(--text-faded);
+  font-style: italic;
+}
+
+/* Inline stat counts inside activity cards */
+.activityStats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  padding-top: 0.5em;
+  border-top: 1px solid var(--b);
+}
+
+.activityStatRow {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.activityStatLabel {
+  font-size: 0.85em;
+  color: var(--text-faded);
+  flex: 1;
+}
+
+.activityStatInput {
+  width: 56px;
+  text-align: center;
+  border: 1px solid var(--b);
+  border-radius: 6px;
+  background: var(--bg-light);
+  padding: 0.25em;
+  font-size: 0.9em;
+  min-height: 36px;
+  box-sizing: border-box;
+  color: var(--text);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.activityStatInput:focus {
+  border-color: var(--p);
 }

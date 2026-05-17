@@ -3,7 +3,6 @@ import React, { useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/hooks/useAuth";
 import s from "./AdminLayout.module.css";
-import a from "../../pages/admin/Admin.module.css";
 
 export default function AdminLayout({ requireAuth = true }) {
   const navigate = useNavigate();
@@ -38,7 +37,7 @@ export default function AdminLayout({ requireAuth = true }) {
             <button
               type="button"
               onClick={handleLogout}
-              className={a.secondary}
+              className={s.logoutBtn}
             >
               Logout
             </button>

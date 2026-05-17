@@ -2,25 +2,38 @@
   position: fixed;
   inset: 0;
   display: flex;
-  align-items: flex-end; /* use flex-end instead of end */
-  background-color: rgba(0, 0, 0, 0.5);
+  align-items: flex-end;
   justify-content: center;
+  background-color: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 1000;
 }
 
-/* modal becomes a flex column that has a fixed height */
 .modal {
   width: min(720px, 100%);
   background: var(--bg);
   height: 90vh;
   padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
   box-sizing: border-box;
-
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+  border-radius: 12px 12px 0 0;
+  border: 1px solid var(--b);
+  border-bottom: none;
+  animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-  overflow: hidden; /* IMPORTANT: don't scroll the modal itself */
-  min-height: 0; /* allow children to shrink */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 .header {
@@ -28,17 +41,44 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--b);
   flex: 0 0 auto;
 }
 
 .title {
   margin: 0;
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faded);
 }
 
-/* new: content area that actually scrolls */
 .content {
   flex: 1 1 auto;
-  min-height: 0; /* IMPORTANT in flex layouts */
+  min-height: 0;
   overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+}
+
+.closeBtn {
+  background: transparent;
+  border: 1px solid var(--b);
+  color: var(--text);
+  padding: 0.4em 0.75em;
+  border-radius: 6px;
+  font-size: 0.82em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.closeBtn:hover {
+  border-color: var(--p);
+  color: var(--p);
 }

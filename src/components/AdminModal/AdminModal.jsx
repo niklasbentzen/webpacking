@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import s from "./AdminModal.module.css";
-import a from "../../pages/admin/Admin.module.css";
 
 export default function AdminModal({ open, title, onClose, children }) {
   useEffect(() => {
@@ -26,14 +25,15 @@ export default function AdminModal({ open, title, onClose, children }) {
         aria-label={title || "Modal"}
       >
         <div className={s.header}>
-          <h3 className={s.title}>{title}</h3>
-          <button type="button" className={a.secondary} onClick={onClose}>
+          <p className={s.title}>{title}</p>
+          <button type="button" className={s.closeBtn} onClick={onClose}>
             Close
           </button>
         </div>
 
-        <div className={s.content}></div>
-        {children}
+        <div className={s.content}>
+          {children}
+        </div>
       </div>
     </div>
   );

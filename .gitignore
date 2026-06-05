@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# PocketBase — binary and data stay local, migrations go to GitHub
+pocketbase/pocketbase
+pocketbase/pb_data/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

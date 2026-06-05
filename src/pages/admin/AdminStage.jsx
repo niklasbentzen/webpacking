@@ -158,6 +158,9 @@ export default function AdminStage() {
         // datetime-local string -> ISO (UTC) for DB
         startDate: startDate ? new Date(startDate).toISOString() : null,
         endDate: endDate ? new Date(endDate).toISOString() : null,
+        publicAt: endDate
+          ? new Date(new Date(endDate).getTime() + 48 * 60 * 60 * 1000).toISOString()
+          : null,
       };
 
       const updated = await updateStage(stage.id, payload);

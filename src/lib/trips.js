@@ -115,7 +115,7 @@ export async function fetchAllTripsWithAll() {
 
 export function getTripHeroImageUrl(trip) {
   if (!trip?.heroImage) return null;
-  return pb.getFileUrl(trip, trip.heroImage);
+  return pb.files.getURL(trip, trip.heroImage);
 }
 
 export function updateTrip(tripId, data) {

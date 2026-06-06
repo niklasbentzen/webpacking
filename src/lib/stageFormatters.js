@@ -2,8 +2,8 @@
 export function formatDate(date) {
   if (!date) return null;
   const d = new Date(date);
-  const month = d.toLocaleString(undefined, { month: "short" });
-  return `${month} ${d.getDate()}, ${d.getFullYear()}`;
+  const month = d.toLocaleString(undefined, { month: "short", timeZone: "UTC" });
+  return `${month} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
 }
 
 /**
@@ -19,17 +19,23 @@ export function formatDateRange(start, end) {
   const startDate = new Date(start);
   const endDate = end ? new Date(end) : null;
 
-  if (!endDate || startDate.toDateString() === endDate.toDateString()) {
+  const sameDay =
+    endDate &&
+    startDate.getUTCFullYear() === endDate.getUTCFullYear() &&
+    startDate.getUTCMonth() === endDate.getUTCMonth() &&
+    startDate.getUTCDate() === endDate.getUTCDate();
+
+  if (!endDate || sameDay) {
     return formatDate(startDate);
   }
 
-  const startMonth = startDate.toLocaleString(undefined, { month: "short" });
-  const startDay = startDate.getDate();
-  const startYear = startDate.getFullYear();
+  const startMonth = startDate.toLocaleString(undefined, { month: "short", timeZone: "UTC" });
+  const startDay = startDate.getUTCDate();
+  const startYear = startDate.getUTCFullYear();
 
-  const endMonth = endDate.toLocaleString(undefined, { month: "short" });
-  const endDay = endDate.getDate();
-  const endYear = endDate.getFullYear();
+  const endMonth = endDate.toLocaleString(undefined, { month: "short", timeZone: "UTC" });
+  const endDay = endDate.getUTCDate();
+  const endYear = endDate.getUTCFullYear();
 
   if (startYear === endYear) {
     return `${startMonth} ${startDay} → ${endMonth} ${endDay}, ${startYear}`;
@@ -44,13 +50,13 @@ export function formatStartTime(start) {
 
   const date = new Date(start);
 
-  const month = date.toLocaleString(undefined, { month: "short" });
-  const day = date.getDate();
-  const year = date.getFullYear();
+  const month = date.toLocaleString(undefined, { month: "short", timeZone: "UTC" });
+  const day = date.getUTCDate();
 
   const time = date.toLocaleTimeString(undefined, {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "UTC",
   });
 
   return `${month} ${day} — ${time}`;

@@ -249,6 +249,18 @@ function fitDataToTrackPoints(fitData) {
 // ─── File processing ──────────────────────────────────────────────────────────
 
 /**
+ * Process a planned route GPX (may contain <rte> or <trk>) → simplified GeoJSON.
+ * No stats or profile needed — just the geometry for map display.
+ */
+export async function processPlannedRouteGpx(file) {
+  const xmlText = await file.text();
+  const xml = new DOMParser().parseFromString(xmlText, "text/xml");
+  const geoJson = gpxToGeoJSON(xml);
+  if (!geoJson?.features?.length) throw new Error("No geometry found in GPX.");
+  return simplify(geoJson, { tolerance: 0.00005, highQuality: false, mutate: false });
+}
+
+/**
  * Process a GPX file and return stats + derived GeoJSON + elevation profile.
  * Returns: { geoJson, geoJsonSmall, profile, distanceM, elevationGainM,
  *            elevationLossM, elevationMaxM, elevationMinM, elevationAvgM,

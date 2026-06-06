@@ -3,15 +3,38 @@ import { useMap } from "react-leaflet";
 import L from "leaflet";
 import { pb } from "../../lib/pb";
 
-const InReachLayer = forwardRef(function InReachLayer({ limit = 10 }, ref) {
+function formatLocalTime(timestamp, timezone) {
+  const date = new Date(timestamp);
+  const tz = timezone || "UTC";
+  try {
+    const parts = new Intl.DateTimeFormat("en", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: tz,
+      timeZoneName: "short",
+      hour12: false,
+    }).formatToParts(date);
+    const get = (type) => parts.find((p) => p.type === type)?.value ?? "";
+    const abbr = get("timeZoneName");
+    return `${get("day")} ${get("month")}, ${get("year")} - ${get("hour")}:${get("minute")} (${abbr})`;
+  } catch {
+    return date.toISOString().slice(0, 16).replace("T", " ") + " (UTC)";
+  }
+}
+
+const InReachLayer = forwardRef(function InReachLayer({ limit = 500 }, ref) {
   const map = useMap();
   const groupRef = useRef(L.featureGroup());
   const pointsRef = useRef([]);
+  const lastPointRef = useRef(null);
 
   // Expose public methods
   useImperativeHandle(ref, () => ({
     locate() {
-      const last = pointsRef.current[pointsRef.current.length - 1];
+      const last = lastPointRef.current;
       if (!last) return;
 
       map.flyTo([last.lat, last.lon], 8, {
@@ -24,7 +47,7 @@ const InReachLayer = forwardRef(function InReachLayer({ limit = 10 }, ref) {
       if (!pointsRef.current.length) return;
 
       const bounds = L.latLngBounds(
-        pointsRef.current.map((p) => [p.lat, p.lon])
+        pointsRef.current.map((p) => [p.lat, p.lon]),
       );
 
       map.fitBounds(bounds, { padding: [100, 100] });
@@ -41,21 +64,34 @@ const InReachLayer = forwardRef(function InReachLayer({ limit = 10 }, ref) {
 
     const redraw = () => {
       group.clearLayers();
-      for (const p of pointsRef.current) {
-        const dot = L.circleMarker([p.lat, p.lon], {
-          radius: 6,
-          weight: 2,
-          color: "red",
-          fillColor: "red",
-          fillOpacity: 0.4,
-        });
+      const pts = pointsRef.current;
 
-        dot.bindTooltip(
-          p.timestamp ? new Date(p.timestamp).toLocaleString() : "Unknown"
-        );
-
-        dot.addTo(group);
+      if (pts.length > 1) {
+        L.polyline(
+          pts.map((p) => [p.lat, p.lon]),
+          {
+            color: "red",
+            weight: 2,
+            opacity: 0.7,
+          },
+        ).addTo(group);
       }
+
+      const last = lastPointRef.current ?? pts[pts.length - 1];
+      if (!last) return;
+      L.circleMarker([last.lat, last.lon], {
+        radius: 7,
+        weight: 2,
+        color: "darkred",
+        fillColor: "red",
+        fillOpacity: 0.9,
+      })
+        .bindTooltip(
+          last.timestamp
+            ? formatLocalTime(last.timestamp, last.timezone)
+            : "Unknown",
+        )
+        .addTo(group);
     };
 
     const pushPoint = (rec) => {
@@ -71,6 +107,7 @@ const InReachLayer = forwardRef(function InReachLayer({ limit = 10 }, ref) {
         lat: loc.lat,
         lon: loc.lon,
         timestamp: rec.timestamp,
+        timezone: rec.timezone || "",
       });
 
       if (pointsRef.current.length > limit) {
@@ -80,11 +117,31 @@ const InReachLayer = forwardRef(function InReachLayer({ limit = 10 }, ref) {
 
     const init = async () => {
       try {
-        const res = await pb.collection("inreach").getList(1, limit, {
-          sort: "-timestamp",
-        });
+        const since = new Date(Date.now() - 24 * 60 * 60 * 1000)
+          .toISOString()
+          .replace("T", " ")
+          .slice(0, 19);
+
+        const [res, latestRes] = await Promise.all([
+          pb.collection("inreach").getList(1, limit, {
+            sort: "-timestamp",
+            filter: `timestamp >= "${since}"`,
+          }),
+          pb.collection("inreach").getList(1, 1, { sort: "-timestamp" }),
+        ]);
 
         if (cancelled) return;
+
+        const latestItem = latestRes.items[0];
+        if (latestItem?.location) {
+          lastPointRef.current = {
+            id: latestItem.id,
+            lat: latestItem.location.lat,
+            lon: latestItem.location.lon,
+            timestamp: latestItem.timestamp,
+            timezone: latestItem.timezone || "",
+          };
+        }
 
         pointsRef.current = [];
         [...res.items].reverse().forEach(pushPoint);
@@ -92,6 +149,18 @@ const InReachLayer = forwardRef(function InReachLayer({ limit = 10 }, ref) {
 
         await pb.collection("inreach").subscribe("*", (e) => {
           if (e.action !== "create") return;
+          const loc = e.record.location;
+          if (loc?.lat != null && loc?.lon != null) {
+            lastPointRef.current = {
+              id: e.record.id,
+              lat: loc.lat,
+              lon: loc.lon,
+              timestamp: e.record.timestamp,
+              timezone: e.record.timezone || "",
+            };
+          }
+          const ts = e.record.timestamp ? new Date(e.record.timestamp) : null;
+          if (ts && Date.now() - ts.getTime() > 24 * 60 * 60 * 1000) return;
           pushPoint(e.record);
           redraw();
         });

@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "pb": "pocketbase/pocketbase serve --dir pocketbase/pb_data --migrationsDir pocketbase/pb_migrations --automigrate --http 127.0.0.1:8090"
+    "pb": "sh -c 'if [ -f pocketbase/.env ]; then set -a; . pocketbase/.env; set +a; fi; exec pocketbase/pocketbase serve --dir pocketbase/pb_data --migrationsDir pocketbase/pb_migrations --automigrate --http 127.0.0.1:8090'"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

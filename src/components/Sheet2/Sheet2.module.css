@@ -140,7 +140,7 @@
 
 .stageContent {
   &.half {
-    justify-content: center;
+    justify-content: start;
   }
 }
 

@@ -146,10 +146,10 @@
 
   font-size: 1em;
   font-weight: 800;
-  opacity: 0.4;
+  opacity: 0.8;
   text-decoration: none;
   transition: 0.1s ease;
-  color: var(--p);
+  color: var(--text);
 }
 .mapLogo:hover {
   opacity: 1;
@@ -194,4 +194,29 @@
   padding: 0.5em 1em;
   border-radius: 6px;
   cursor: pointer;
+}
+
+.active {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--success);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+.pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+  display: flex;
 }

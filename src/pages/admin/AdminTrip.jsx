@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { fetchTripByIdWithStages, updateTrip, getTripHeroImageUrl } from "../../lib/trips";
+import { fetchTripByIdWithStages, fetchAllTripsWithStages, updateTrip, getTripHeroImageUrl, setActiveTrip } from "../../lib/trips";
 import { createStage } from "../../lib/stages";
+import { processPlannedRouteGpx } from "../../lib/activities";
 import s from "./Admin.module.css";
 import Divider from "../../components/Divider/Divider";
 import AdminStageStats from "../../components/AdminStageStats/AdminStageStats";
@@ -16,9 +17,18 @@ export default function AdminTrip() {
   const [error, setError] = useState("");
 
   const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
+  const [published, setPublished] = useState(false);
+  const [active, setActive] = useState(false);
   const [heroImageFile, setHeroImageFile] = useState(null);
   const heroImageInputRef = useRef(null);
+
+  const [plannedRouteBlob, setPlannedRouteBlob] = useState(null);
+  const [plannedRouteStatus, setPlannedRouteStatus] = useState("");
+  const [plannedRouteFileName, setPlannedRouteFileName] = useState("");
+  const [isDeletingRoute, setIsDeletingRoute] = useState(false);
+  const plannedRouteInputRef = useRef(null);
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -35,7 +45,10 @@ export default function AdminTrip() {
         setTrip(tripData);
         setStages(tripData.expand?.stages_via_trip || []);
         setName(tripData.name || "");
+        setSlug(tripData.slug || "");
         setDescription(tripData.description || "");
+        setPublished(tripData.published ?? false);
+        setActive(tripData.active ?? false);
       } catch {
         setError("Failed to load trip.");
       }
@@ -47,10 +60,14 @@ export default function AdminTrip() {
     if (!trip) return false;
     return (
       name !== (trip.name || "") ||
+      slug !== (trip.slug || "") ||
       description !== (trip.description || "") ||
-      heroImageFile !== null
+      published !== (trip.published ?? false) ||
+      active !== (trip.active ?? false) ||
+      heroImageFile !== null ||
+      plannedRouteBlob !== null
     );
-  }, [trip, name, description, heroImageFile]);
+  }, [trip, name, slug, description, published, active, heroImageFile, plannedRouteBlob]);
 
   async function handleSave() {
     if (!trip || !isDirty) return;
@@ -62,13 +79,28 @@ export default function AdminTrip() {
     try {
       const data = new FormData();
       data.append("name", name);
+      data.append("slug", slug);
       data.append("description", description);
+      data.append("published", published);
       if (heroImageFile) data.append("heroImage", heroImageFile);
+      if (plannedRouteBlob) data.append("plannedTrip", plannedRouteBlob, "planned.geojson");
 
       const updated = await updateTrip(trip.id, data);
+
+      if (active !== (trip.active ?? false)) {
+        if (active) {
+          const allTrips = await fetchAllTripsWithStages();
+          await setActiveTrip(trip.id, allTrips);
+        } else {
+          await updateTrip(trip.id, { active: false });
+        }
+      }
       setTrip((prev) => ({ ...prev, ...updated }));
       setHeroImageFile(null);
       if (heroImageInputRef.current) heroImageInputRef.current.value = "";
+      setPlannedRouteBlob(null);
+      setPlannedRouteStatus("");
+      if (plannedRouteInputRef.current) plannedRouteInputRef.current.value = "";
       setSavedMsg("Saved!");
       setTimeout(() => setSavedMsg(""), 1500);
     } catch {
@@ -76,6 +108,42 @@ export default function AdminTrip() {
     } finally {
       setIsSaving(false);
     }
+  }
+
+  async function handlePlannedRouteChange(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPlannedRouteStatus("processing");
+    setPlannedRouteBlob(null);
+    setPlannedRouteFileName(file.name);
+    try {
+      const geoJsonSmall = await processPlannedRouteGpx(file);
+      setPlannedRouteBlob(new Blob([JSON.stringify(geoJsonSmall)], { type: "application/geo+json" }));
+      setPlannedRouteStatus("ready");
+    } catch {
+      setPlannedRouteStatus("Failed to parse GPX.");
+    }
+  }
+
+  async function handleDeletePlannedRoute() {
+    if (!trip?.plannedTrip) return;
+    if (!window.confirm("Delete the planned route? This cannot be undone.")) return;
+    setIsDeletingRoute(true);
+    try {
+      const updated = await updateTrip(trip.id, { "plannedTrip-": [trip.plannedTrip] });
+      setTrip((prev) => ({ ...prev, ...updated }));
+    } catch {
+      // leave existing file in place on error
+    } finally {
+      setIsDeletingRoute(false);
+    }
+  }
+
+  async function handleDeleteHeroImage() {
+    if (!trip?.heroImage) return;
+    if (!window.confirm("Delete the hero image? This cannot be undone.")) return;
+    const updated = await updateTrip(trip.id, { "heroImage-": [trip.heroImage] });
+    setTrip((prev) => ({ ...prev, ...updated }));
   }
 
   async function handleCreateStage() {
@@ -132,9 +200,19 @@ export default function AdminTrip() {
           <input
             id="name"
             type="text"
-            name="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            disabled={isSaving}
+          />
+        </div>
+
+        <div className={s.field}>
+          <label htmlFor="slug">Slug</label>
+          <input
+            id="slug"
+            type="text"
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
             disabled={isSaving}
           />
         </div>
@@ -150,29 +228,106 @@ export default function AdminTrip() {
         </div>
 
         <div className={s.field}>
+          <label htmlFor="published">Published</label>
+          <label className={s.checkboxLabel}>
+            <input
+              id="published"
+              type="checkbox"
+              checked={published}
+              onChange={(e) => setPublished(e.target.checked)}
+              disabled={isSaving}
+            />
+            {published ? "Live on website" : "Hidden from website"}
+          </label>
+        </div>
+
+        <div className={s.field}>
+          <label htmlFor="active">On tour</label>
+          <label className={s.checkboxLabel}>
+            <input
+              id="active"
+              type="checkbox"
+              checked={active}
+              onChange={(e) => setActive(e.target.checked)}
+              disabled={isSaving}
+            />
+            {active ? "Currently active — redirects to this trip" : "Not active"}
+          </label>
+        </div>
+
+        <div className={s.field}>
+          <label>Planned route (GPX)</label>
+          {trip.plannedTrip && !plannedRouteBlob && (
+            <div className={s.fieldRow}>
+              <p className={s.tripMeta}>{trip.plannedTrip}</p>
+              <button
+                type="button"
+                className={s.secondary}
+                onClick={handleDeletePlannedRoute}
+                disabled={isDeletingRoute || isSaving}
+              >
+                {isDeletingRoute ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          )}
+          {(!trip.plannedTrip || plannedRouteBlob) && (
+            <input
+              type="file"
+              accept=".gpx"
+              ref={plannedRouteInputRef}
+              onChange={handlePlannedRouteChange}
+              disabled={isSaving}
+            />
+          )}
+          {plannedRouteStatus === "processing" && <span>Processing…</span>}
+          {plannedRouteStatus === "ready" && <span>{plannedRouteFileName} — save to upload</span>}
+          {plannedRouteStatus !== "" && plannedRouteStatus !== "processing" && plannedRouteStatus !== "ready" && (
+            <span className={s.statusError}>{plannedRouteStatus}</span>
+          )}
+        </div>
+
+        <div className={s.field}>
           <label htmlFor="heroImage">Hero image</label>
           {trip.heroImage && !heroImageFile && (
-            <img
-              src={getTripHeroImageUrl(trip)}
-              alt="Current hero"
-              style={{ width: "100%", maxHeight: 180, objectFit: "cover", borderRadius: 6, marginBottom: "0.4em" }}
-            />
+            <>
+              <img
+                src={getTripHeroImageUrl(trip)}
+                alt="Current hero"
+                className={s.imagePreview}
+              />
+              <div className={s.fieldRow}>
+                <span className={s.tripMeta}>{trip.heroImage}</span>
+                <button
+                  type="button"
+                  className={s.secondary}
+                  disabled={isSaving}
+                  onClick={handleDeleteHeroImage}
+                >
+                  Delete
+                </button>
+              </div>
+            </>
           )}
           {heroImageFile && (
-            <img
-              src={URL.createObjectURL(heroImageFile)}
-              alt="New hero preview"
-              style={{ width: "100%", maxHeight: 180, objectFit: "cover", borderRadius: 6, marginBottom: "0.4em" }}
+            <>
+              <img
+                src={URL.createObjectURL(heroImageFile)}
+                alt="New hero preview"
+                className={s.imagePreview}
+              />
+              <span>{heroImageFile.name} — save to upload</span>
+            </>
+          )}
+          {(!trip.heroImage || heroImageFile) && (
+            <input
+              id="heroImage"
+              type="file"
+              accept="image/*"
+              ref={heroImageInputRef}
+              onChange={(e) => setHeroImageFile(e.target.files[0] || null)}
+              disabled={isSaving}
             />
           )}
-          <input
-            id="heroImage"
-            type="file"
-            accept="image/*"
-            ref={heroImageInputRef}
-            onChange={(e) => setHeroImageFile(e.target.files[0] || null)}
-            disabled={isSaving}
-          />
         </div>
       </div>
 
@@ -210,6 +365,7 @@ export default function AdminTrip() {
                   month: "short",
                   day: "2-digit",
                   year: "numeric",
+                  timeZone: "UTC",
                 })}
               </span>
             )}

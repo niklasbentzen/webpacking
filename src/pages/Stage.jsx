@@ -121,6 +121,7 @@ export default function Stage() {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
+                    timeZone: "UTC",
                   })}
                 </label>
                 <p style={{ whiteSpace: "pre-line" }}>{haiku.text}</p>

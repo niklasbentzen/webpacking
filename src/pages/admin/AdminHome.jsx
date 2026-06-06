@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { fetchAllTripsWithStages, createTrip } from "../../lib/trips";
+import {
+  fetchAllTripsWithStages,
+  createTrip,
+  setActiveTrip,
+} from "../../lib/trips";
 import { Link, useNavigate } from "react-router-dom";
 import s from "./Admin.module.css";
 import { ArrowRightIcon } from "@phosphor-icons/react";
@@ -12,6 +16,7 @@ export default function AdminHome() {
   const [newName, setNewName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState("");
+  const [togglingId, setTogglingId] = useState(null);
 
   useEffect(() => {
     async function loadTrips() {
@@ -34,6 +39,32 @@ export default function AdminHome() {
     } catch {
       setCreateError("Could not create trip.");
       setIsCreating(false);
+    }
+  }
+
+  async function handleToggleActive(e, trip) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (togglingId) return;
+    setTogglingId(trip.id);
+    const nextActive = !trip.active;
+    setTrips((prev) =>
+      prev.map((t) => ({
+        ...t,
+        active: t.id === trip.id ? nextActive : false,
+      })),
+    );
+    try {
+      await setActiveTrip(nextActive ? trip.id : null, trips);
+    } catch {
+      setTrips((prev) =>
+        prev.map((t) => ({
+          ...t,
+          active: t.id === trip.id ? trip.active : t.active,
+        })),
+      );
+    } finally {
+      setTogglingId(null);
     }
   }
 
@@ -67,7 +98,18 @@ export default function AdminHome() {
                   {stages.length} stage{stages.length !== 1 ? "s" : ""}
                 </p>
               </div>
-              <ArrowRightIcon size={16} />
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <button
+                  type="button"
+                  className={trip.active ? s.primary : s.secondary}
+                  disabled={togglingId === trip.id}
+                  onClick={(e) => handleToggleActive(e, trip)}
+                  style={{ fontSize: 12, padding: "2px 8px" }}
+                >
+                  {trip.active ? "On tour" : "Set to on tour"}
+                </button>
+                <ArrowRightIcon size={16} />
+              </div>
             </Link>
           );
         })}

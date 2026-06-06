@@ -9,6 +9,7 @@ import {
   ArrowUpRightIcon,
   ArrowsHorizontalIcon,
   AtIcon,
+  CircleIcon,
   GpsFixIcon,
   InstagramLogoIcon,
   PathIcon,
@@ -97,7 +98,16 @@ export default function Trip() {
         </Map>
 
         <Link to={"/"} className={s.mapLogo}>
-          Bagfra
+          {trip?.active ? (
+            <span className={s.active}>
+              <span className={s.pulse}>
+                <CircleIcon size={10} weight="fill" color="red" />
+              </span>{" "}
+              On tour
+            </span>
+          ) : (
+            ""
+          )}
         </Link>
 
         <div className={`${s.mapControls}`}>
@@ -156,6 +166,7 @@ export default function Trip() {
 
       <div className={s.stages}>
         <section>
+          <div></div>
           <div className={s.tripHeader}>
             <h2>{trip?.name ?? status}</h2>
             <div className={s.headerIcons}>

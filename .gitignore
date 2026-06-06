@@ -15,6 +15,7 @@ dist-ssr
 # PocketBase — binary and data stay local, migrations go to GitHub
 pocketbase/pocketbase
 pocketbase/pb_data/
+pocketbase/.env
 
 # Editor directories and files
 .vscode/*

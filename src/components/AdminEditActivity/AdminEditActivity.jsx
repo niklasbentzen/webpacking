@@ -115,6 +115,7 @@ export default function AdminEditActivity({ activity, setActivities, tripId }) {
           hour: "2-digit",
           minute: "2-digit",
           hour12: false,
+          timeZone: "UTC",
         })}
       </p>
 

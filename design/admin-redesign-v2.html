@@ -1,0 +1,632 @@
+<!-- Bikepacking admin — reskinned to match the public site.
+     Uses the real token set (--bg, --bg-dark, --bg-light, --contrast, --text,
+     --text-faded, --p, --b) + Lora serif + system sans. Light/dark aware.
+     Class names mirror Admin.module.css so it ports back cleanly.
+     New tokens added (--on-p, --p-soft, --r*) are the only additions. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — bikepacking</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
+
+:root{
+  --bg:hsl(45,18%,96%);
+  --bg-dark:hsl(45,18%,92%);
+  --bg-light:hsl(45,18%,99%);
+  --contrast:hsl(85,17%,14%);
+  --text:hsl(0,0%,5%);
+  --text-faded:hsl(0,0%,50%);
+  --p:hsl(87,79%,30%);
+  --b:hsla(0,0%,0%,0.2);
+  /* additions */
+  --on-p:#fbfaf6;
+  --p-soft:color-mix(in srgb, var(--p) 9%, transparent);
+  --p-line:color-mix(in srgb, var(--p) 55%, transparent);
+  --hairline:color-mix(in srgb, var(--text) 12%, transparent);
+  --ff-serif:'Lora',Georgia,'Times New Roman',serif;
+  --ff-body:system-ui,-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;
+  --r:14px;--r-sm:10px;
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 18px 40px -28px rgba(0,0,0,.45);
+  --shadow-soft:0 1px 2px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:hsl(85,17%,14%);
+    --bg-dark:hsl(85,17%,10%);
+    --bg-light:hsl(85,17%,20%);
+    --contrast:hsl(45,18%,96%);
+    --text:hsl(0,0%,95%);
+    --text-faded:hsl(0,0%,70%);
+    --p:hsl(87,79%,54%);
+    --b:hsla(0,0%,100%,0.2);
+    --on-p:hsl(85,17%,11%);
+  }
+}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--ff-body);color:var(--text);background:var(--bg);line-height:1.5;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;min-height:100vh}
+
+/* ---------- AdminLayout ---------- */
+.layoutHeader{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;
+  padding:.7em max(1.1em,calc((100% - 720px)/2 - 1.1em));background:var(--bg-light);
+  border-bottom:1px solid var(--b)}
+.brand{display:flex;align-items:center;gap:.55em;text-decoration:none;color:var(--text);
+  font-family:var(--ff-serif);font-weight:600;font-size:1.05rem}
+.brand .dot{width:22px;height:22px;border-radius:50%;background:var(--p);display:grid;place-items:center}
+.brand .dot svg{color:var(--on-p)}
+.brand small{font-family:var(--ff-body);color:var(--text-faded);font-size:.72rem;font-weight:500}
+
+/* ---------- container ---------- */
+.admin{max-width:720px;margin:0 auto;padding:1.8em 1.1em 6em;display:flex;flex-direction:column;gap:2.2em}
+.section{display:flex;flex-direction:column;gap:1em}
+.eyebrow{font-size:.72rem;letter-spacing:.04em;color:var(--text-faded);font-weight:600}
+.sectionHeader{display:flex;align-items:center;justify-content:space-between;gap:1em}
+.sectionHeader h2{margin:0;font-family:var(--ff-serif);font-weight:600;font-size:1.5rem;letter-spacing:-.01em}
+.sectionHeader h2 sup{font-family:var(--ff-body);font-size:.62rem;color:var(--p);font-weight:700;
+  vertical-align:super;margin-left:.15em}
+hr.rule{border:0;border-top:1px solid var(--b);margin:.2em 0}
+
+/* ---------- controls (sticky) ---------- */
+.controls{position:sticky;top:53px;z-index:30;margin:0 -1.1em;padding:.65em 1.1em;display:flex;align-items:center;
+  gap:.7em;background:color-mix(in srgb,var(--bg-light) 82%,transparent);backdrop-filter:blur(12px) saturate(1.3);
+  border-bottom:1px solid var(--b)}
+.backArrow{display:grid;place-items:center;width:34px;height:34px;flex:none;border-radius:50%;border:1px solid var(--b);
+  background:var(--bg-light);color:var(--text);text-decoration:none;box-shadow:var(--shadow-soft);cursor:pointer}
+.backArrow:hover{border-color:var(--p);color:var(--p)}
+.crumb{font-family:var(--ff-serif);font-weight:600;font-size:1.05rem;flex:1;min-width:0;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.crumb small{display:block;font-family:var(--ff-body);font-size:.66rem;font-weight:600;letter-spacing:.04em;
+  color:var(--text-faded)}
+
+/* ---------- buttons ---------- */
+.btn{font-family:var(--ff-body);font-size:.82rem;font-weight:600;border:1px solid var(--p);background:var(--p);
+  color:var(--on-p);border-radius:var(--r-sm);padding:.55em 1em;cursor:pointer;display:inline-flex;align-items:center;
+  gap:.45em;transition:.15s;white-space:nowrap}
+.btn:hover{filter:brightness(1.06)}
+.btn:disabled{opacity:.4;cursor:not-allowed;filter:none}
+.secondary{font-family:var(--ff-body);font-size:.82rem;font-weight:600;background:var(--bg-light);
+  border:1px solid var(--b);color:var(--text);border-radius:var(--r-sm);padding:.55em 1em;cursor:pointer;
+  display:inline-flex;align-items:center;gap:.45em;transition:.15s;white-space:nowrap;box-shadow:var(--shadow-soft)}
+.secondary:hover{border-color:var(--p);color:var(--p)}
+.secondary:disabled{opacity:.45;cursor:not-allowed;border-color:var(--b);color:var(--text-faded)}
+.iconButton{display:grid;place-items:center;width:32px;height:32px;border:1px solid var(--b);background:var(--bg-light);
+  color:var(--text-faded);border-radius:50%;cursor:pointer;transition:.15s}
+.iconButton:hover{border-color:var(--p);color:var(--p)}
+.autoGenerate{font-size:.74rem;color:var(--p);background:none;border:0;cursor:pointer;padding:0;font-weight:600}
+.autoGenerate:hover{text-decoration:underline;text-underline-offset:3px}
+.linkBtn{font-family:var(--ff-serif);font-weight:600;color:var(--p);background:none;border:0;cursor:pointer;
+  font-size:1rem}
+.statusMsg{font-size:.78rem;color:var(--p)}
+.statusError{font-size:.78rem;color:#c0392b}
+
+/* ---------- fields ---------- */
+.field{display:flex;flex-direction:column;gap:.35em;background:var(--bg-light);border:1px solid var(--b);
+  border-radius:var(--r);padding:.8em .95em;transition:.15s}
+.field:focus-within{border-color:var(--p)}
+.field>label{font-size:.74rem;color:var(--text-faded);font-weight:600}
+.field input[type=text],.field input[type=datetime-local],.field input[type=number],.field textarea,.field select{
+  font:inherit;color:var(--text);background:transparent;border:0;outline:0;width:100%;padding:0}
+.field input.serif{font-family:var(--ff-serif);font-weight:600;font-size:1.35rem;letter-spacing:-.01em}
+.field textarea{resize:vertical;min-height:100px;line-height:1.6}
+.fieldRow{display:flex;align-items:center;justify-content:space-between;gap:1em}
+.rowCentered{display:flex;align-items:center;gap:.5em}
+.fieldGrid{display:grid;grid-template-columns:1fr 1fr;gap:.8em}
+@media(max-width:560px){.fieldGrid{grid-template-columns:1fr}}
+
+.checkboxLabel{display:flex;align-items:center;gap:.75em;cursor:pointer;background:var(--bg-light);
+  border:1px solid var(--b);border-radius:var(--r);padding:.8em .95em}
+.checkboxLabel:hover{border-color:var(--hairline)}
+.checkboxLabel input{position:absolute;opacity:0;width:0;height:0}
+.checkboxLabel .box{width:24px;height:24px;flex:none;border:1.5px solid var(--hairline);border-radius:7px;
+  background:var(--bg);display:grid;place-items:center;transition:.15s}
+.checkboxLabel .box svg{opacity:0;transform:scale(.5);transition:.15s;color:var(--on-p)}
+.checkboxLabel input:checked + .box{background:var(--p);border-color:var(--p)}
+.checkboxLabel input:checked + .box svg{opacity:1;transform:scale(1)}
+.checkboxLabel .cbText b{display:block;font-size:.95rem;font-weight:600}
+.checkboxLabel .cbText span{font-size:.76rem;color:var(--text-faded)}
+
+.dropzone{border:1.5px dashed var(--hairline);border-radius:var(--r);background:var(--bg);padding:1.5em;
+  text-align:center;color:var(--text-faded);font-size:.85rem;cursor:pointer}
+.dropzone:hover{border-color:var(--p);color:var(--p);background:var(--p-soft)}
+.fileChip{display:flex;align-items:center;justify-content:space-between;gap:.8em;background:var(--bg-light);
+  border:1px solid var(--b);border-radius:var(--r);padding:.7em .85em;font-size:.88rem}
+.fileChip .name{display:flex;align-items:center;gap:.5em;color:var(--text)}
+.imagePreview{width:100%;max-height:180px;object-fit:cover;border-radius:var(--r);display:block;border:1px solid var(--b)}
+
+/* ---------- trip summary strip (echoes public header) ---------- */
+.summaryStrip{display:flex;flex-wrap:wrap;gap:1.2em;color:var(--text-faded);font-size:.86rem;align-items:center}
+.summaryStrip .s{display:inline-flex;align-items:center;gap:.4em}
+.summaryStrip .s b{color:var(--text);font-weight:600}
+
+/* ---------- trip cards ---------- */
+.tripCard{display:flex;align-items:center;gap:.9em;padding:.9em 1em;background:var(--bg-light);border:1px solid var(--b);
+  border-radius:var(--r);cursor:pointer;text-decoration:none;color:inherit;transition:.16s;box-shadow:var(--shadow-soft);
+  margin-bottom:.55em}
+.tripCard:hover{border-color:var(--p);background:var(--p-soft)}
+.tripCard.active{border-color:var(--p-line);background:var(--p-soft)}
+.cardMain{flex:1;min-width:0}
+.cardMain b{font-family:var(--ff-serif);font-weight:600;font-size:1.15rem;display:block;letter-spacing:-.01em}
+.tripMeta{font-size:.78rem;color:var(--text-faded)}
+.chev{color:var(--hairline);flex:none}
+.tripCard:hover .chev{color:var(--p)}
+.tourToggle{font-size:.74rem;font-weight:600;padding:.4em .8em;border-radius:999px;cursor:pointer;white-space:nowrap;
+  transition:.15s;border:1px solid var(--b)}
+.tourToggle.on{background:var(--p);color:var(--on-p);border-color:var(--p)}
+.tourToggle.off{background:var(--bg-light);color:var(--text-faded)}
+.tourToggle.off:hover{border-color:var(--p);color:var(--p)}
+
+/* ---------- stage cards (public-style: thumb + dates + name + stats) ---------- */
+.stageCard{display:flex;align-items:center;gap:.9em;padding:.85em 1em;background:var(--bg-light);border:1px solid var(--b);
+  border-radius:var(--r);cursor:pointer;text-decoration:none;color:inherit;transition:.16s;box-shadow:var(--shadow-soft);
+  margin-bottom:.55em}
+.stageCard:hover{border-color:var(--p);background:var(--p-soft)}
+.stageCard.active{border-color:var(--p-line);background:var(--p-soft)}
+.thumb{width:58px;height:46px;flex:none}
+.stageBody{flex:1;min-width:0}
+.stageDates{font-size:.74rem;color:var(--text-faded)}
+.stageBody b{font-family:var(--ff-serif);font-weight:600;font-size:1.08rem;display:block;letter-spacing:-.01em;margin:.05em 0}
+.statline{display:flex;flex-wrap:wrap;gap:.9em;color:var(--text-faded);font-size:.8rem;margin-top:.15em}
+.statline .s{display:inline-flex;align-items:center;gap:.35em}
+
+/* ---------- activity-type marker (extends their class) ---------- */
+.activity-type-marker{width:24px;height:24px;border-radius:50%;background:var(--p);display:inline-flex;
+  align-items:center;justify-content:center;flex:none}
+.activity-type-marker svg{width:13px;height:13px;color:var(--on-p)}
+.activity-type-marker.sm{width:18px;height:18px}
+.activity-type-marker.sm svg{width:10px;height:10px}
+
+/* ---------- activities ---------- */
+.activityCard{display:flex;flex-direction:column;gap:.85em;background:var(--bg-light);border:1px solid var(--b);
+  border-radius:var(--r);padding:.95em 1em;box-shadow:var(--shadow-soft);margin-bottom:.6em}
+.activityCard:hover{border-color:var(--hairline)}
+.acTop{display:flex;align-items:center;gap:.7em}
+.acStamp{font-size:.92rem;font-weight:500;flex:1}
+.elev{width:100%;height:62px;display:block}
+.statSummary{display:grid;grid-template-columns:repeat(4,1fr);gap:.6em;border-top:1px solid var(--b);padding-top:.8em}
+.statSummary .col label{display:block;font-size:.72rem;color:var(--text-faded);margin-bottom:.15em}
+.statSummary .col b{font-size:1.02rem;font-weight:600}
+.statSummary .col b.type{display:inline-flex;align-items:center;gap:.4em}
+@media(max-width:520px){.statSummary{grid-template-columns:repeat(2,1fr);gap:.8em}}
+.acStatRow{display:flex;flex-wrap:wrap;gap:.7em;border-top:1px solid var(--b);padding-top:.8em}
+.acStatRow .miniStat{display:flex;flex-direction:column;gap:.25em}
+.acStatRow .miniStat label{font-size:.7rem;color:var(--text-faded)}
+
+/* ---------- story ---------- */
+.storyPreview{background:var(--bg-light);border:1px solid var(--b);border-radius:var(--r);padding:1.1em 1.2em;
+  font-size:.98rem;line-height:1.65}
+.storyPreview h3{font-family:var(--ff-serif);margin:0 0 .4em;font-weight:600}
+.storyPreview.empty{color:var(--text-faded);font-style:italic}
+
+/* ---------- images ---------- */
+.imageGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.7em}
+.imageCard{position:relative;border-radius:var(--r);overflow:hidden;border:1px solid var(--b);height:130px}
+.imageCard img{width:100%;height:100%;object-fit:cover;display:block}
+.imageCard.unref{opacity:.5}
+.imageCard .overlay{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:flex-end;gap:.4em;
+  padding:.5em;background:linear-gradient(rgba(0,0,0,.4),transparent 55%);opacity:0;transition:.15s}
+.imageCard:hover .overlay{opacity:1}
+.imageCard .overlay button{width:30px;height:30px;border:0;border-radius:50%;background:rgba(255,255,255,.92);
+  color:#222;display:grid;place-items:center;cursor:pointer}
+.imageCard .overlay button:hover{background:var(--p);color:var(--on-p)}
+
+/* ---------- stat chips + grid ---------- */
+.statChips{display:flex;flex-wrap:wrap;gap:.5em;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:.5em;font-size:.82rem;background:var(--bg-light);
+  border:1px solid var(--b);border-radius:999px;padding:.4em .5em .4em .85em}
+.chip button{width:20px;height:20px;border:0;background:transparent;color:var(--text-faded);cursor:pointer;
+  display:grid;place-items:center;border-radius:50%}
+.chip button:hover{background:#c0392b;color:#fff}
+.addStat{display:flex;gap:.5em;align-items:stretch}
+.addStat input{flex:1;font:inherit;font-size:.9rem;background:var(--bg-light);border:1px solid var(--b);
+  border-radius:var(--r-sm);padding:.55em .8em;outline:0;color:var(--text)}
+.addStat input:focus{border-color:var(--p)}
+.statsWrap{overflow-x:auto;border:1px solid var(--b);border-radius:var(--r);background:var(--bg-light)}
+.statsGrid{border-collapse:collapse;width:100%;font-size:.84rem}
+.statsGrid th,.statsGrid td{border-bottom:1px solid var(--b);padding:.6em .7em;text-align:center;white-space:nowrap}
+.statsGrid th{font-size:.72rem;color:var(--text-faded);font-weight:600;position:sticky;top:0;background:var(--bg-light)}
+.statsGrid th:first-child,.statsGrid td:first-child{text-align:left;color:var(--text-faded)}
+.statsGrid tr.totals td{font-weight:700;color:var(--text);background:var(--bg);border-top:2px solid var(--hairline)}
+.statsInput{width:64px;text-align:center;font:inherit;background:var(--bg);border:1px solid var(--b);border-radius:8px;
+  padding:.35em;outline:0;color:var(--text)}
+.statsInput:focus{border-color:var(--p)}
+
+/* ---------- modal (bottom sheet) ---------- */
+.scrim{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);display:flex;
+  align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:.2s}
+.scrim.show{opacity:1;pointer-events:auto}
+.modal{width:100%;max-width:720px;max-height:90vh;overflow:auto;background:var(--bg);border:1px solid var(--b);
+  border-bottom:0;border-radius:20px 20px 0 0;padding:1.4em 1.4em 2em;display:flex;flex-direction:column;gap:1.2em;
+  transform:translateY(30px);transition:.25s cubic-bezier(.2,.8,.2,1);box-shadow:0 -20px 50px -20px rgba(0,0,0,.4);
+  position:relative}
+.scrim.show .modal{transform:translateY(0)}
+.grab{position:absolute;left:50%;top:9px;transform:translateX(-50%);width:40px;height:4px;border-radius:4px;
+  background:var(--hairline)}
+.modalHead{display:flex;align-items:center;justify-content:space-between;margin-top:.3em}
+.modalHead h3{margin:0;font-family:var(--ff-serif);font-weight:600;font-size:1.35rem}
+
+.uploadQueue{display:flex;flex-direction:column;gap:.5em}
+.qItem{display:flex;align-items:center;gap:.7em;font-size:.86rem;border:1px solid var(--b);border-radius:var(--r-sm);
+  padding:.6em .75em;background:var(--bg-light)}
+.qDot{width:9px;height:9px;border-radius:50%;flex:none}
+.qDot.done{background:var(--p)}.qDot.up{background:#d99a2b}.qDot.pend{background:var(--hairline)}.qDot.err{background:#c0392b}
+.qStat{margin-left:auto;font-size:.74rem;color:var(--text-faded)}
+
+.elevLabeled{background:var(--bg-light);border:1px solid var(--b);border-radius:var(--r);padding:.8em .6em .4em}
+.elevAxis{display:flex;justify-content:space-between;font-size:.68rem;color:var(--text-faded);padding:0 .3em}
+
+.editorShell{border:1px solid var(--b);border-radius:var(--r);background:var(--bg-light);overflow:hidden}
+.editorBar{display:flex;gap:.3em;padding:.5em;border-bottom:1px solid var(--b);background:var(--bg)}
+.editorBar button{font-size:.78rem;width:32px;height:30px;border:1px solid var(--b);background:var(--bg-light);
+  border-radius:7px;cursor:pointer;color:var(--text)}
+.editorBar button:hover{border-color:var(--p);color:var(--p)}
+.editorArea{width:100%;min-height:210px;border:0;outline:0;background:transparent;padding:1em;font-family:var(--ff-body);
+  font-size:.95rem;line-height:1.7;resize:vertical;color:var(--text)}
+
+.hidden{display:none}
+.fade-in{animation:fade .35s both}
+.stagger>*{animation:fade .42s both}
+.stagger>*:nth-child(1){animation-delay:.03s}.stagger>*:nth-child(2){animation-delay:.07s}
+.stagger>*:nth-child(3){animation-delay:.11s}.stagger>*:nth-child(4){animation-delay:.15s}
+.stagger>*:nth-child(5){animation-delay:.19s}.stagger>*:nth-child(6){animation-delay:.23s}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+
+<div id="app">
+  <header class="layoutHeader">
+    <a href="#" class="brand" onclick="go('home');return false">
+      <span class="dot"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="6" cy="17" r="3.2"/><circle cx="18" cy="17" r="3.2"/><path d="M6 17l4-7h5l3 7M9 7h3"/></svg></span>
+      Admin <small>bagfra</small>
+    </a>
+    <button class="secondary">Logout</button>
+  </header>
+  <main id="view"></main>
+</div>
+
+<div class="scrim" id="scrim" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+/* ---------- icons ---------- */
+const I={
+  arrow:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>',
+  chev:'<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
+  plus:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  check:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>',
+  x:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  trash:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
+  edit:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L18 10l-4-4L4 16v4zM13 5l4 4"/></svg>',
+  copy:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>',
+  dist:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg>',
+  elev:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7h-7M17 7v7"/></svg>',
+  time:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  bike:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="17" r="3.2"/><circle cx="18" cy="17" r="3.2"/><path d="M6 17l4-7h5l3 7M9 7h3"/></svg>',
+  hike:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M10 22l2-8 3 3v5M12 14l-2-5 4-1 3 3"/></svg>',
+  ferry:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18l2-5h12l2 5M12 4v9M3 21c2-1 3-1 5 0s3 1 5 0 3-1 5 0"/></svg>',
+  train:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="14" rx="3"/><path d="M6 11h12M9 21l-2 2M15 21l2 2"/></svg>',
+  bus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="13" rx="2.5"/><path d="M4 11h16M7 21l1-4M17 21l-1-4"/></svg>',
+};
+const typeGlyph=t=>({Bike:I.bike,Hike:I.hike,Ferry:I.ferry,Train:I.train,Bus:I.bus}[t]||I.bike);
+const marker=(t,sm)=>`<span class="activity-type-marker${sm?' sm':''}">${typeGlyph(t)}</span>`;
+
+/* ---------- mock data (mirrors the screenshot) ---------- */
+const DB={
+  trips:[
+    {id:'t1',name:'Island retur',slug:'island-retur',active:true,published:true,stages:17,
+     desc:'Pulvinar mi nisi sollicitudin amet leo quisque. Tincidunt nunc libero lectus in arcu.',
+     range:'May 9 → May 28, 2025',dist:'1002.3',elev:'7865'},
+    {id:'t2',name:'Pyrenæerne på langs',slug:'pyrenaeerne',active:false,published:true,stages:9},
+    {id:'t3',name:'Westfjords sløjfe (kladde)',slug:'westfjords',active:false,published:false,stages:4},
+  ],
+  stages:[
+    {id:'s1',trip:'t1',name:'Mod færgen',dates:'May 27 → May 28, 2025',acts:2,dist:'36.0',dur:'5h 05m',thumb:'M6 36c8-2 12-14 18-14s8 12 14 10 10-22 16-22'},
+    {id:'s2',trip:'t1',name:'Ud og se nord Islands landskaber',dates:'May 25 → May 26, 2025',acts:2,dist:'103.9',dur:'13h 00m',thumb:'M8 8c4 6 2 12 8 16s10-4 14 2 4 12 12 10'},
+    {id:'s3',trip:'t1',name:'Afslapning ved vejs ende',dates:'May 23 → May 24, 2025',acts:2,dist:'21.6',dur:'6h 05m',active:true,thumb:'M20 6c-8 4-10 12-6 18s12 4 14 12'},
+    {id:'s4',trip:'t1',name:'Over Öxi passet',dates:'May 22, 2025',acts:1,dist:'71.3',dur:'7h 47m',thumb:'M8 38c2-10 8-10 10-20s8-8 10-4'},
+    {id:'s5',trip:'t1',name:'Rensdyr i fjordene',dates:'May 21, 2025',acts:1,dist:'62.6',dur:'6h 36m',thumb:'M10 10c6 4 4 12 10 14s8-6 12 0'},
+    {id:'s6',trip:'t1',name:'Flotte kyster',dates:'May 20, 2025',acts:1,dist:'74.4',dur:'8h 00m',thumb:'M6 26c8 0 8-14 16-14s10 16 18 12'},
+  ],
+  acts:[
+    {id:'a1',type:'Bike',stamp:'May 23 — 12:52',dist:'8.1',elev:'58',dur:'4h 21m',
+     prof:[14,15,13,12,14,18,16,20,24,30,34,40,42,46,52,55,50,48,46,44,42,40,38,40],counts:{Coffees:2,Punctures:0}},
+    {id:'a2',type:'Bike',stamp:'May 24 — 17:00',dist:'13.5',elev:'212',dur:'1h 44m',
+     prof:[8,10,16,22,30,44,60,72,88,96,110,124,140,156,150,138,120,96,72,54,40,30,22,16],counts:{Coffees:1,Punctures:1}},
+  ],
+  stats:['Coffees','Punctures'],
+};
+const v=()=>document.getElementById('view');
+const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- mini route thumbnail ---------- */
+function routeThumb(d){return `<svg class="thumb" viewBox="0 0 44 44" fill="none"><path d="${d}" stroke="var(--p)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;}
+
+/* ---------- elevation area chart ---------- */
+let _gid=0;
+function elevChart(data,w=540,h=62){
+  const max=Math.max(...data),min=Math.min(...data),span=(max-min)||1,pad=2;
+  const pts=data.map((d,i)=>[pad+i*(w-2*pad)/(data.length-1),pad+(h-2*pad)*(1-(d-min)/span)]);
+  const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const area=line+` L ${(w-pad)} ${h} L ${pad} ${h} Z`;
+  const id='eg'+(_gid++);
+  return `<svg class="elev" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="var(--p)" stop-opacity=".30"/><stop offset="1" stop-color="var(--p)" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${area}" fill="url(#${id})"/><path d="${line}" fill="none" stroke="var(--p)" stroke-width="1.6" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+/* ---------- router ---------- */
+let _curTrip='t1',_curStage='s3';
+function go(page,id){
+  closeModal();
+  if(page==='trip')_curTrip=id||_curTrip;
+  if(page==='stage')_curStage=id||_curStage;
+  if(page==='home')renderHome();
+  if(page==='trip')renderTrip(_curTrip);
+  if(page==='stage')renderStage(_curStage);
+  window.scrollTo(0,0);
+}
+
+/* ========== PAGE 1 · AdminHome ========== */
+function renderHome(){
+  const trips=DB.trips.map(t=>`
+    <a class="tripCard ${t.active?'active':''}" onclick="go('trip','${t.id}')">
+      <span class="cardMain"><b>${esc(t.name)}</b>
+        <span class="tripMeta">${t.stages} stages${t.published?'':' · hidden'}</span></span>
+      <span class="tourToggle ${t.active?'on':'off'}" onclick="toggleTour(event,'${t.id}')">${t.active?'Active':'Set active'}</span>
+      <span class="chev">${I.chev}</span>
+    </a>`).join('');
+  v().innerHTML=`<div class="admin fade-in"><div class="section">
+    <span class="eyebrow">Dashboard</span>
+    <div class="sectionHeader"><h2>Trips</h2>
+      <button class="secondary" onclick="newTripModal()">${I.plus} New trip</button></div>
+    <div class="stagger">${trips}</div>
+  </div></div>`;
+}
+function toggleTour(e,id){e.stopPropagation();DB.trips.forEach(t=>t.active=t.id===id?!t.active:false);renderHome();}
+
+/* ========== PAGE 2 · AdminTrip ========== */
+function renderTrip(id){
+  const t=DB.trips.find(x=>x.id===id)||DB.trips[0];
+  const stages=DB.stages.filter(s=>s.trip===t.id);
+  const stageCards=stages.map(s=>stageCard(s)).join('');
+  const chips=DB.stats.map(s=>`<span class="chip">${esc(s)}<button onclick="rmStat('${s}','trip')">${I.x}</button></span>`).join('');
+  v().innerHTML=`<div class="admin fade-in">
+    <div class="controls">
+      <a class="backArrow" onclick="go('home')">${I.arrow}</a>
+      <span class="crumb"><small>Trip</small>${esc(t.name)}</span>
+      <span class="statusMsg" id="tStatus"></span>
+      <button class="btn" id="tSave" disabled onclick="saveFlash('tStatus','tSave')">Save changes</button>
+    </div>
+
+    <div class="section stagger">
+      <span class="eyebrow">Metadata</span>
+      <div class="field"><label>Trip name</label><input class="serif" value="${esc(t.name)}" oninput="dirty('tSave')"></div>
+      <div class="summaryStrip">
+        <span class="s">${esc(t.range||'—')}</span>
+        <span class="s">${I.dist}<b>${t.dist||'0'} km</b></span>
+        <span class="s">${I.elev}<b>${t.elev||'0'} m</b></span>
+      </div>
+      <div class="field"><label>Slug</label><input type="text" value="${esc(t.slug)}" oninput="dirty('tSave')"></div>
+      <div class="field"><label>Description</label><textarea oninput="dirty('tSave')">${esc(t.desc||'')}</textarea></div>
+      <label class="checkboxLabel"><input type="checkbox" ${t.published?'checked':''} onchange="dirty('tSave')"><span class="box">${I.check}</span>
+        <span class="cbText"><b>Published</b><span>Live on website / Hidden from website</span></span></label>
+      <label class="checkboxLabel"><input type="checkbox" ${t.active?'checked':''} onchange="dirty('tSave')"><span class="box">${I.check}</span>
+        <span class="cbText"><b>On tour</b><span>Currently active — redirects to this trip</span></span></label>
+    </div>
+
+    <div class="section">
+      <span class="eyebrow">Planned route · GPX</span>
+      <div class="fileChip"><span class="name">island-retur.gpx</span>
+        <button class="secondary" onclick="confirmDel('Delete planned route?')">${I.trash} Delete</button></div>
+    </div>
+
+    <div class="section">
+      <span class="eyebrow">Hero image</span>
+      <img class="imagePreview" src="https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=900&q=70" alt="">
+      <div class="fileChip"><span class="name">hero-egilsstadir.jpg</span>
+        <button class="secondary" onclick="confirmDel('Delete hero image?')">${I.trash} Delete</button></div>
+    </div>
+
+    <div class="section">
+      <div class="sectionHeader"><h2>Stages <sup>${stages.length}</sup></h2>
+        <button class="secondary" onclick="go('stage','s1')">${I.plus} New stage</button></div>
+      <div>${stageCards}</div>
+    </div>
+
+    <div class="section">
+      <span class="eyebrow">Statistics</span>
+      <div class="statChips">${chips}</div>
+      <div class="addStat"><input placeholder="e.g. Swims" id="newStatTrip"><button class="secondary" onclick="addStat('trip')">Add</button></div>
+    </div>
+  </div>`;
+}
+
+function stageCard(s){
+  return `<a class="stageCard ${s.active?'active':''}" onclick="go('stage','${s.id}')">
+    ${routeThumb(s.thumb)}
+    <span class="stageBody">
+      <span class="stageDates">${s.dates}</span>
+      <b>${esc(s.name)}</b>
+      <span class="statline">
+        <span class="s">${marker('Bike',true)} ${s.acts}</span>
+        <span class="s">${I.dist} ${s.dist} km</span>
+        <span class="s">${I.time} ${s.dur}</span>
+      </span>
+    </span>
+    <span class="chev">${I.chev}</span>
+  </a>`;
+}
+
+/* ========== PAGE 3 · AdminStage ========== */
+function renderStage(id){
+  const s=DB.stages.find(x=>x.id===id)||DB.stages[0];
+  const acts=DB.acts.map(activityCard).join('');
+  const chips=DB.stats.map(x=>`<span class="chip">${esc(x)}<button onclick="rmStat('${x}','stage')">${I.x}</button></span>`).join('');
+  v().innerHTML=`<div class="admin fade-in">
+    <div class="controls">
+      <a class="backArrow" onclick="go('trip','${s.trip}')">${I.arrow}</a>
+      <span class="crumb"><small>Stage</small>${esc(s.name)}</span>
+      <span class="statusMsg" id="sStatus"></span>
+      <button class="secondary" onclick="go('stage','s2')">${I.plus} New stage</button>
+      <button class="btn" id="sSave" disabled onclick="saveFlash('sStatus','sSave')">Save</button>
+    </div>
+
+    <div class="section stagger">
+      <span class="eyebrow">General</span>
+      <div class="field"><label>Name</label><input class="serif" value="${esc(s.name)}" oninput="dirty('sSave')"></div>
+      <div class="field"><div class="fieldRow"><label>Slug</label><button class="autoGenerate" onclick="autoSlug()">Auto-generate</button></div>
+        <input type="text" id="slugIn" value="afslapning-ved-vejs-ende" oninput="dirty('sSave')"></div>
+      <label class="checkboxLabel"><input type="checkbox" checked onchange="dirty('sSave')"><span class="box">${I.check}</span>
+        <span class="cbText"><b>Published</b><span>Public</span></span></label>
+    </div>
+
+    <div class="section">
+      <span class="eyebrow">Dates</span>
+      <div class="fieldGrid">
+        <div class="field"><label>Start</label><input type="datetime-local" value="2025-05-23T12:52" oninput="dirty('sSave')"></div>
+        <div class="field"><label>End</label><input type="datetime-local" value="2025-05-24T17:00" oninput="dirty('sSave')"></div>
+      </div>
+      <button class="secondary" onclick="dirty('sSave')">${I.time} Set from activity dates</button>
+    </div>
+
+    <div class="section">
+      <div class="sectionHeader"><h2>Activities <sup>${DB.acts.length}</sup></h2>
+        <button class="secondary" onclick="addActivityModal()">${I.plus} Add activity</button></div>
+      ${acts}
+    </div>
+
+    <div class="section">
+      <div class="sectionHeader"><h2>Story</h2><button class="secondary" onclick="storyModal()">${I.edit} Edit</button></div>
+      <div class="storyPreview"><h3>Hvile før hjemturen</h3>
+        En rolig dag i fjordbunden. Vi reparerede en punktering, drak for meget kaffe og kiggede på rensdyr.
+        ![morgenlys](morgenlys.jpg)</div>
+    </div>
+
+    <div class="section">
+      <span class="eyebrow">Images</span>
+      <div class="imageGrid">
+        ${imgCard('https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400&q=70',false)}
+        ${imgCard('https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=400&q=70',true)}
+        ${imgCard('https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=70',true)}
+        ${imgCard('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=70',false)}
+      </div>
+    </div>
+
+    <div class="section">
+      <span class="eyebrow">Statistics · per activity</span>
+      <div class="statChips">${chips}</div>
+      <div class="addStat"><input placeholder="e.g. Swims" id="newStatStage"><button class="secondary" onclick="addStat('stage')">Add</button></div>
+      ${statsGrid()}
+    </div>
+  </div>`;
+}
+
+function activityCard(a){
+  return `<div class="activityCard">
+    <div class="acTop">${marker(a.type)}<span class="acStamp">${a.stamp}</span>
+      <button class="iconButton" title="Edit" onclick="editActivityModal('${a.id}')">${I.edit}</button>
+      <button class="iconButton" title="Delete" onclick="confirmDel('Delete this activity?')">${I.trash}</button></div>
+    ${elevChart(a.prof)}
+    <div class="statSummary">
+      <span class="col"><label>Activity type</label><b class="type">${marker(a.type,true)} ${a.type}</b></span>
+      <span class="col"><label>Distance</label><b>${a.dist} km</b></span>
+      <span class="col"><label>Elevation gain</label><b>${a.elev} m</b></span>
+      <span class="col"><label>Total duration</label><b>${a.dur}</b></span>
+    </div>
+    <div class="acStatRow">
+      ${DB.stats.map(st=>`<span class="miniStat"><label>${esc(st)}</label>
+        <input class="statsInput" type="number" value="${a.counts[st]??0}" onblur="flashSaved()"></span>`).join('')}
+    </div>
+  </div>`;
+}
+function imgCard(src,unref){
+  return `<div class="imageCard ${unref?'unref':''}"><img src="${src}" alt="">
+    <div class="overlay"><button title="Copy markdown" onclick="toast('Copied ![…](url)')">${I.copy}</button>
+      <button title="Delete" onclick="confirmDel('Delete this image?')">${I.trash}</button></div></div>`;
+}
+function statsGrid(){
+  const rows=DB.acts.map(a=>`<tr><td>${a.stamp}</td>${DB.stats.map(st=>`<td><input class="statsInput" type="number" value="${a.counts[st]??0}" onblur="flashSaved()"></td>`).join('')}</tr>`).join('');
+  const totals=DB.stats.map(st=>`<td>${DB.acts.reduce((n,a)=>n+(+a.counts[st]||0),0)}</td>`).join('');
+  return `<div class="statsWrap"><table class="statsGrid">
+    <thead><tr><th></th>${DB.stats.map(st=>`<th>${esc(st)}</th>`).join('')}</tr></thead>
+    <tbody>${rows}<tr class="totals"><td>Total</td>${totals}</tr></tbody></table></div>`;
+}
+
+/* ---------- helpers ---------- */
+function dirty(id){const b=document.getElementById(id);if(b)b.disabled=false;}
+function saveFlash(sid,bid){const st=document.getElementById(sid),b=document.getElementById(bid);
+  if(b)b.disabled=true;if(st){st.textContent='Saved!';setTimeout(()=>st.textContent='',1600);}}
+function flashSaved(){const st=document.getElementById('sStatus')||document.getElementById('tStatus');
+  if(st){st.textContent='Saved!';setTimeout(()=>st.textContent='',1200);}}
+function autoSlug(){const i=document.getElementById('slugIn');if(i){i.value='afslapning-ved-vejs-ende';dirty('sSave');}}
+function confirmDel(m){if(confirm(m))toast('Deleted');}
+function addStat(scope){const i=document.getElementById(scope==='trip'?'newStatTrip':'newStatStage');
+  if(i&&i.value.trim()){DB.stats.push(i.value.trim());scope==='trip'?renderTrip(_curTrip):renderStage(_curStage);}}
+function rmStat(n,scope){if(!confirm('Remove "'+n+'" and all its counts?'))return;
+  DB.stats=DB.stats.filter(s=>s!==n);scope==='trip'?renderTrip(_curTrip):renderStage(_curStage);}
+
+/* ---------- modals ---------- */
+function openModal(html){document.getElementById('modal').innerHTML='<span class="grab"></span>'+html;
+  document.getElementById('scrim').classList.add('show');}
+function closeModal(){document.getElementById('scrim').classList.remove('show');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+function newTripModal(){openModal(`
+  <div class="modalHead"><h3>New trip</h3><button class="iconButton" onclick="closeModal()">${I.x}</button></div>
+  <div class="field"><label>Trip name</label><input id="ntName" class="serif" placeholder="Where to?" oninput="document.getElementById('ntGo').disabled=!this.value.trim()"></div>
+  <button class="btn" id="ntGo" disabled onclick="closeModal();toast('Trip created')">${I.plus} Create trip</button>`);
+  setTimeout(()=>document.getElementById('ntName')?.focus(),60);}
+
+function addActivityModal(){openModal(`
+  <div class="modalHead"><h3>Add activity</h3><button class="iconButton" onclick="closeModal()">${I.x}</button></div>
+  <div class="field"><label>Activity type</label><select>
+    <option>Bike</option><option>Hike</option><option>Ferry</option><option>Train</option><option>Bus</option></select></div>
+  <div class="dropzone">Drop .gpx / .fit files or click to browse</div>
+  <div class="uploadQueue">
+    <div class="qItem"><span class="qDot done"></span>oxi-passet.gpx<span class="qStat">done</span></div>
+    <div class="qItem"><span class="qDot up"></span>ferry-leg.fit<span class="qStat">uploading…</span></div>
+    <div class="qItem"><span class="qDot pend"></span>evening-hike.gpx<span class="qStat">pending</span></div>
+  </div>`);}
+
+function editActivityModal(id){const a=DB.acts.find(x=>x.id===id)||DB.acts[0];
+  openModal(`
+  <div class="modalHead"><h3>Edit activity</h3><button class="iconButton" onclick="closeModal()">${I.x}</button></div>
+  <div class="elevLabeled">${elevChart(a.prof,540,90)}
+    <div class="elevAxis"><span>0.0 km</span><span>${(+a.dist/2).toFixed(1)} km</span><span>${a.dist} km</span></div></div>
+  <div class="field"><label>Type</label><select>${['Bike','Hike','Ferry','Train','Bus'].map(t=>`<option ${t===a.type?'selected':''}>${t}</option>`).join('')}</select></div>
+  <div class="fieldGrid">
+    <div class="field"><label>Start time</label><input type="datetime-local" value="2025-05-23T12:52"></div>
+    <div class="field"><label>End time</label><input type="datetime-local" value="2025-05-23T17:13"></div></div>
+  <div class="fieldGrid">
+    <div class="field"><label>Distance (m)</label><input value="${(+a.dist*1000)|0}"></div>
+    <div class="field"><label>Elevation gain (m)</label><input value="${a.elev}"></div>
+    <div class="field"><label>Elevation loss (m)</label><input value="54"></div>
+    <div class="field"><label>Elevation avg (m)</label><input value="31"></div></div>
+  <button class="btn" onclick="closeModal();toast('Activity saved')">Save</button>`);}
+
+function storyModal(){openModal(`
+  <div class="modalHead"><h3>Edit story</h3><button class="iconButton" onclick="closeModal()">${I.x}</button></div>
+  <div class="editorShell"><div class="editorBar">
+    <button title="Heading"><b>H</b></button><button title="Bold"><b>B</b></button>
+    <button title="Italic"><i>I</i></button><button title="Link">↗</button>
+    <button title="Insert image" onclick="toast('Inserted ![img](url)')">${I.copy}</button></div>
+    <textarea class="editorArea">## Hvile før hjemturen
+
+En rolig dag i fjordbunden. Vi reparerede en punktering,
+drak for meget kaffe og kiggede på rensdyr.
+
+![morgenlys](morgenlys.jpg)</textarea></div>
+  <button class="btn" onclick="closeModal();flashSaved()">Save story</button>`);}
+
+/* ---------- toast ---------- */
+function toast(msg){const el=document.createElement('div');el.textContent=msg;
+  el.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:80;background:var(--contrast);'+
+    'color:var(--bg);font-size:.82rem;padding:.7em 1.1em;border-radius:10px;box-shadow:0 10px 30px -10px rgba(0,0,0,.5)';
+  document.body.appendChild(el);setTimeout(()=>el.remove(),1500);}
+
+renderHome();
+</script>

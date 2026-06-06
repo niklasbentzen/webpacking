@@ -16,7 +16,6 @@ export async function fetchAllTrips() {
  */
 export async function fetchAllTripsWithStages() {
   return pb.collection("trips").getFullList({
-    filter: "published = true",
     sort: "-startDate",
     expand: "stages_via_trip",
   });
@@ -120,6 +119,19 @@ export function getTripHeroImageUrl(trip) {
 
 export function updateTrip(tripId, data) {
   return pb.collection("trips").update(tripId, data);
+}
+
+export async function fetchActiveTrip() {
+  const results = await pb.collection("trips").getList(1, 1, {
+    filter: "published = true && active = true",
+  });
+  return results.items[0] ?? null;
+}
+
+export async function setActiveTrip(tripId, allTrips) {
+  const currentlyActive = allTrips.filter((t) => t.active && t.id !== tripId);
+  await Promise.all(currentlyActive.map((t) => updateTrip(t.id, { active: false })));
+  if (tripId) await updateTrip(tripId, { active: true });
 }
 
 export function createTrip(data) {

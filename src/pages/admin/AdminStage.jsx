@@ -14,37 +14,34 @@ import {
 import { formatDuration } from "../../lib/stageFormatters";
 import { uploadStageImage, deleteStageImage } from "../../lib/stageImages";
 
-import Divider from "../../components/Divider/Divider";
 import {
   ArrowLeftIcon,
+  PlusIcon,
+  ClockIcon,
   ArrowsHorizontalIcon,
   ArrowUpRightIcon,
-  ClockIcon,
   PersonSimpleBikeIcon,
   PersonSimpleHikeIcon,
   BoatIcon,
+  PencilSimpleIcon,
   TrashIcon,
   CopyIcon,
+  CheckIcon,
 } from "@phosphor-icons/react";
 import AdminEditActivity from "../../components/AdminEditActivity/AdminEditActivity";
 import OverTypeEditor from "../../components/OverTypeEditor/OverTypeEditor";
 import { fetchStatisticsForTrip } from "../../lib/statistics";
-import { fetchActivityStatsForTrip, upsertActivityStat } from "../../lib/activityStats";
+import {
+  fetchActivityStatsForTrip,
+  upsertActivityStat,
+} from "../../lib/activityStats";
 import { pb } from "../../lib/pb";
+import Divider from "@/components/Divider/Divider";
 
 const activityTypes = {
-  Bike: {
-    label: "Bike",
-    Icon: PersonSimpleBikeIcon,
-  },
-  Hike: {
-    label: "Hike",
-    Icon: PersonSimpleHikeIcon,
-  },
-  Ferry: {
-    label: "Ferry",
-    Icon: BoatIcon,
-  },
+  Bike: { label: "Bike", Icon: PersonSimpleBikeIcon },
+  Hike: { label: "Hike", Icon: PersonSimpleHikeIcon },
+  Ferry: { label: "Ferry", Icon: BoatIcon },
 };
 
 // DB ISO -> datetime-local string
@@ -70,8 +67,8 @@ export default function AdminStage() {
   const [name, setName] = useState("");
   const [isPublic, setIsPublic] = useState(false);
   const [slug, setSlug] = useState("");
-  const [startDate, setStartDate] = useState(""); // <-- string for datetime-local
-  const [endDate, setEndDate] = useState(""); // <-- string for datetime-local
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [body, setBody] = useState("");
 
   const [statistics, setStatistics] = useState([]);
@@ -90,7 +87,6 @@ export default function AdminStage() {
         if (!isMounted) return;
 
         setStage(stageRes);
-
         setActivities(stageRes.expand?.activities_via_stage || []);
         setName(stageRes.name || "");
         setSlug(stageRes.slug || "");
@@ -125,17 +121,13 @@ export default function AdminStage() {
 
   useEffect(() => {
     if (!anyModalOpen) return;
-
     const originalOverflow = document.body.style.overflow;
     const originalPaddingRight = document.body.style.paddingRight;
-
     const scrollBarWidth =
       window.innerWidth - document.documentElement.clientWidth;
-
     document.body.style.overflow = "hidden";
     if (scrollBarWidth > 0)
       document.body.style.paddingRight = `${scrollBarWidth}px`;
-
     return () => {
       document.body.style.overflow = originalOverflow;
       document.body.style.paddingRight = originalPaddingRight;
@@ -144,27 +136,24 @@ export default function AdminStage() {
 
   async function handleSave() {
     if (!stage) return;
-
     setIsSaving(true);
     setSaveError("");
     setSavedMsg("");
-
     try {
       const payload = {
         name,
         slug,
         body,
         published: isPublic,
-        // datetime-local string -> ISO (UTC) for DB
         startDate: startDate ? new Date(startDate).toISOString() : null,
         endDate: endDate ? new Date(endDate).toISOString() : null,
         publicAt: endDate
-          ? new Date(new Date(endDate).getTime() + 48 * 60 * 60 * 1000).toISOString()
+          ? new Date(
+              new Date(endDate).getTime() + 48 * 60 * 60 * 1000,
+            ).toISOString()
           : null,
       };
-
       const updated = await updateStage(stage.id, payload);
-
       setStage((prev) => ({ ...prev, ...updated }));
       setSavedMsg("Saved.");
     } catch (err) {
@@ -178,11 +167,9 @@ export default function AdminStage() {
   async function handleDeleteActivity(activityId) {
     const ok = window.confirm("Delete this activity? This cannot be undone.");
     if (!ok) return;
-
     setIsSaving(true);
     setSaveError("");
     setSavedMsg("");
-
     try {
       await deleteActivity(activityId);
       setActivities((prev) => prev.filter((a) => a.id !== activityId));
@@ -201,7 +188,7 @@ export default function AdminStage() {
       .trim()
       .toLowerCase()
       .normalize("NFKD")
-      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[̀-ͯ]/g, "")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/-+/g, "-")
       .replace(/^-|-$/g, "");
@@ -213,25 +200,17 @@ export default function AdminStage() {
 
   function setDatesFromActivities() {
     if (!activities?.length) return;
-
     const validStarts = activities
       .map((a) => a.startTime)
       .filter(Boolean)
       .map((t) => new Date(t));
-
     const validEnds = activities
       .map((a) => a.endTime)
       .filter(Boolean)
       .map((t) => new Date(t));
-
     if (!validStarts.length || !validEnds.length) return;
-
-    const earliest = new Date(Math.min(...validStarts));
-    const latest = new Date(Math.max(...validEnds));
-
-    // convert to datetime-local format (same helper you already use)
-    setStartDate(toLocalInputValue(earliest));
-    setEndDate(toLocalInputValue(latest));
+    setStartDate(toLocalInputValue(new Date(Math.min(...validStarts))));
+    setEndDate(toLocalInputValue(new Date(Math.max(...validEnds))));
   }
 
   function getStatCount(activityId, statisticId) {
@@ -254,7 +233,10 @@ export default function AdminStage() {
           next[idx] = { ...next[idx], count };
           return next;
         }
-        return [...prev, { activity: activityId, statistic: statisticId, count }];
+        return [
+          ...prev,
+          { activity: activityId, statistic: statisticId, count },
+        ];
       });
     } catch (err) {
       console.error(err);
@@ -286,14 +268,17 @@ export default function AdminStage() {
 
   return (
     <div className={s.admin}>
+      {/* ── Controls ── */}
       <div className={s.controls}>
         <div className={s.rowCentered}>
-          <Link to={`/admin/trips/${stage?.trip}`}>
-            <ArrowLeftIcon size={14} />
+          <Link to={`/admin/trips/${stage?.trip}`} className={s.backArrow}>
+            <ArrowLeftIcon size={16} />
           </Link>
-          <p>{stage?.name}</p>
+          <div className={s.crumb}>
+            <small className={s.crumbEye}>Stage</small>
+            {stage?.name}
+          </div>
         </div>
-
         <div className={s.rowCentered}>
           {savedMsg && <span className={s.statusMsg}>{savedMsg}</span>}
           {saveError && <span className={s.statusError}>{saveError}</span>}
@@ -303,81 +288,91 @@ export default function AdminStage() {
             onClick={handleCreateSiblingStage}
             disabled={!stage || isSaving}
           >
-            + New stage
+            <PlusIcon size={14} weight="bold" /> New stage
           </button>
           <button
             type="button"
             onClick={handleSave}
             disabled={isSaving || !stage || isUnchanged}
           >
-            {isSaving ? "Saving..." : "Save"}
+            {isSaving ? "Saving…" : "Save"}
           </button>
         </div>
       </div>
 
+      {/* ── General ── */}
       <div className={s.section}>
-        <div className={s.general}>
-          <div className={s.field}>
-            <label htmlFor="name">Stage name</label>
-            <div className={s.row}>
-              <input
-                id="name"
-                type="text"
-                name="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={isSaving || !stage}
-              />
-            </div>
-          </div>
+        <span className={s.eyebrow}>General</span>
 
-          <div className={(s.field, s.published)}>
-            <label htmlFor="isPublic">Stage visibility</label>
-            <div className={s.rowCentered}>
+        <div className={s.field}>
+          <label htmlFor="name" className={s.eyebrow}>
+            Stage name
+          </label>
+          <input
+            id="name"
+            type="text"
+            className={s.serif}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            disabled={isSaving || !stage}
+          />
+        </div>
+
+        <div className={s.field}>
+          <div className={s.fieldRow}>
+            <label htmlFor="slug" className={s.eyebrow}>
+              Slug
+            </label>
+            <button
+              type="button"
+              className={s.autoGenerate}
+              onClick={generateSlugFromName}
+              disabled={isSaving || !stage || !name.trim()}
+            >
+              Auto-generate
+            </button>
+          </div>
+          <input
+            id="slug"
+            type="text"
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+            disabled={isSaving || !stage}
+          />
+        </div>
+
+        <label className={s.field}>
+          <div className={s.row}>
+            <div className={s.checkbox}>
               <input
-                id="isPublic"
                 type="checkbox"
                 checked={isPublic}
                 onChange={(e) => setIsPublic(e.target.checked)}
                 disabled={isSaving || !stage}
               />
-              <span>Public</span>
+              <span className={s.checkmark}>
+                <CheckIcon size={14} weight="bold" />
+              </span>
+            </div>
+            <div>
+              <span className={s.checkboxTitle}>Published</span>
+              <span className={s.checkboxDesc}>
+                {isPublic ? "Live on website" : "Hidden from website"}
+              </span>
             </div>
           </div>
-        </div>
+        </label>
+      </div>
 
-        <div className={s.field}>
-          <div className={s.rowCentered}>
-            <label htmlFor="slug">Slug </label>
-            <p
-              className={s.autoGenerate}
-              onClick={generateSlugFromName}
-              title="Generate slug from stage name"
-              style={{
-                cursor:
-                  isSaving || !stage || !name.trim()
-                    ? "not-allowed"
-                    : "pointer",
-              }}
-            >
-              Auto-generate
-            </p>
-          </div>
+      {/* ── Dates ── */}
+      <div className={s.section}>
+        <span className={s.eyebrow}>Dates</span>
 
-          <div className={s.row}>
-            <input
-              id="slug"
-              type="text"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              disabled={isSaving || !stage}
-            />
-          </div>
-        </div>
-
-        <div className={s.general}>
+        <div className={s.fieldGrid}>
           <div className={s.field}>
-            <label htmlFor="startDate">Start date & time</label>
+            <label htmlFor="startDate" className={s.eyebrow}>
+              Start
+            </label>
             <input
               type="datetime-local"
               id="startDate"
@@ -386,9 +381,10 @@ export default function AdminStage() {
               disabled={isSaving || !stage}
             />
           </div>
-
           <div className={s.field}>
-            <label htmlFor="endDate">End date & time</label>
+            <label htmlFor="endDate" className={s.eyebrow}>
+              End
+            </label>
             <input
               type="datetime-local"
               id="endDate"
@@ -398,197 +394,223 @@ export default function AdminStage() {
             />
           </div>
         </div>
-        <div className={s.row}>
-          <button
-            type="button"
-            className={s.secondary}
-            onClick={setDatesFromActivities}
-            disabled={!activities?.length}
-          >
-            Set from activity dates
-          </button>
-        </div>
-      </div>
-      <Divider />
 
+        <button
+          type="button"
+          className={s.secondary}
+          onClick={setDatesFromActivities}
+          disabled={!activities?.length}
+        >
+          <ClockIcon size={14} /> Set from activity dates
+        </button>
+      </div>
+
+      {/* ── Activities ── */}
       <div className={s.section}>
         <div className={s.sectionHeader}>
-          <h3>
+          <h2>
             Activities<sup>{activities?.length}</sup>
-          </h3>
+          </h2>
           <button
             type="button"
             className={s.secondary}
             onClick={() => setIsAddActivityOpen(true)}
             disabled={!stage || isSaving}
           >
-            + Add activity
+            <PlusIcon size={14} weight="bold" /> Add activity
           </button>
         </div>
 
-        {activities.map((activity) => (
-          <div key={activity.id} className={s.activityCard}>
-            <div className={s.sectionHeader}>
-              <p>
-                {new Date(activity.startTime).toLocaleString(undefined, {
-                  month: "short",
-                  day: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: false,
-                  timeZone: "UTC",
-                })}
-              </p>
-              <div className={s.rowCentered}>
-                {" "}
+        {activities.map((activity) => {
+          const TypeIcon = activityTypes[activity.type]?.Icon;
+          return (
+            <div key={activity.id} className={s.activityCard}>
+              <div className={s.acTop}>
+                <span className="activity-type-marker">
+                  {TypeIcon && <TypeIcon size={13} />}
+                </span>
+                <span className={s.acStamp}>
+                  {new Date(activity.startTime).toLocaleString(undefined, {
+                    month: "short",
+                    day: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                    timeZone: "UTC",
+                  })}
+                </span>
                 <button
-                  className={s.secondary}
+                  type="button"
+                  className={s.iconButton}
+                  title="Edit"
                   onClick={() => setActivityToEdit(activity)}
                 >
-                  Edit
+                  <PencilSimpleIcon size={16} />
                 </button>
-                <div
-                  onClick={() => handleDeleteActivity(activity.id)}
+                <button
+                  type="button"
                   className={s.iconButton}
+                  title="Delete"
+                  onClick={() => handleDeleteActivity(activity.id)}
                 >
-                  <TrashIcon size={20} />
-                </div>
+                  <TrashIcon size={16} />
+                </button>
               </div>
-            </div>
 
-            <div className={s.activityData}>
-              {activity.distanceM && (
-                <div className={s.activityDataItem}>
-                  <ArrowsHorizontalIcon size={14} />
-                  <p>{(activity.distanceM / 1000).toFixed(2)} km</p>
-                </div>
-              )}
-              {activity.elevationGainM && (
-                <div className={s.activityDataItem}>
-                  <ArrowUpRightIcon size={14} />
-                  <p>{activity.elevationGainM.toFixed(0)} m</p>
-                </div>
-              )}
-              {activity.startTime && (
-                <div className={s.activityDataItem}>
-                  <ClockIcon size={14} />
-                  <p>
-                    {formatDuration(
-                      new Date(activity.endTime) - new Date(activity.startTime),
-                    )}
-                  </p>
-                </div>
-              )}
-            </div>
+              <Divider />
 
-            <div className={s.field}>
-              <label>Activity type</label>
-
-              <div className={s.type}>
-                <div className={s.activityType}>
-                  {(() => {
-                    const Icon = activityTypes[activity.type]?.Icon;
-                    return Icon ? <Icon size={14} /> : null;
-                  })()}
-                  {activity.type}
+              <div className={s.statSummary}>
+                <div className={s.statSummaryCol}>
+                  <div className={s.eyebrow}>Type</div>
+                  <b>{activity.type}</b>
                 </div>
-              </div>
-            </div>
-
-            {statistics.length > 0 && (
-              <div className={s.activityStats}>
-                {statistics.map((stat) => (
-                  <div key={stat.id} className={s.activityStatRow}>
-                    <span className={s.activityStatLabel}>{stat.name}</span>
-                    <input
-                      className={s.activityStatInput}
-                      type="number"
-                      min="0"
-                      defaultValue={getStatCount(activity.id, stat.id)}
-                      onBlur={(e) =>
-                        handleStatCountChange(activity.id, stat.id, e.target.value)
-                      }
-                    />
+                {activity.distanceM ? (
+                  <div className={s.statSummaryCol}>
+                    <div className={s.eyebrow}>Distance</div>
+                    <b>{(activity.distanceM / 1000).toFixed(2)} km</b>
                   </div>
-                ))}
+                ) : null}
+                {activity.elevationGainM ? (
+                  <div className={s.statSummaryCol}>
+                    <div className={s.eyebrow}>Elev. gain</div>
+                    <b>{activity.elevationGainM.toFixed(0)} m</b>
+                  </div>
+                ) : null}
+                {activity.startTime && activity.endTime ? (
+                  <div className={s.statSummaryCol}>
+                    <div className={s.eyebrow}>Duration</div>
+                    <b>
+                      {formatDuration(
+                        new Date(activity.endTime) -
+                          new Date(activity.startTime),
+                      )}
+                    </b>
+                  </div>
+                ) : null}
               </div>
-            )}
-          </div>
-        ))}
+
+              <Divider />
+
+              {statistics.length > 0 && (
+                <div className={s.activityStats}>
+                  {statistics.map((stat) => {
+                    const inputRef = React.createRef();
+                    const adjust = (delta) => {
+                      const el = inputRef.current;
+                      if (!el) return;
+                      const next = Math.max(
+                        0,
+                        (parseInt(el.value, 10) || 0) + delta,
+                      );
+                      el.value = next;
+                      handleStatCountChange(activity.id, stat.id, next);
+                    };
+                    return (
+                      <div key={stat.id} className={s.activityStatRow}>
+                        <button
+                          className={s.iconButton}
+                          type="button"
+                          onClick={() => adjust(-1)}
+                        >
+                          -
+                        </button>
+                        <button
+                          className={s.iconButton}
+                          type="button"
+                          onClick={() => adjust(1)}
+                        >
+                          +
+                        </button>
+                        <input
+                          ref={inputRef}
+                          className={s.activityStatInput}
+                          min="0"
+                          defaultValue={getStatCount(activity.id, stat.id)}
+                          onBlur={(e) =>
+                            handleStatCountChange(
+                              activity.id,
+                              stat.id,
+                              e.target.value,
+                            )
+                          }
+                        />
+                        <span className={s.activityStatLabel}>{stat.name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      <Divider />
-
+      {/* ── Story ── */}
       <div className={s.section}>
         <div className={s.sectionHeader}>
-          <h3>Story</h3>
+          <h2>Story</h2>
           <button
             type="button"
             className={s.secondary}
             onClick={() => setIsEditStoryOpen(true)}
           >
-            Edit
+            <PencilSimpleIcon size={14} /> Edit
           </button>
         </div>
-
-        {stage && (
-          <div className={s.storyPreview}>
-            <ReactMarkdown>{stage?.body ?? "No story yet..."}</ReactMarkdown>
-          </div>
-        )}
+        <div className={s.storyPreview}>
+          <ReactMarkdown>{stage?.body || "No story yet…"}</ReactMarkdown>
+        </div>
       </div>
 
+      {/* ── Images ── */}
       <div className={s.section}>
-        <div className={s.sectionHeader}>
-          <h3>Stage images</h3>
-        </div>
-
+        <span className={s.eyebrow}>Images</span>
         <div className={s.imageGrid}>
           {stage?.images?.map((filename) => {
             const isUsed = stage.body?.includes(filename);
-
             return (
-              <div key={filename} className={s.imageCard}>
+              <div
+                key={filename}
+                className={`${s.imageCard} ${!isUsed ? s.imageCardUnref : ""}`}
+              >
                 <img
                   src={pb.files.getURL(stage, filename)}
                   alt={filename}
-                  className={s.stageImage}
-                  style={{ opacity: isUsed ? 1 : 0.5 }}
                   loading="lazy"
                 />
-                <div className={s.imageControls}>
-                  <div
-                    className={s.imageControl}
+                <div className={s.imageOverlay}>
+                  <button
+                    type="button"
+                    className={s.imageOverlayBtn}
+                    title="Copy markdown"
+                    onClick={() => {
+                      const url = pb.files.getURL(stage, filename);
+                      navigator.clipboard.writeText(`![${filename}](${url})`);
+                    }}
+                  >
+                    <CopyIcon size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    className={s.imageOverlayBtn}
+                    title="Delete"
                     onClick={async () => {
                       try {
                         const updated = await deleteStageImage(
                           stage.id,
                           filename,
                         );
-
                         setStage((prev) =>
-                          prev
-                            ? { ...prev, images: updated.images } // or updated.images ?? []
-                            : prev,
+                          prev ? { ...prev, images: updated.images } : prev,
                         );
                       } catch (err) {
                         console.error(err);
                       }
                     }}
                   >
-                    <TrashIcon size={24} />
-                  </div>
-                  <div
-                    className={s.imageControl}
-                    onClick={() => {
-                      const url = pb.files.getURL(stage, filename);
-                      const markdown = `![${filename}](${url})`;
-                      navigator.clipboard.writeText(markdown);
-                    }}
-                  >
-                    <CopyIcon size={24} />
-                  </div>
+                    <TrashIcon size={14} />
+                  </button>
                 </div>
               </div>
             );
@@ -596,6 +618,7 @@ export default function AdminStage() {
         </div>
       </div>
 
+      {/* ── Modals ── */}
       <AdminModal
         open={isAddActivityOpen}
         title="Add activity"
@@ -612,7 +635,7 @@ export default function AdminStage() {
 
       <AdminModal
         open={!!activityToEdit}
-        title={"Edit activity"}
+        title="Edit activity"
         onClose={() => setActivityToEdit(null)}
       >
         <AdminEditActivity
@@ -621,6 +644,7 @@ export default function AdminStage() {
           tripId={stage?.trip}
         />
       </AdminModal>
+
       <AdminModal
         open={isEditStoryOpen}
         title="Edit story"
@@ -632,7 +656,7 @@ export default function AdminStage() {
           onSave={handleSave}
           onUploadImage={async (file) => {
             const { url } = await uploadStageImage(stage.id, file);
-            return url; // ✅ return the string
+            return url;
           }}
         />
       </AdminModal>

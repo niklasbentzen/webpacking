@@ -1,12 +1,23 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { fetchTripByIdWithStages, fetchAllTripsWithStages, updateTrip, getTripHeroImageUrl, setActiveTrip } from "../../lib/trips";
+import {
+  fetchTripByIdWithStages,
+  fetchAllTripsWithStages,
+  updateTrip,
+  getTripHeroImageUrl,
+  setActiveTrip,
+} from "../../lib/trips";
 import { createStage } from "../../lib/stages";
 import { processPlannedRouteGpx } from "../../lib/activities";
 import s from "./Admin.module.css";
-import Divider from "../../components/Divider/Divider";
 import AdminStageStats from "../../components/AdminStageStats/AdminStageStats";
-import { ArrowLeftIcon } from "@phosphor-icons/react";
+import {
+  ArrowLeftIcon,
+  PlusIcon,
+  CaretRightIcon,
+  TrashIcon,
+  CheckIcon,
+} from "@phosphor-icons/react";
 
 export default function AdminTrip() {
   const { tripId } = useParams();
@@ -36,6 +47,7 @@ export default function AdminTrip() {
 
   const [isCreatingStage, setIsCreatingStage] = useState(false);
   const [createStageError, setCreateStageError] = useState("");
+  const [stagesExpanded, setStagesExpanded] = useState(false);
 
   useEffect(() => {
     async function loadTrip() {
@@ -67,7 +79,16 @@ export default function AdminTrip() {
       heroImageFile !== null ||
       plannedRouteBlob !== null
     );
-  }, [trip, name, slug, description, published, active, heroImageFile, plannedRouteBlob]);
+  }, [
+    trip,
+    name,
+    slug,
+    description,
+    published,
+    active,
+    heroImageFile,
+    plannedRouteBlob,
+  ]);
 
   async function handleSave() {
     if (!trip || !isDirty) return;
@@ -83,7 +104,8 @@ export default function AdminTrip() {
       data.append("description", description);
       data.append("published", published);
       if (heroImageFile) data.append("heroImage", heroImageFile);
-      if (plannedRouteBlob) data.append("plannedTrip", plannedRouteBlob, "planned.geojson");
+      if (plannedRouteBlob)
+        data.append("plannedTrip", plannedRouteBlob, "planned.geojson");
 
       const updated = await updateTrip(trip.id, data);
 
@@ -118,7 +140,11 @@ export default function AdminTrip() {
     setPlannedRouteFileName(file.name);
     try {
       const geoJsonSmall = await processPlannedRouteGpx(file);
-      setPlannedRouteBlob(new Blob([JSON.stringify(geoJsonSmall)], { type: "application/geo+json" }));
+      setPlannedRouteBlob(
+        new Blob([JSON.stringify(geoJsonSmall)], {
+          type: "application/geo+json",
+        }),
+      );
       setPlannedRouteStatus("ready");
     } catch {
       setPlannedRouteStatus("Failed to parse GPX.");
@@ -127,10 +153,13 @@ export default function AdminTrip() {
 
   async function handleDeletePlannedRoute() {
     if (!trip?.plannedTrip) return;
-    if (!window.confirm("Delete the planned route? This cannot be undone.")) return;
+    if (!window.confirm("Delete the planned route? This cannot be undone."))
+      return;
     setIsDeletingRoute(true);
     try {
-      const updated = await updateTrip(trip.id, { "plannedTrip-": [trip.plannedTrip] });
+      const updated = await updateTrip(trip.id, {
+        "plannedTrip-": [trip.plannedTrip],
+      });
       setTrip((prev) => ({ ...prev, ...updated }));
     } catch {
       // leave existing file in place on error
@@ -141,17 +170,18 @@ export default function AdminTrip() {
 
   async function handleDeleteHeroImage() {
     if (!trip?.heroImage) return;
-    if (!window.confirm("Delete the hero image? This cannot be undone.")) return;
-    const updated = await updateTrip(trip.id, { "heroImage-": [trip.heroImage] });
+    if (!window.confirm("Delete the hero image? This cannot be undone."))
+      return;
+    const updated = await updateTrip(trip.id, {
+      "heroImage-": [trip.heroImage],
+    });
     setTrip((prev) => ({ ...prev, ...updated }));
   }
 
   async function handleCreateStage() {
     if (!trip) return;
-
     setIsCreatingStage(true);
     setCreateStageError("");
-
     try {
       const newStage = await createStage({
         trip: trip.id,
@@ -173,14 +203,17 @@ export default function AdminTrip() {
 
   return (
     <div className={s.admin}>
+      {/* ── Controls ── */}
       <div className={s.controls}>
         <div className={s.rowCentered}>
-          <Link to="/admin">
-            <ArrowLeftIcon size={14} />
+          <Link to="/admin" className={s.backArrow}>
+            <ArrowLeftIcon size={16} />
           </Link>
-          <p>{trip?.name}</p>
+          <div className={s.crumb}>
+            <small className={s.crumbEye}>Trip</small>
+            {trip.name}
+          </div>
         </div>
-
         <div className={s.rowCentered}>
           {savedMsg && <span className={s.statusMsg}>{savedMsg}</span>}
           {saveError && <span className={s.statusError}>{saveError}</span>}
@@ -189,17 +222,21 @@ export default function AdminTrip() {
             onClick={handleSave}
             disabled={isSaving || !isDirty}
           >
-            {isSaving ? "Saving..." : "Save changes"}
+            {isSaving ? "Saving…" : "Save changes"}
           </button>
         </div>
       </div>
 
+      {/* ── Metadata ── */}
       <div className={s.section}>
+        <span className={s.eyebrow}>Metadata</span>
+
         <div className={s.field}>
           <label htmlFor="name">Trip name</label>
           <input
             id="name"
             type="text"
+            className={s.serif}
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={isSaving}
@@ -227,98 +264,215 @@ export default function AdminTrip() {
           />
         </div>
 
-        <div className={s.field}>
-          <label htmlFor="published">Published</label>
-          <label className={s.checkboxLabel}>
-            <input
-              id="published"
-              type="checkbox"
-              checked={published}
-              onChange={(e) => setPublished(e.target.checked)}
-              disabled={isSaving}
-            />
-            {published ? "Live on website" : "Hidden from website"}
-          </label>
+        <label className={s.field}>
+          <div className={s.row}>
+            <div className={s.checkbox}>
+              <input
+                type="checkbox"
+                checked={published}
+                onChange={(e) => setPublished(e.target.checked)}
+                disabled={isSaving}
+              />
+              <span className={s.checkmark}>
+                <CheckIcon size={14} weight="bold" />
+              </span>
+            </div>
+            <div>
+              <span className={s.checkboxTitle}>Published</span>
+              <span className={s.checkboxDesc}>
+                {published ? "Live on website" : "Hidden from website"}
+              </span>
+            </div>
+          </div>
+        </label>
+
+        <label className={s.field}>
+          <div className={s.row}>
+            <div className={s.checkbox}>
+              <input
+                type="checkbox"
+                checked={active}
+                onChange={(e) => setActive(e.target.checked)}
+                disabled={isSaving}
+              />
+              <span className={s.checkmark}>
+                <CheckIcon size={14} weight="bold" />
+              </span>
+            </div>
+            <div>
+              <span className={s.checkboxTitle}>On tour</span>
+              <span className={s.checkboxDesc}>
+                {active
+                  ? "Currently active — redirects to this trip"
+                  : "Not the active trip"}
+              </span>
+            </div>
+          </div>
+        </label>
+      </div>
+
+      {/* ── Statistics ── */}
+      <div className={s.section}>
+        <span className={s.eyebrow}>Statistics</span>
+        <AdminStageStats tripId={trip.id} activities={[]} showCounts={false} />
+      </div>
+
+      {/* ── Stages ── */}
+      <div className={s.section}>
+        <div className={s.sectionHeader}>
+          <h2>
+            Stages<sup>{stages.length}</sup>
+          </h2>
+          <button
+            type="button"
+            className={s.secondary}
+            onClick={handleCreateStage}
+            disabled={isCreatingStage}
+          >
+            <PlusIcon size={14} weight="bold" />
+            {isCreatingStage ? "Creating…" : "New stage"}
+          </button>
         </div>
 
-        <div className={s.field}>
-          <label htmlFor="active">On tour</label>
-          <label className={s.checkboxLabel}>
-            <input
-              id="active"
-              type="checkbox"
-              checked={active}
-              onChange={(e) => setActive(e.target.checked)}
-              disabled={isSaving}
-            />
-            {active ? "Currently active — redirects to this trip" : "Not active"}
-          </label>
-        </div>
+        {createStageError && (
+          <p className={s.statusError}>{createStageError}</p>
+        )}
 
-        <div className={s.field}>
-          <label>Planned route (GPX)</label>
-          {trip.plannedTrip && !plannedRouteBlob && (
-            <div className={s.fieldRow}>
-              <p className={s.tripMeta}>{trip.plannedTrip}</p>
+        {(stagesExpanded ? stages : stages.slice(0, 3)).map((stage) => (
+          <Link
+            key={stage.id}
+            to={`/admin/stages/${stage.id}`}
+            className={s.stageCard}
+          >
+            <div className={s.stageCardMain}>
+              {stage.startDate && (
+                <span className={s.stageCardDate}>
+                  {new Date(stage.startDate).toLocaleDateString(undefined, {
+                    month: "short",
+                    day: "2-digit",
+                    year: "numeric",
+                    timeZone: "UTC",
+                  })}
+                </span>
+              )}
+              <span className={s.stageCardName}>{stage.name}</span>
+            </div>
+            <span className={s.chev}>
+              <CaretRightIcon size={18} />
+            </span>
+          </Link>
+        ))}
+
+        {stages.length > 3 && (
+          <button
+            type="button"
+            className={s.secondary}
+            onClick={() => setStagesExpanded((v) => !v)}
+          >
+            {stagesExpanded ? "Show less" : `Show all ${stages.length} stages`}
+          </button>
+        )}
+      </div>
+
+      {/* ── Planned route ── */}
+      <div className={s.section}>
+        <span className={s.eyebrow}>Planned route · GPX</span>
+
+        {/* Saved file */}
+        {trip.plannedTrip && !plannedRouteBlob && (
+          <div className={s.fileChip}>
+            <span className={s.fileChipName}>{trip.plannedTrip}</span>
+            <button
+              type="button"
+              className={s.secondary}
+              onClick={handleDeletePlannedRoute}
+              disabled={isDeletingRoute || isSaving}
+            >
+              <TrashIcon size={14} />
+              {isDeletingRoute ? "Deleting…" : "Delete"}
+            </button>
+          </div>
+        )}
+
+        {/* Pending upload */}
+        {plannedRouteStatus === "ready" && (
+          <div className={s.fileChip}>
+            <span className={s.fileChipName}>
+              {plannedRouteFileName} — save to upload
+            </span>
+          </div>
+        )}
+
+        {/* File picker */}
+        {(!trip.plannedTrip || plannedRouteBlob !== null) &&
+          plannedRouteStatus !== "ready" && (
+            <label className={s.dropzone}>
+              <input
+                type="file"
+                accept=".gpx"
+                ref={plannedRouteInputRef}
+                onChange={handlePlannedRouteChange}
+                disabled={isSaving}
+              />
+              {plannedRouteStatus === "processing"
+                ? "Processing…"
+                : "Choose a .gpx file"}
+            </label>
+          )}
+
+        {plannedRouteStatus !== "" &&
+          plannedRouteStatus !== "processing" &&
+          plannedRouteStatus !== "ready" && (
+            <span className={s.statusError}>{plannedRouteStatus}</span>
+          )}
+      </div>
+
+      {/* ── Hero image ── */}
+      <div className={s.section}>
+        <span className={s.eyebrow}>Hero image</span>
+
+        {/* Saved image */}
+        {trip.heroImage && !heroImageFile && (
+          <>
+            <img
+              src={getTripHeroImageUrl(trip)}
+              alt="Current hero"
+              className={s.imagePreview}
+            />
+            <div className={s.fileChip}>
+              <span className={s.fileChipName}>{trip.heroImage}</span>
               <button
                 type="button"
                 className={s.secondary}
-                onClick={handleDeletePlannedRoute}
-                disabled={isDeletingRoute || isSaving}
+                onClick={handleDeleteHeroImage}
+                disabled={isSaving}
               >
-                {isDeletingRoute ? "Deleting…" : "Delete"}
+                <TrashIcon size={14} />
+                Delete
               </button>
             </div>
-          )}
-          {(!trip.plannedTrip || plannedRouteBlob) && (
-            <input
-              type="file"
-              accept=".gpx"
-              ref={plannedRouteInputRef}
-              onChange={handlePlannedRouteChange}
-              disabled={isSaving}
-            />
-          )}
-          {plannedRouteStatus === "processing" && <span>Processing…</span>}
-          {plannedRouteStatus === "ready" && <span>{plannedRouteFileName} — save to upload</span>}
-          {plannedRouteStatus !== "" && plannedRouteStatus !== "processing" && plannedRouteStatus !== "ready" && (
-            <span className={s.statusError}>{plannedRouteStatus}</span>
-          )}
-        </div>
+          </>
+        )}
 
-        <div className={s.field}>
-          <label htmlFor="heroImage">Hero image</label>
-          {trip.heroImage && !heroImageFile && (
-            <>
-              <img
-                src={getTripHeroImageUrl(trip)}
-                alt="Current hero"
-                className={s.imagePreview}
-              />
-              <div className={s.fieldRow}>
-                <span className={s.tripMeta}>{trip.heroImage}</span>
-                <button
-                  type="button"
-                  className={s.secondary}
-                  disabled={isSaving}
-                  onClick={handleDeleteHeroImage}
-                >
-                  Delete
-                </button>
-              </div>
-            </>
-          )}
-          {heroImageFile && (
-            <>
-              <img
-                src={URL.createObjectURL(heroImageFile)}
-                alt="New hero preview"
-                className={s.imagePreview}
-              />
-              <span>{heroImageFile.name} — save to upload</span>
-            </>
-          )}
-          {(!trip.heroImage || heroImageFile) && (
+        {/* Pending upload */}
+        {heroImageFile && (
+          <>
+            <img
+              src={URL.createObjectURL(heroImageFile)}
+              alt="New hero preview"
+              className={s.imagePreview}
+            />
+            <div className={s.fileChip}>
+              <span className={s.fileChipName}>
+                {heroImageFile.name} — save to upload
+              </span>
+            </div>
+          </>
+        )}
+
+        {/* File picker */}
+        {!trip.heroImage && !heroImageFile && (
+          <label className={s.dropzone}>
             <input
               id="heroImage"
               type="file"
@@ -327,59 +481,9 @@ export default function AdminTrip() {
               onChange={(e) => setHeroImageFile(e.target.files[0] || null)}
               disabled={isSaving}
             />
-          )}
-        </div>
-      </div>
-
-      <Divider />
-
-      <div className={s.section}>
-        <div className={s.sectionHeader}>
-          <h3>
-            Stages<sup>{stages.length}</sup>
-          </h3>
-          <div className={s.rowCentered}>
-            <button
-              type="button"
-              className={s.secondary}
-              onClick={handleCreateStage}
-              disabled={isCreatingStage}
-            >
-              {isCreatingStage ? "Creating…" : "New stage"}
-            </button>
-          </div>
-        </div>
-
-        {createStageError && <p className={s.statusError}>{createStageError}</p>}
-
-        {stages.map((stage) => (
-          <Link
-            key={stage.id}
-            to={`/admin/stages/${stage.id}`}
-            className={s.stageCard}
-          >
-            <p>{stage.name}</p>
-            {stage.startDate && (
-              <span className={s.stageCardDate}>
-                {new Date(stage.startDate).toLocaleDateString(undefined, {
-                  month: "short",
-                  day: "2-digit",
-                  year: "numeric",
-                  timeZone: "UTC",
-                })}
-              </span>
-            )}
-          </Link>
-        ))}
-      </div>
-
-      <Divider />
-
-      <div className={s.section}>
-        <div className={s.sectionHeader}>
-          <h3>Statistics</h3>
-        </div>
-        <AdminStageStats tripId={trip.id} activities={[]} showCounts={false} />
+            Choose a hero image
+          </label>
+        )}
       </div>
     </div>
   );

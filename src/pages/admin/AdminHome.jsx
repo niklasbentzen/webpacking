@@ -6,7 +6,7 @@ import {
 } from "../../lib/trips";
 import { Link, useNavigate } from "react-router-dom";
 import s from "./Admin.module.css";
-import { ArrowRightIcon } from "@phosphor-icons/react";
+import { PlusIcon, CaretRightIcon } from "@phosphor-icons/react";
 import AdminModal from "../../components/AdminModal/AdminModal";
 
 export default function AdminHome() {
@@ -77,10 +77,11 @@ export default function AdminHome() {
   return (
     <div className={s.admin}>
       <div className={s.section}>
+        <span className={s.eyebrow}>Dashboard</span>
         <div className={s.sectionHeader}>
-          <h3>Trips</h3>
+          <h2>Trips</h2>
           <button type="button" className={s.secondary} onClick={openModal}>
-            New trip
+            <PlusIcon size={14} weight="bold" /> New trip
           </button>
         </div>
 
@@ -90,26 +91,28 @@ export default function AdminHome() {
             <Link
               key={trip.id}
               to={`/admin/trips/${trip.id}`}
-              className={s.tripCard}
+              className={`${s.tripCard} ${trip.active ? s.tripCardActive : ""}`}
             >
-              <div>
-                <p className={s.tripName}>{trip.name}</p>
-                <p className={s.tripMeta}>
+              <div className={s.tripCardMain}>
+                <span className={s.tripName}>{trip.name}</span>
+                <span className={s.tripMeta}>
                   {stages.length} stage{stages.length !== 1 ? "s" : ""}
-                </p>
+                  {!trip.published ? " · hidden" : ""}
+                </span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <button
-                  type="button"
-                  className={trip.active ? s.primary : s.secondary}
-                  disabled={togglingId === trip.id}
-                  onClick={(e) => handleToggleActive(e, trip)}
-                  style={{ fontSize: 12, padding: "2px 8px" }}
-                >
-                  {trip.active ? "On tour" : "Set to on tour"}
-                </button>
-                <ArrowRightIcon size={16} />
-              </div>
+
+              <button
+                type="button"
+                className={`${s.tourToggle} ${trip.active ? s.tourToggleOn : s.tourToggleOff}`}
+                disabled={togglingId === trip.id}
+                onClick={(e) => handleToggleActive(e, trip)}
+              >
+                {trip.active ? "Active" : "Set active"}
+              </button>
+
+              <span className={s.chev}>
+                <CaretRightIcon size={18} />
+              </span>
             </Link>
           );
         })}
@@ -127,6 +130,7 @@ export default function AdminHome() {
               id="newTripName"
               type="text"
               name="name"
+              className={s.serif}
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               autoFocus

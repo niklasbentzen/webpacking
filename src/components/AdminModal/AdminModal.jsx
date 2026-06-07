@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { XIcon } from "@phosphor-icons/react";
 import s from "./AdminModal.module.css";
 
 export default function AdminModal({ open, title, onClose, children }) {
@@ -24,10 +25,12 @@ export default function AdminModal({ open, title, onClose, children }) {
         aria-modal="true"
         aria-label={title || "Modal"}
       >
+        <span className={s.grab} aria-hidden="true" />
+
         <div className={s.header}>
-          <p className={s.title}>{title}</p>
-          <button type="button" className={s.closeBtn} onClick={onClose}>
-            Close
+          <h3 className={s.title}>{title}</h3>
+          <button type="button" className={s.closeBtn} onClick={onClose} aria-label="Close">
+            <XIcon size={16} weight="bold" />
           </button>
         </div>
 

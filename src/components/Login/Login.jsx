@@ -85,7 +85,7 @@ export default function Login({ onSuccess, onError, redirectTo }) {
       </button>
 
       <div className={s.adminLoginContainer}>
-        <Link to="/logn" style={{ fontSize: "0.8em" }}>
+        <Link to="/login" style={{ fontSize: "0.8em" }}>
           Admin login
         </Link>
       </div>

@@ -25,11 +25,14 @@ function formatLocalTime(timestamp, timezone) {
   }
 }
 
-const InReachLayer = forwardRef(function InReachLayer({ limit = 500 }, ref) {
+const InReachLayer = forwardRef(function InReachLayer({ limit = 500, onLastPoint }, ref) {
   const map = useMap();
-  const groupRef = useRef(L.featureGroup());
+  const lineGroupRef = useRef(L.featureGroup());
+  const markerGroupRef = useRef(L.featureGroup());
   const pointsRef = useRef([]);
   const lastPointRef = useRef(null);
+  const onLastPointRef = useRef(onLastPoint);
+  useEffect(() => { onLastPointRef.current = onLastPoint; }, [onLastPoint]);
 
   // Expose public methods
   useImperativeHandle(ref, () => ({
@@ -37,7 +40,7 @@ const InReachLayer = forwardRef(function InReachLayer({ limit = 500 }, ref) {
       const last = lastPointRef.current;
       if (!last) return;
 
-      map.flyTo([last.lat, last.lon], 8, {
+      map.flyTo([last.lat, last.lon], 12, {
         animate: true,
         duration: 0.2,
       });
@@ -50,20 +53,28 @@ const InReachLayer = forwardRef(function InReachLayer({ limit = 500 }, ref) {
         pointsRef.current.map((p) => [p.lat, p.lon]),
       );
 
-      map.fitBounds(bounds, { padding: [100, 100] });
+      map.fitBounds(bounds, { padding: [20, 20] });
     },
   }));
 
   useEffect(() => {
-    const group = groupRef.current;
-    group.clearLayers();
-    if (map.hasLayer(group)) map.removeLayer(group);
-    group.addTo(map);
+    const lineGroup = lineGroupRef.current;
+    const markerGroup = markerGroupRef.current;
+
+    lineGroup.clearLayers();
+    markerGroup.clearLayers();
+    if (map.hasLayer(lineGroup)) map.removeLayer(lineGroup);
+    if (map.hasLayer(markerGroup)) map.removeLayer(markerGroup);
+
+    lineGroup.addTo(map);
+    lineGroup.bringToBack();
+    markerGroup.addTo(map);
 
     let cancelled = false;
 
     const redraw = () => {
-      group.clearLayers();
+      lineGroup.clearLayers();
+      markerGroup.clearLayers();
       const pts = pointsRef.current;
 
       if (pts.length > 1) {
@@ -71,10 +82,10 @@ const InReachLayer = forwardRef(function InReachLayer({ limit = 500 }, ref) {
           pts.map((p) => [p.lat, p.lon]),
           {
             color: "red",
-            weight: 2,
-            opacity: 0.7,
+            weight: 6,
+            opacity: 0.6,
           },
-        ).addTo(group);
+        ).addTo(lineGroup);
       }
 
       const last = lastPointRef.current ?? pts[pts.length - 1];
@@ -91,7 +102,8 @@ const InReachLayer = forwardRef(function InReachLayer({ limit = 500 }, ref) {
             ? formatLocalTime(last.timestamp, last.timezone)
             : "Unknown",
         )
-        .addTo(group);
+        .addTo(markerGroup);
+      markerGroup.bringToFront();
     };
 
     const pushPoint = (rec) => {
@@ -141,6 +153,7 @@ const InReachLayer = forwardRef(function InReachLayer({ limit = 500 }, ref) {
             timestamp: latestItem.timestamp,
             timezone: latestItem.timezone || "",
           };
+          onLastPointRef.current?.({ timestamp: latestItem.timestamp, text: latestItem.raw?.Text ?? "" });
         }
 
         pointsRef.current = [];
@@ -158,6 +171,7 @@ const InReachLayer = forwardRef(function InReachLayer({ limit = 500 }, ref) {
               timestamp: e.record.timestamp,
               timezone: e.record.timezone || "",
             };
+            onLastPointRef.current?.({ timestamp: e.record.timestamp, text: e.record.raw?.Text ?? "" });
           }
           const ts = e.record.timestamp ? new Date(e.record.timestamp) : null;
           if (ts && Date.now() - ts.getTime() > 24 * 60 * 60 * 1000) return;
@@ -178,8 +192,10 @@ const InReachLayer = forwardRef(function InReachLayer({ limit = 500 }, ref) {
       pb.collection("inreach")
         .unsubscribe("*")
         .catch(() => {});
-      group.clearLayers();
-      if (map.hasLayer(group)) map.removeLayer(group);
+      lineGroup.clearLayers();
+      markerGroup.clearLayers();
+      if (map.hasLayer(lineGroup)) map.removeLayer(lineGroup);
+      if (map.hasLayer(markerGroup)) map.removeLayer(markerGroup);
     };
   }, [map, limit]);
 

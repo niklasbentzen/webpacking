@@ -34,7 +34,11 @@ export default function AdminHome() {
     setCreateError("");
 
     try {
-      const trip = await createTrip({ name: newName.trim(), published: true });
+      const trip = await createTrip({
+        name: newName.trim(),
+        published: true,
+        startDate: new Date().toISOString().slice(0, 10),
+      });
       navigate(`/admin/trips/${trip.id}`);
     } catch {
       setCreateError("Could not create trip.");

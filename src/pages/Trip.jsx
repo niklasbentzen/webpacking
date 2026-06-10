@@ -44,6 +44,13 @@ export default function Trip() {
 
   const { isLoggedIn, logout } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [lastInReachPoint, setLastInReachPoint] = useState(null);
+
+  const isMoving =
+    lastInReachPoint != null &&
+    Date.now() - new Date(lastInReachPoint.timestamp).getTime() <
+      30 * 60 * 1000 &&
+    lastInReachPoint.text !== "Tracking turned off from device.";
 
   useEffect(() => {
     setStatus("Loading...");
@@ -83,7 +90,9 @@ export default function Trip() {
       <div className={s.map}>
         <Map ref={mapRef}>
           <PlannedRoute trip={trip} />
-          {isLoggedIn && <InReachLayer ref={layerRef} />}
+          {isLoggedIn && (
+            <InReachLayer ref={layerRef} onLastPoint={setLastInReachPoint} />
+          )}
           <TripLayer
             ref={tripLayerRef}
             stages={stages}
@@ -111,18 +120,40 @@ export default function Trip() {
         </Link>
 
         <div className={`${s.mapControls}`}>
-          <button
-            className="button-secondary button-icon"
-            onClick={() => layerRef.current?.locate()}
-            disabled={!isLoggedIn}
-            title={
-              isLoggedIn
-                ? "Last location from Garmin InReach"
-                : "Login to see last location from Garmin InReach"
-            }
-          >
-            <GpsFixIcon size="20" />
-          </button>
+          {trip?.active && (
+            <div className={s.currentStatus}>
+              {isMoving ? (
+                <span className={s.active}>
+                  <span className={s.pulse}>
+                    <CircleIcon size={10} weight="fill" color="red" />
+                  </span>{" "}
+                  Moving
+                </span>
+              ) : (
+                <>
+                  <CircleIcon
+                    size={10}
+                    weight="fill"
+                    color="var(--text-faded)"
+                  />
+                  Not moving
+                </>
+              )}
+              <button
+                className={s.mapButton}
+                onClick={() => layerRef.current?.locate()}
+                disabled={!isLoggedIn}
+                title={
+                  isLoggedIn
+                    ? "Last location from Garmin InReach"
+                    : "Login to see last location from Garmin InReach"
+                }
+              >
+                <GpsFixIcon size="20" />
+              </button>
+            </div>
+          )}
+
           <button
             className="button-secondary button-icon"
             onClick={() => tripLayerRef.current?.fitBounds()}

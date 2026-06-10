@@ -47,6 +47,7 @@ export function AuthProvider({ children }) {
     () => ({
       user,
       isLoggedIn: !!user,
+      isAdmin: !!user?.admin,
       login,
       logout,
     }),

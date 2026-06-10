@@ -7,14 +7,16 @@ import s from "./AdminLayout.module.css";
 export default function AdminLayout({ requireAuth = true }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn, isAdmin, logout } = useAuth();
 
   useEffect(() => {
     if (!requireAuth) return;
     if (!isLoggedIn) {
       navigate("/login", { replace: true, state: { from: location.pathname } });
+    } else if (!isAdmin) {
+      navigate("/", { replace: true });
     }
-  }, [isLoggedIn, requireAuth, navigate, location.pathname]);
+  }, [isLoggedIn, isAdmin, requireAuth, navigate, location.pathname]);
 
   function handleLogout() {
     logout();

@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   fetchTripByIdWithStages,
   fetchAllTripsWithStages,
+  fetchStagesForTripWithActivities,
   updateTrip,
   getTripHeroImageUrl,
   setActiveTrip,
@@ -29,6 +30,7 @@ export default function AdminTrip() {
 
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+  const [startDate, setStartDate] = useState("");
   const [description, setDescription] = useState("");
   const [published, setPublished] = useState(false);
   const [active, setActive] = useState(false);
@@ -40,6 +42,8 @@ export default function AdminTrip() {
   const [plannedRouteFileName, setPlannedRouteFileName] = useState("");
   const [isDeletingRoute, setIsDeletingRoute] = useState(false);
   const plannedRouteInputRef = useRef(null);
+
+  const [isAutoDetectingDate, setIsAutoDetectingDate] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -58,6 +62,7 @@ export default function AdminTrip() {
         setStages(tripData.expand?.stages_via_trip || []);
         setName(tripData.name || "");
         setSlug(tripData.slug || "");
+        setStartDate(tripData.startDate ? tripData.startDate.slice(0, 10) : "");
         setDescription(tripData.description || "");
         setPublished(tripData.published ?? false);
         setActive(tripData.active ?? false);
@@ -70,9 +75,11 @@ export default function AdminTrip() {
 
   const isDirty = useMemo(() => {
     if (!trip) return false;
+    const savedStartDate = trip.startDate ? trip.startDate.slice(0, 10) : "";
     return (
       name !== (trip.name || "") ||
       slug !== (trip.slug || "") ||
+      startDate !== savedStartDate ||
       description !== (trip.description || "") ||
       published !== (trip.published ?? false) ||
       active !== (trip.active ?? false) ||
@@ -83,6 +90,7 @@ export default function AdminTrip() {
     trip,
     name,
     slug,
+    startDate,
     description,
     published,
     active,
@@ -101,6 +109,7 @@ export default function AdminTrip() {
       const data = new FormData();
       data.append("name", name);
       data.append("slug", slug);
+      data.append("startDate", startDate);
       data.append("description", description);
       data.append("published", published);
       if (heroImageFile) data.append("heroImage", heroImageFile);
@@ -129,6 +138,26 @@ export default function AdminTrip() {
       setSaveError("Save failed.");
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleAutoDetectStartDate() {
+    setIsAutoDetectingDate(true);
+    try {
+      const stagesWithActivities = await fetchStagesForTripWithActivities(tripId);
+      let earliest = null;
+      for (const stage of stagesWithActivities) {
+        for (const activity of stage.expand?.activities_via_stage || []) {
+          if (!activity.startTime) continue;
+          const t = new Date(activity.startTime).getTime();
+          if (earliest === null || t < earliest) earliest = t;
+        }
+      }
+      if (earliest !== null) {
+        setStartDate(new Date(earliest).toISOString().slice(0, 10));
+      }
+    } finally {
+      setIsAutoDetectingDate(false);
     }
   }
 
@@ -252,6 +281,27 @@ export default function AdminTrip() {
             onChange={(e) => setSlug(e.target.value)}
             disabled={isSaving}
           />
+        </div>
+
+        <div className={s.field}>
+          <label htmlFor="startDate">Start date</label>
+          <div className={s.row}>
+            <input
+              id="startDate"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              disabled={isSaving}
+            />
+            <button
+              type="button"
+              className={s.secondary}
+              onClick={handleAutoDetectStartDate}
+              disabled={isSaving || isAutoDetectingDate}
+            >
+              {isAutoDetectingDate ? "Detecting…" : "Auto"}
+            </button>
+          </div>
         </div>
 
         <div className={s.field}>

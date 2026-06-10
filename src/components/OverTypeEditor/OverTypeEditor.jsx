@@ -127,7 +127,7 @@ export default function OverTypeEditor({
 
   return (
     <>
-      <div ref={hostRef} style={{ height }} />
+      <div ref={hostRef} style={{ height: "70vh" }} />
       <input
         ref={fileInputRef}
         type="file"

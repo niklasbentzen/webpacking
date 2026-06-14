@@ -13,6 +13,9 @@
 
 ## Getting Started
 
+<img width="1732" height="1169" alt="ui" src="https://github.com/user-attachments/assets/76c43b1d-d686-4a34-95cf-10dc0068df4f" />
+
+
 ### Prerequisites
 
 - Node.js ≥ 18

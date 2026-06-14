@@ -1,5 +1,7 @@
 # Bagfra — Bikepacking Blog & Tracking Platform
 
+<img width="1732" height="1169" alt="ui" src="https://github.com/user-attachments/assets/76c43b1d-d686-4a34-95cf-10dc0068df4f" />
+
 ## Tech Stack
 
 | Layer       | Technology                              |
@@ -12,8 +14,6 @@
 | GPS parsing | fit-file-parser, @we-gold/gpxjs         |
 
 ## Getting Started
-
-<img width="1732" height="1169" alt="ui" src="https://github.com/user-attachments/assets/76c43b1d-d686-4a34-95cf-10dc0068df4f" />
 
 
 ### Prerequisites

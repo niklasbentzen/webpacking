@@ -12,6 +12,7 @@ import {
   CircleIcon,
   GpsFixIcon,
   InstagramLogoIcon,
+  KeyIcon,
   PathIcon,
   UserCheckIcon,
   UserIcon,
@@ -106,22 +107,9 @@ export default function Trip() {
           />
         </Map>
 
-        <Link to={"/"} className={s.mapLogo}>
-          {trip?.active ? (
-            <span className={s.active}>
-              <span className={s.pulse}>
-                <CircleIcon size={10} weight="fill" color="red" />
-              </span>{" "}
-              On tour
-            </span>
-          ) : (
-            ""
-          )}
-        </Link>
-
         <div className={`${s.mapControls}`}>
           {trip?.active && (
-            <div className={s.currentStatus}>
+            <div className={s.mapControl}>
               {isMoving ? (
                 <span className={s.active}>
                   <span className={s.pulse}>
@@ -130,14 +118,14 @@ export default function Trip() {
                   Moving
                 </span>
               ) : (
-                <>
+                <span className={s.active}>
                   <CircleIcon
                     size={10}
                     weight="fill"
                     color="var(--text-faded)"
                   />
                   Not moving
-                </>
+                </span>
               )}
               <button
                 className={s.mapButton}
@@ -151,34 +139,29 @@ export default function Trip() {
               >
                 <GpsFixIcon size="20" />
               </button>
+
+              {isLoggedIn ? (
+                <></>
+              ) : (
+                <button
+                  className={s.mapButton}
+                  onClick={() => setIsLoginOpen(true)}
+                >
+                  <KeyIcon size="20" />
+                </button>
+              )}
             </div>
           )}
 
-          <button
-            className="button-secondary button-icon"
-            onClick={() => tripLayerRef.current?.fitBounds()}
-            title="See entire route"
-          >
-            <PathIcon size="20" />
-          </button>
-          {isLoggedIn ? (
+          <div className={s.mapControl}>
             <button
-              className="button-secondary button-icon"
-              onClick={() => {
-                if (window.confirm("Are you sure you want to logout?"))
-                  logout();
-              }}
+              className={s.mapButton}
+              onClick={() => tripLayerRef.current?.fitBounds()}
+              title="See entire route"
             >
-              <UserCheckIcon size="20" />
+              <PathIcon size="20" />
             </button>
-          ) : (
-            <button
-              className="button-secondary button-icon"
-              onClick={() => setIsLoginOpen(true)}
-            >
-              <UserIcon size="20" />
-            </button>
-          )}
+          </div>
         </div>
 
         <Sheet2

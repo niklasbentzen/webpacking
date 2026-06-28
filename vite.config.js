@@ -5,9 +5,9 @@ import path from "path";
 // https://vite.dev/config/
 export default defineConfig({
   server: {
-    host: true, 
-    port: 5173, 
-    allowedHosts: ["bikepi", "localhost"]
+    host: true,
+    port: 5173,
+    allowedHosts: ["bagpi", "localhost", "bagfra.cc"],
   },
   plugins: [react()],
   resolve: {

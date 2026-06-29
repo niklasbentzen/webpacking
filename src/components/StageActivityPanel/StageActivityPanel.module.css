@@ -11,19 +11,19 @@
   flex-direction: row;
   justify-content: space-between;
   gap: 1em;
-  padding: 0em 1em;
+  padding: 0.5rem 1rem;
 }
 
 .statItem {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 4px;
+  align-items: start;
+  gap: 2px;
   flex-grow: 1;
 }
 
 .statValue {
-  font-size: 1.2em;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1;
   text-align: center;
@@ -33,6 +33,7 @@
   font-size: 0.8em;
   font-weight: 400;
   text-align: center;
+  color: var(--text-faded);
 }
 
 @media (max-width: 640px) {
@@ -43,4 +44,27 @@
   .statItem p {
     font-size: 0.6em;
   }
+}
+
+.activityDetail {
+  display: flex;
+  flex-direction: column;
+  gap: 0rem;
+}
+
+.heightmap {
+  border: 1px solid var(--b);
+  background: color-mix(in srgb, var(--bg-light) 20%, transparent);
+
+  margin: 0 1rem;
+  border-radius: 12px;
+}
+
+.heightmapHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5rem 1rem;
+  color: var(--text-faded);
+  font-size: 0.85em;
 }

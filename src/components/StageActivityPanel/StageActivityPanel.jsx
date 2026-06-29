@@ -5,6 +5,7 @@ import Heightmap from "../Map/Heightmap";
 import { summarizeActivities } from "../../lib/stageFormatters";
 
 import s from "./StageActivityPanel.module.css";
+import { MountainsIcon } from "@phosphor-icons/react";
 
 export default function StageActivityPanel({
   stage,
@@ -14,9 +15,8 @@ export default function StageActivityPanel({
 }) {
   const activities = stage?.expand?.activities_via_stage ?? [];
 
-  const [selectedActivityInternal, setSelectedActivityInternal] = useState(
-    activities[0]?.id ?? null,
-  );
+  const [selectedActivityInternal, setSelectedActivityInternal] =
+    useState(null);
 
   const isControlled = selectedActivityProp !== undefined;
   const selectedActivity = isControlled
@@ -28,7 +28,7 @@ export default function StageActivityPanel({
 
   useEffect(() => {
     if (!isControlled) {
-      setSelectedActivityInternal(activities[0]?.id ?? null);
+      setSelectedActivityInternal(null);
     }
   }, [stage?.id]);
 
@@ -38,7 +38,7 @@ export default function StageActivityPanel({
     [activityData],
   );
 
-  if (!activities.length) return null;
+  if (!activities.length || !activityData) return null;
 
   return (
     <div className={s.panel}>
@@ -50,45 +50,47 @@ export default function StageActivityPanel({
         />
       )}
 
-      <Heightmap
-        stage={stage}
-        selectedActivity={selectedActivity}
-        setSelectedActivity={setSelectedActivity}
-        onHoverPoint={(pt) => mapRef?.current?.setHoverPoint(pt)}
-        onHoverEnd={() => mapRef?.current?.clearHover()}
-        height={120}
-        padding="10px"
-      />
+      <div className={s.activityDetail}>
+        <div className={s.stats}>
+          {activityData?.type != null && (
+            <div className={s.statItem}>
+              <p>Activity type</p>
+              <span className={s.statValue}>{activityData?.type}</span>
+            </div>
+          )}
+          {summary.distanceM != null && (
+            <div className={s.statItem}>
+              <p>Distance</p>
+              <span className={s.statValue}>
+                {(summary.distanceM / 1000).toFixed(1)} km
+              </span>
+            </div>
+          )}
+          {summary.elevationM != null && (
+            <div className={s.statItem}>
+              <p>Elevation gain</p>
+              <span className={s.statValue}>
+                {Math.round(summary.elevationM)} m
+              </span>
+            </div>
+          )}
+          {summary.duration && (
+            <div className={s.statItem}>
+              <p>Total duration</p>
+              <span className={s.statValue}>{summary.duration}</span>
+            </div>
+          )}
+        </div>
 
-      <div className={s.stats}>
-        {activityData?.type != null && (
-          <div className={s.statItem}>
-            <p>Activity type</p>
-            <span className={s.statValue}>{activityData?.type}</span>
-          </div>
-        )}
-        {summary.distanceM != null && (
-          <div className={s.statItem}>
-            <p>Distance</p>
-            <span className={s.statValue}>
-              {(summary.distanceM / 1000).toFixed(1)} km
-            </span>
-          </div>
-        )}
-        {summary.elevationM != null && (
-          <div className={s.statItem}>
-            <p>Elevation gain</p>
-            <span className={s.statValue}>
-              {Math.round(summary.elevationM)} m
-            </span>
-          </div>
-        )}
-        {summary.duration && (
-          <div className={s.statItem}>
-            <p>Total duration</p>
-            <span className={s.statValue}>{summary.duration}</span>
-          </div>
-        )}
+        <Heightmap
+          stage={stage}
+          selectedActivity={selectedActivity}
+          setSelectedActivity={setSelectedActivity}
+          onHoverPoint={(pt) => mapRef?.current?.setHoverPoint(pt)}
+          onHoverEnd={() => mapRef?.current?.clearHover()}
+          height={120}
+          padding="10px"
+        />
       </div>
     </div>
   );

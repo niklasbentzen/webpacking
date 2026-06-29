@@ -45,8 +45,6 @@ export default function Stage() {
         setTrip(stageRes.expand?.trip || null);
         setActivities(activitiesRes);
         setHaikus(haikusRes);
-
-        if (activitiesRes[0]) setSelectedActivity(activitiesRes[0].id);
       } catch (e) {
         console.error(e, e?.data);
         setError(e?.message || "Failed to load stage");

@@ -74,14 +74,8 @@ export default function Trip() {
   }, [slug]);
 
   useEffect(() => {
-    if (!clickedStage) {
-      setSelectedActivity(null);
-      return;
-    }
-    const stage = stages.find((s) => s.id === clickedStage);
-    const first = stage?.expand?.activities_via_stage?.[0];
-    setSelectedActivity(first?.id ?? null);
-  }, [clickedStage, stages]);
+    setSelectedActivity(null);
+  }, [clickedStage]);
 
   const selectedStage = stages.find((s) => s.id === clickedStage) ?? null;
   const tripTotals = useMemo(() => summarizeTripFromStages(stages), [stages]);

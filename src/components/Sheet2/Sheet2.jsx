@@ -4,6 +4,7 @@ import {
   ArrowUpRightIcon,
   BookIcon,
   CaretLineDownIcon,
+  MountainsIcon,
   XIcon,
 } from "@phosphor-icons/react";
 import { formatDateRange } from "@/lib/stageFormatters";
@@ -106,7 +107,29 @@ export default function Sheet2({
       ) : (
         <div className={`${s.header} ${s.stage}`}>
           <h2>{selectedStage?.name}</h2>
+          {selectedStage?.startDate && (
+            <span className="label">
+              {formatDateRange(selectedStage.startDate, selectedStage.endDate)}
+            </span>
+          )}
           <div className={s.navigation}>
+            <button
+              active={selectedActivity ? "" : undefined}
+              title={
+                selectedActivity
+                  ? "Hide data and elevation profile"
+                  : "Show data and elevation profile"
+              }
+              onClick={() => {
+                const activities =
+                  selectedStage?.expand?.activities_via_stage ?? [];
+                setSelectedActivity(
+                  selectedActivity ? null : activities[0]?.id ?? null,
+                );
+              }}
+            >
+              <MountainsIcon size={16} />
+            </button>
             {sheetState === "full" ? (
               <button onClick={() => snapTo("half")}>
                 <CaretLineDownIcon size={16} />
@@ -155,14 +178,14 @@ export default function Sheet2({
             selectedActivity={selectedActivity}
             setSelectedActivity={setSelectedActivity}
           />
-
-          {sheetState === "full" && <Story stage={selectedStage} />}
+          <Story stage={selectedStage} />
         </div>
       )}
 
       {selectedStage && (
         <button
           className={s.expandStoryButton}
+          full={sheetState === "full" ? "" : undefined}
           onClick={() => snapTo(sheetState === "full" ? "half" : "full")}
         >
           {sheetState === "full" ? "Collapse story" : "Read the story"}

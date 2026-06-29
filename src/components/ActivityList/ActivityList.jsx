@@ -39,7 +39,11 @@ export default function ActivityList({
           key={activity.id}
           ref={selectedActivity == activity.id ? selectedRef : null}
           className={`${s.activity} ${selectedActivity == activity.id ? s.selected : ""}`}
-          onClick={() => setSelectedActivity(activity.id)}
+          onClick={() =>
+            setSelectedActivity(
+              selectedActivity === activity.id ? null : activity.id,
+            )
+          }
         >
           <div className={s.activityHeader}>
             {typeIcons[activity.type]}

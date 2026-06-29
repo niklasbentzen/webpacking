@@ -63,7 +63,7 @@
 
 .navigation {
   position: absolute;
-  right: 0;
+  right: 0.5rem;
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -86,12 +86,17 @@
   background: color-mix(in srgb, var(--bg) 50%, transparent);
 }
 
+.navigation button[active] {
+  color: var(--p);
+  background: color-mix(in srgb, var(--bg) 50%, transparent);
+}
+
 .header {
   position: static;
   display: flex;
 
   padding: 0.4rem 1rem;
-  border-bottom: 0.5px solid var(--b);
+  gap: 0rem;
 }
 .header.trip {
   flex-direction: column;
@@ -99,12 +104,12 @@
 }
 
 .header.stage {
-  flex-direction: row;
-  align-items: center;
+  flex-direction: column;
+  align-items: start;
 }
 
 .header h2 {
-  font-size: 1rem;
+  font-size: 1.5rem;
   transition: 0.2s ease;
 }
 
@@ -157,21 +162,28 @@
 }
 
 .expandStoryButton {
+  position: absolute;
+  bottom: 0;
   width: 100%;
   text-align: center !important;
   justify-content: center;
-  background: color-mix(in srgb, var(--bg) 50%, transparent);
-  border: none;
+  background: var(--bg-dark);
+  border-top: 1px solid var(--bg);
   color: var(--p);
   opacity: 0.8;
   font-size: 1rem;
   cursor: pointer;
   padding: 0.5rem 0;
   box-shadow: none !important;
-  border-radius: 12px 12px 0 0;
+  border-radius: 0;
+  transition: 0.2s ease;
 }
 .expandStoryButton:hover {
   color: var(--p);
   opacity: 1;
   background: color-mix(in srgb, var(--bg) 70%, transparent);
+}
+
+.expandStoryButton[full] {
+  background: color-mix(in srgb, var(--bg) 50%, transparent);
 }

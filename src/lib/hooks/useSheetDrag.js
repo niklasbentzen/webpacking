@@ -18,14 +18,15 @@ export function useSheetDrag(initialState = "peek") {
     stateRef.current = sheetState;
   }, [sheetState]);
 
-  // Prevent pull-to-refresh while touching the sheet
+  // Prevent pull-to-refresh once an actual drag is underway
   useEffect(() => {
     const el = sheetRef.current;
     if (!el) return;
     const prevent = (e) => {
+      const d = dragRef.current;
       const inScrollableBody =
         bodyRef.current?.contains(e.target) && stateRef.current === "full";
-      if (!inScrollableBody) e.preventDefault();
+      if (!inScrollableBody && d && !d.pending) e.preventDefault();
     };
     el.addEventListener("touchmove", prevent, { passive: false });
     return () => el.removeEventListener("touchmove", prevent);
@@ -44,14 +45,14 @@ export function useSheetDrag(initialState = "peek") {
     const el = sheetRef.current;
     if (!el) return;
     const startH = el.getBoundingClientRect().height;
-
-    if (stateRef.current === "full") {
-      dragRef.current = { startY: e.clientY, startH, pending: true, pointerId: e.pointerId };
-    } else {
-      e.currentTarget.setPointerCapture(e.pointerId);
-      el.style.transition = "none";
-      dragRef.current = { startY: e.clientY, startH };
-    }
+    // Defer committing to a drag until the pointer actually moves, so a
+    // plain tap on something like the heightmap toggle still clicks normally.
+    dragRef.current = {
+      startY: e.clientY,
+      startH,
+      pending: true,
+      pointerId: e.pointerId,
+    };
   }
 
   function onPointerMove(e) {
@@ -63,8 +64,10 @@ export function useSheetDrag(initialState = "peek") {
       const deltaY = e.clientY - d.startY;
       if (Math.abs(deltaY) < 5) return;
 
-      if (deltaY > 0 && (bodyRef.current?.scrollTop ?? 0) === 0) {
-        // Pulling down at scroll top → commit drag
+      const atScrollTop = (bodyRef.current?.scrollTop ?? 0) === 0;
+      const canDrag = stateRef.current !== "full" || (deltaY > 0 && atScrollTop);
+
+      if (canDrag) {
         e.currentTarget.setPointerCapture(d.pointerId);
         sheetRef.current.style.transition = "none";
         dragRef.current = { startY: d.startY, startH: d.startH };

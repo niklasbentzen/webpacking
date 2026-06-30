@@ -45,6 +45,11 @@ export default function OverTypeEditor({
       toolbar,
       theme: "auto",
 
+      // iOS Safari auto-zooms into any focused field with font-size < 16px.
+      // OverType's own "mobile" font-bump option never actually reaches its
+      // injected stylesheet, so set 16px directly to stop the zoom.
+      fontSize: "16px",
+
       // ✅ Enables drag/drop + paste insertion
       fileUpload: {
         enabled: true,
@@ -96,6 +101,14 @@ export default function OverTypeEditor({
 
       ...rest,
     });
+
+    // OverType hardcodes these off on its internal textarea; restore them
+    // so iOS/mobile keyboards auto-capitalize and autocorrect as expected.
+    const textarea = hostRef.current?.querySelector("textarea");
+    if (textarea) {
+      textarea.setAttribute("autocapitalize", "sentences");
+      textarea.setAttribute("autocorrect", "on");
+    }
 
     return () => instance?.destroy?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps

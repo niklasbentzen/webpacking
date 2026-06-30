@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "deploy": "git pull && npm install && npm run build",
     "pb": "sh -c 'if [ -f pocketbase/.env ]; then set -a; . pocketbase/.env; set +a; fi; exec pocketbase/pocketbase serve --dir pocketbase/pb_data --migrationsDir pocketbase/pb_migrations --automigrate --http 0.0.0.0:8090'",
     "web": "serve -s dist -l 8080"
   },

@@ -13,7 +13,7 @@ import Story from "../Story/Story";
 import { useSheetDrag } from "@/lib/hooks/useSheetDrag";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import StageActivityPanel from "../StageActivityPanel/StageActivityPanel";
-import { useEffect } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 export default function Sheet2({
   trip,
@@ -28,6 +28,15 @@ export default function Sheet2({
   mapRef,
 }) {
   const isMobile = useMediaQuery("(max-width: 960px)");
+  const [sortOrder, setSortOrder] = useState("newest");
+  const sortedStages = useMemo(
+    () =>
+      [...stages].sort((a, b) => {
+        const diff = new Date(a.startDate) - new Date(b.startDate);
+        return sortOrder === "newest" ? -diff : diff;
+      }),
+    [stages, sortOrder],
+  );
   const selectedStage = stages.find((s) => s.id === clickedStage) ?? null;
   const {
     sheetState,
@@ -154,16 +163,27 @@ export default function Sheet2({
           {trip?.description && (
             <p className={s.description}>{trip.description}</p>
           )}
-          <h2 className={s.stageListHeading}>
-            Stages<sup className={s.sup}>{stages.length}</sup>
-          </h2>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h2 className={s.stageListHeading}>
+              Stages<sup className={s.sup}>{stages.length}</sup>
+            </h2>
+            <button
+              className={s.sortButton}
+              onClick={() =>
+                setSortOrder((o) => (o === "newest" ? "oldest" : "newest"))
+              }
+            >
+              {sortOrder === "newest" ? "Newest first" : "Oldest first"}
+            </button>
+          </div>
           <StageList
-            stages={stages}
+            stages={sortedStages}
             clickedStage={clickedStage}
             setClickedStage={setClickedStage}
             hoveredStage={hoveredStage}
             setHoveredStage={setHoveredStage}
             scroll={false}
+            sortOrder={sortOrder}
           />
         </div>
       ) : (

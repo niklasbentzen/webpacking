@@ -1,6 +1,7 @@
 import {
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   useCallback,
@@ -53,6 +54,15 @@ export default function Sheet({
   mapRef,
 }) {
   const isDesktop = useMediaQuery("(min-width: 961px)");
+  const [sortOrder, setSortOrder] = useState("newest");
+  const sortedStages = useMemo(
+    () =>
+      [...stages].sort((a, b) => {
+        const diff = new Date(a.startDate) - new Date(b.startDate);
+        return sortOrder === "newest" ? -diff : diff;
+      }),
+    [stages, sortOrder],
+  );
   const [sheetState, setSheetState] = useState(() =>
     window.matchMedia("(min-width: 961px)").matches ? "closed" : "trip-peek",
   );
@@ -367,15 +377,26 @@ export default function Sheet({
             {trip?.description && (
               <p className={s.tripDescription}>{trip.description}</p>
             )}
-            <h2 className={s.stagesHeading}>
-              Stages<sup className={s.sup}>{stages.length}</sup>
-            </h2>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h2 className={s.stagesHeading}>
+                Stages<sup className={s.sup}>{stages.length}</sup>
+              </h2>
+              <button
+                className={s.sortButton}
+                onClick={() =>
+                  setSortOrder((o) => (o === "newest" ? "oldest" : "newest"))
+                }
+              >
+                {sortOrder === "newest" ? "Newest first" : "Oldest first"}
+              </button>
+            </div>
             <StageList
-              stages={stages}
+              stages={sortedStages}
               clickedStage={clickedStage}
               setClickedStage={setClickedStage}
               hoveredStage={hoveredStage}
               setHoveredStage={setHoveredStage}
+              sortOrder={sortOrder}
             />
           </>
         )}

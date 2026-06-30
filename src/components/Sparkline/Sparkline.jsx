@@ -21,7 +21,7 @@ function RouteLayers({ items }) {
     let cancelled = false;
 
     const maybeFit = () => {
-      if (loadedRef.current >= total) {
+      if (loadedRef.current >= total && map._mapPane) {
         const bounds = group.getBounds();
         if (bounds.isValid()) map.fitBounds(bounds, { padding: [0, 0] });
       }

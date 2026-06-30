@@ -88,7 +88,7 @@ export default function StageActivityPanel({
           setSelectedActivity={setSelectedActivity}
           onHoverPoint={(pt) => mapRef?.current?.setHoverPoint(pt)}
           onHoverEnd={() => mapRef?.current?.clearHover()}
-          height={120}
+          height={100}
           padding="10px"
         />
       </div>

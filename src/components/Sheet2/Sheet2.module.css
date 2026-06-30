@@ -161,6 +161,18 @@
   color: var(--text-faded);
 }
 
+.sortButton {
+  font-size: 0.75em;
+  padding: 0.3em 0.6em;
+  background: none;
+  color: var(--text-faded);
+  box-shadow: none !important;
+}
+.sortButton:hover {
+  color: var(--p);
+  background: none;
+}
+
 .expandStoryButton {
   position: absolute;
   bottom: 0;

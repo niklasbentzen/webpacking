@@ -27,6 +27,7 @@ import {
   TrashIcon,
   CopyIcon,
   CheckIcon,
+  FloppyDiskIcon,
 } from "@phosphor-icons/react";
 import AdminEditActivity from "../../components/AdminEditActivity/AdminEditActivity";
 import OverTypeEditor from "../../components/OverTypeEditor/OverTypeEditor";
@@ -288,14 +289,14 @@ export default function AdminStage() {
             onClick={handleCreateSiblingStage}
             disabled={!stage || isSaving}
           >
-            <PlusIcon size={14} weight="bold" /> New stage
+            <PlusIcon size={14} weight="bold" />
           </button>
           <button
             type="button"
             onClick={handleSave}
             disabled={isSaving || !stage || isUnchanged}
           >
-            {isSaving ? "Saving…" : "Save"}
+            {isSaving ? "Saving…" : <FloppyDiskIcon size={14} weight="bold" />}
           </button>
         </div>
       </div>

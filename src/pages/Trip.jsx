@@ -77,8 +77,18 @@ export default function Trip() {
     setSelectedActivity(null);
   }, [clickedStage]);
 
+  const [sortOrder, setSortOrder] = useState("newest");
+
   const selectedStage = stages.find((s) => s.id === clickedStage) ?? null;
   const tripTotals = useMemo(() => summarizeTripFromStages(stages), [stages]);
+  const sortedStages = useMemo(
+    () =>
+      [...stages].sort((a, b) => {
+        const diff = new Date(a.startDate) - new Date(b.startDate);
+        return sortOrder === "newest" ? -diff : diff;
+      }),
+    [stages, sortOrder],
+  );
 
   return (
     <main className={s.trip}>
@@ -237,17 +247,27 @@ export default function Trip() {
         <Divider />
 
         <section style={{ flex: "1 1 0%" }}>
-          <h3>
-            Stages
-            <sup className={s.sup}>{stages.length}</sup>
-          </h3>
+          <div className={s.header}>
+            <h3>
+              Stages
+              <sup className={s.sup}>{stages.length}</sup>
+            </h3>
+            <button
+              onClick={() =>
+                setSortOrder((o) => (o === "newest" ? "oldest" : "newest"))
+              }
+            >
+              {sortOrder === "newest" ? "Newest first" : "Oldest first"}
+            </button>
+          </div>
           <StageList
-            stages={stages}
+            stages={sortedStages}
             clickedStage={clickedStage}
             setClickedStage={setClickedStage}
             hoveredStage={hoveredStage}
             setHoveredStage={setHoveredStage}
             scroll={true}
+            sortOrder={sortOrder}
           />
         </section>
       </div>

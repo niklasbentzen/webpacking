@@ -22,6 +22,7 @@ export default function StageList({
   hoveredStage,
   setHoveredStage,
   scroll,
+  sortOrder,
 }) {
   const clickedElRef = useRef(null);
   const listRef = useRef(null);
@@ -53,9 +54,7 @@ export default function StageList({
 
   return (
     <ul className={`${s.stageList} ${scroll ? s.scroll : ""}`} ref={listRef}>
-      {[...stages]
-        .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
-        .map((stage) => {
+      {stages.map((stage) => {
           const stageActs = stage.expand?.activities_via_stage || [];
           const summary = summarizeActivities(stageActs);
           const dateLabel = formatDateRange(stage.startDate, stage.endDate);
@@ -72,11 +71,11 @@ export default function StageList({
                 onMouseLeave={() => setHoveredStage?.(null)}
               >
                 <div className={s.sparkline}>
-                  <Sparkline activities={stageActs} />
+                  <Sparkline key={`${stage.id}-${sortOrder}`} activities={stageActs} />
                 </div>
 
                 <div className={s.col}>
-                  {dateLabel && <label>{dateLabel}</label>}
+                  {dateLabel && <span className="label">{dateLabel}</span>}
 
                   <h3 className={s.stageTitle}>{stage.name}</h3>
 

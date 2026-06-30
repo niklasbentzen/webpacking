@@ -110,6 +110,14 @@ export default function OverTypeEditor({
       textarea.setAttribute("autocorrect", "on");
     }
 
+    // The fontSize init option sets a CSS var OverType's own stylesheet
+    // never ends up using reliably, so iOS still sees <16px and zooms on
+    // focus. Force it inline with !important on the actual elements.
+    const preview = hostRef.current?.querySelector(".overtype-preview");
+    [textarea, preview].forEach((el) =>
+      el?.style.setProperty("font-size", "16px", "important")
+    );
+
     return () => instance?.destroy?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

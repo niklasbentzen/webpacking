@@ -20,10 +20,21 @@ export default function AdminLayout({ requireAuth = true }) {
 
   useEffect(() => {
     const favicon = document.querySelector("link[rel='icon']");
-    const previousHref = favicon?.getAttribute("href");
+    const touchIcon = document.querySelector("link[rel='apple-touch-icon']");
+    const appTitle = document.querySelector("meta[name='apple-mobile-web-app-title']");
+
+    const previousFaviconHref = favicon?.getAttribute("href");
+    const previousTouchIconHref = touchIcon?.getAttribute("href");
+    const previousAppTitle = appTitle?.getAttribute("content");
+
     favicon?.setAttribute("href", "/bagfra_admin.svg");
+    touchIcon?.setAttribute("href", "/apple-touch-icon-admin.png");
+    appTitle?.setAttribute("content", "Bagfra Admin");
+
     return () => {
-      if (previousHref) favicon?.setAttribute("href", previousHref);
+      if (previousFaviconHref) favicon?.setAttribute("href", previousFaviconHref);
+      if (previousTouchIconHref) touchIcon?.setAttribute("href", previousTouchIconHref);
+      if (previousAppTitle) appTitle?.setAttribute("content", previousAppTitle);
     };
   }, []);
 

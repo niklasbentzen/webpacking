@@ -67,6 +67,7 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  gap: 0.5rem;
 }
 
 .navigation button {
@@ -74,7 +75,8 @@
 
   border: none;
   color: var(--text);
-  font-size: 1rem;
+  font-size: 0.8rem;
+  font-weight: 400;
   cursor: pointer;
   box-shadow: none !important;
   border: none;

@@ -53,6 +53,13 @@ export default function Sheet2({
     if (clickedStage) snapTo("half");
   }, [clickedStage]);
 
+  useEffect(() => {
+    const activities = selectedStage?.expand?.activities_via_stage ?? [];
+    setSelectedActivity(
+      selectedStage?.body ? null : (activities[0]?.id ?? null),
+    );
+  }, [selectedStage, setSelectedActivity]);
+
   if (!isMobile && !clickedStage) {
     return <></>;
   }
@@ -122,32 +129,38 @@ export default function Sheet2({
             </span>
           )}
           <div className={s.navigation}>
-            <button
-              active={selectedActivity ? "" : undefined}
-              title={
-                selectedActivity
-                  ? "Hide data and elevation profile"
-                  : "Show data and elevation profile"
-              }
-              onClick={() => {
-                const activities =
-                  selectedStage?.expand?.activities_via_stage ?? [];
-                setSelectedActivity(
-                  selectedActivity ? null : activities[0]?.id ?? null,
-                );
-              }}
-            >
-              <MountainsIcon size={16} />
-            </button>
-            {sheetState === "full" ? (
-              <button onClick={() => snapTo("half")}>
-                <CaretLineDownIcon size={16} />
-              </button>
-            ) : (
-              <button onClick={() => snapTo("full")}>
-                <BookIcon size={16} />
+            {selectedStage?.expand?.activities_via_stage?.length > 0 && (
+              <button
+                active={selectedActivity ? "" : undefined}
+                title={
+                  selectedActivity
+                    ? "Hide data and elevation profile"
+                    : "Show data and elevation profile"
+                }
+                onClick={() => {
+                  const activities =
+                    selectedStage?.expand?.activities_via_stage ?? [];
+                  setSelectedActivity(
+                    selectedActivity ? null : (activities[0]?.id ?? null),
+                  );
+                }}
+              >
+                <MountainsIcon size={16} />
+                {!isMobile && (selectedActivity ? "Hide data" : "Show data")}
               </button>
             )}
+            {selectedStage?.body &&
+              (sheetState === "full" ? (
+                <button onClick={() => snapTo("half")}>
+                  <CaretLineDownIcon size={16} />
+                  {!isMobile && "Hide story"}
+                </button>
+              ) : (
+                <button onClick={() => snapTo("full")}>
+                  <BookIcon size={16} />
+                  {!isMobile && "Read story"}
+                </button>
+              ))}
             <button onClick={() => setClickedStage(null)}>
               <XIcon size={16} />
             </button>
@@ -163,7 +176,13 @@ export default function Sheet2({
           {trip?.description && (
             <p className={s.description}>{trip.description}</p>
           )}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <h2 className={s.stageListHeading}>
               Stages<sup className={s.sup}>{stages.length}</sup>
             </h2>

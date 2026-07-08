@@ -73,10 +73,6 @@ export default function Trip() {
     })();
   }, [slug]);
 
-  useEffect(() => {
-    setSelectedActivity(null);
-  }, [clickedStage]);
-
   const [sortOrder, setSortOrder] = useState("newest");
 
   const selectedStage = stages.find((s) => s.id === clickedStage) ?? null;
@@ -107,7 +103,7 @@ export default function Trip() {
             setHoveredStage={setHoveredStage}
             selectedActivity={selectedActivity}
             setSelectedActivity={setSelectedActivity}
-            paddingBottomRight={[20, 300]}
+            paddingBottomRight={[20, 320]}
           />
         </Map>
 

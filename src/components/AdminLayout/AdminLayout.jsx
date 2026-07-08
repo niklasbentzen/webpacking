@@ -18,6 +18,15 @@ export default function AdminLayout({ requireAuth = true }) {
     }
   }, [isLoggedIn, isAdmin, requireAuth, navigate, location.pathname]);
 
+  useEffect(() => {
+    const favicon = document.querySelector("link[rel='icon']");
+    const previousHref = favicon?.getAttribute("href");
+    favicon?.setAttribute("href", "/bagfra_admin.svg");
+    return () => {
+      if (previousHref) favicon?.setAttribute("href", previousHref);
+    };
+  }, []);
+
   function handleLogout() {
     logout();
     navigate("/login", { replace: true });

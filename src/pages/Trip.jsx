@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
 import StageList from "../components/StageList/StageList";
 import Divider from "../components/Divider/Divider";
 
@@ -237,7 +238,11 @@ export default function Trip() {
               </div>
             )}
           </div>
-          {trip?.description && <p>{trip.description}</p>}
+          {trip?.description && (
+            <div className={s.description}>
+              <ReactMarkdown>{trip.description}</ReactMarkdown>
+            </div>
+          )}
         </section>
 
         <Divider />

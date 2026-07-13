@@ -4,6 +4,8 @@ import s from "./Admin.module.css";
 import ReactMarkdown from "react-markdown";
 import AdminModal from "../../components/AdminModal/AdminModal";
 import AdminUploadActivity from "../../components/AdminUploadActivity/AdminUploadActivity";
+import AdminAddHaiku from "../../components/AdminAddHaiku/AdminAddHaiku";
+import AdminEditHaiku from "../../components/AdminEditHaiku/AdminEditHaiku";
 
 import {
   fetchStageByIdWithActivities,
@@ -11,7 +13,8 @@ import {
   deleteActivity,
   createStage,
 } from "../../lib/stages";
-import { formatDuration } from "../../lib/stageFormatters";
+import { fetchHaikuFromStageId, deleteHaiku } from "../../lib/haiku";
+import { formatDuration, formatDate } from "../../lib/stageFormatters";
 import { uploadStageImage, deleteStageImage } from "../../lib/stageImages";
 
 import {
@@ -61,9 +64,12 @@ export default function AdminStage() {
   const [isAddActivityOpen, setIsAddActivityOpen] = useState(false);
   const [activityToEdit, setActivityToEdit] = useState(null);
   const [isEditStoryOpen, setIsEditStoryOpen] = useState(false);
+  const [isAddHaikuOpen, setIsAddHaikuOpen] = useState(false);
+  const [haikuToEdit, setHaikuToEdit] = useState(null);
 
   const [stage, setStage] = useState(null);
   const [activities, setActivities] = useState([]);
+  const [haikus, setHaikus] = useState([]);
 
   const [name, setName] = useState("");
   const [isPublic, setIsPublic] = useState(false);
@@ -96,6 +102,10 @@ export default function AdminStage() {
         setEndDate(toLocalInputValue(stageRes.endDate));
         setIsPublic(stageRes.published ?? false);
 
+        const haikuRes = await fetchHaikuFromStageId(stageId);
+        if (!isMounted) return;
+        setHaikus(haikuRes);
+
         if (stageRes.trip) {
           const [stats, aStats] = await Promise.all([
             fetchStatisticsForTrip(stageRes.trip),
@@ -118,7 +128,12 @@ export default function AdminStage() {
     };
   }, [stageId]);
 
-  const anyModalOpen = isAddActivityOpen || !!activityToEdit || isEditStoryOpen;
+  const anyModalOpen =
+    isAddActivityOpen ||
+    !!activityToEdit ||
+    isEditStoryOpen ||
+    isAddHaikuOpen ||
+    !!haikuToEdit;
 
   useEffect(() => {
     if (!anyModalOpen) return;
@@ -178,6 +193,24 @@ export default function AdminStage() {
     } catch (err) {
       console.error(err);
       setSaveError("Could not delete activity.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleDeleteHaiku(haikuId) {
+    const ok = window.confirm("Delete this haiku? This cannot be undone.");
+    if (!ok) return;
+    setIsSaving(true);
+    setSaveError("");
+    setSavedMsg("");
+    try {
+      await deleteHaiku(haikuId);
+      setHaikus((prev) => prev.filter((h) => h.id !== haikuId));
+      setSavedMsg("Haiku deleted.");
+    } catch (err) {
+      console.error(err);
+      setSaveError("Could not delete haiku.");
     } finally {
       setIsSaving(false);
     }
@@ -564,6 +597,51 @@ export default function AdminStage() {
         </div>
       </div>
 
+      {/* ── Haikus ── */}
+      <div className={s.section}>
+        <div className={s.sectionHeader}>
+          <h2>
+            Haikus<sup>{haikus?.length}</sup>
+          </h2>
+          <button
+            type="button"
+            className={s.secondary}
+            onClick={() => setIsAddHaikuOpen(true)}
+            disabled={!stage || isSaving}
+          >
+            <PlusIcon size={14} weight="bold" /> Add haiku
+          </button>
+        </div>
+
+        {haikus.map((haiku) => (
+          <div key={haiku.id} className={s.activityCard}>
+            <div className={s.acTop}>
+              <span className={s.acStamp}>{formatDate(haiku.date)}</span>
+              <button
+                type="button"
+                className={s.iconButton}
+                title="Edit"
+                onClick={() => setHaikuToEdit(haiku)}
+              >
+                <PencilSimpleIcon size={16} />
+              </button>
+              <button
+                type="button"
+                className={s.iconButton}
+                title="Delete"
+                onClick={() => handleDeleteHaiku(haiku.id)}
+              >
+                <TrashIcon size={16} />
+              </button>
+            </div>
+
+            <Divider />
+
+            <p style={{ whiteSpace: "pre-line" }}>{haiku.text}</p>
+          </div>
+        ))}
+      </div>
+
       {/* ── Images ── */}
       <div className={s.section}>
         <span className={s.eyebrow}>Images</span>
@@ -660,6 +738,24 @@ export default function AdminStage() {
             return url;
           }}
         />
+      </AdminModal>
+
+      <AdminModal
+        open={isAddHaikuOpen}
+        title="Add haiku"
+        onClose={() => setIsAddHaikuOpen(false)}
+      >
+        {stage && (
+          <AdminAddHaiku stageId={stage.id} setHaikus={setHaikus} />
+        )}
+      </AdminModal>
+
+      <AdminModal
+        open={!!haikuToEdit}
+        title="Edit haiku"
+        onClose={() => setHaikuToEdit(null)}
+      >
+        <AdminEditHaiku haiku={haikuToEdit} setHaikus={setHaikus} />
       </AdminModal>
     </div>
   );

@@ -81,12 +81,12 @@ function haversineM(lat1, lon1, lat2, lon2) {
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-function safeNum(n) {
+export function safeNum(n) {
   const x = Number(n);
   return Number.isFinite(x) ? x : 0;
 }
 
-function buildProfileFromPoints(points, maxPoints = 2000) {
+export function buildProfileFromPoints(points, maxPoints = 2000) {
   const n = points?.length ?? 0;
   if (!n) return [];
 
@@ -138,7 +138,7 @@ function buildProfileFromPoints(points, maxPoints = 2000) {
   return out;
 }
 
-function computeStatsFromPoints(points) {
+export function computeStatsFromPoints(points) {
   let distM = 0;
   let gain = 0;
   let loss = 0;
@@ -189,7 +189,7 @@ function computeStatsFromPoints(points) {
 
 // ─── FIT helpers ──────────────────────────────────────────────────────────────
 
-function parseFitArrayBuffer(arrayBuffer) {
+export function parseFitArrayBuffer(arrayBuffer) {
   return new Promise((resolve, reject) => {
     const parser = new FitFileParser({
       force: true,
@@ -210,21 +210,21 @@ function semicirclesToDegrees(sc) {
   return (x * 180) / 2147483648;
 }
 
-function normalizeLat(value) {
+export function normalizeLat(value) {
   const x = Number(value);
   if (!Number.isFinite(x)) return NaN;
   if (Math.abs(x) <= 90) return x;
   return semicirclesToDegrees(x);
 }
 
-function normalizeLng(value) {
+export function normalizeLng(value) {
   const x = Number(value);
   if (!Number.isFinite(x)) return NaN;
   if (Math.abs(x) <= 180) return x;
   return semicirclesToDegrees(x);
 }
 
-function fitDataToTrackPoints(fitData) {
+export function fitDataToTrackPoints(fitData) {
   const records = fitData?.records || fitData?.record || [];
   const out = [];
 

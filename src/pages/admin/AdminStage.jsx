@@ -4,6 +4,7 @@ import s from "./Admin.module.css";
 import ReactMarkdown from "react-markdown";
 import AdminModal from "../../components/AdminModal/AdminModal";
 import AdminUploadActivity from "../../components/AdminUploadActivity/AdminUploadActivity";
+import AdminUploadActivityV2 from "../../components/AdminUploadActivityV2/AdminUploadActivityV2";
 import AdminAddHaiku from "../../components/AdminAddHaiku/AdminAddHaiku";
 import AdminEditHaiku from "../../components/AdminEditHaiku/AdminEditHaiku";
 
@@ -62,6 +63,7 @@ export default function AdminStage() {
   const navigate = useNavigate();
 
   const [isAddActivityOpen, setIsAddActivityOpen] = useState(false);
+  const [isAddActivityV2Open, setIsAddActivityV2Open] = useState(false);
   const [activityToEdit, setActivityToEdit] = useState(null);
   const [isEditStoryOpen, setIsEditStoryOpen] = useState(false);
   const [isAddHaikuOpen, setIsAddHaikuOpen] = useState(false);
@@ -130,6 +132,7 @@ export default function AdminStage() {
 
   const anyModalOpen =
     isAddActivityOpen ||
+    isAddActivityV2Open ||
     !!activityToEdit ||
     isEditStoryOpen ||
     isAddHaikuOpen ||
@@ -453,6 +456,14 @@ export default function AdminStage() {
           >
             <PlusIcon size={14} weight="bold" /> Add activity
           </button>
+          <button
+            type="button"
+            className={s.secondary}
+            onClick={() => setIsAddActivityV2Open(true)}
+            disabled={!stage || isSaving}
+          >
+            <PlusIcon size={14} weight="bold" /> Add activity (v2)
+          </button>
         </div>
 
         {activities.map((activity) => {
@@ -705,6 +716,20 @@ export default function AdminStage() {
       >
         {stage && (
           <AdminUploadActivity
+            stageId={stage.id}
+            activities={activities}
+            setActivities={setActivities}
+          />
+        )}
+      </AdminModal>
+
+      <AdminModal
+        open={isAddActivityV2Open}
+        title="Add activity (v2)"
+        onClose={() => setIsAddActivityV2Open(false)}
+      >
+        {stage && (
+          <AdminUploadActivityV2
             stageId={stage.id}
             activities={activities}
             setActivities={setActivities}

@@ -45,6 +45,85 @@ async function withRetry(fn, { retries = 2, delayMs = 800 } = {}) {
   throw lastErr;
 }
 
+// ─── Size capping ─────────────────────────────────────────────────────────────
+
+const MAX_GEOJSON_BYTES = 1_000_000;
+
+// GeoJSON content here is ASCII-only (numbers, brackets, commas), so JS
+// string length is an accurate stand-in for UTF-8 byte length.
+function jsonByteLength(obj) {
+  return JSON.stringify(obj).length;
+}
+
+// Keeps every Nth coordinate, increasing the step until it fits — a blunt
+// last resort for when simplify() alone can't get under the target size.
+function decimateGeoJson(geoJson, maxBytes) {
+  const feature = geoJson?.features?.[0];
+  const coords = feature?.geometry?.coordinates;
+  if (!Array.isArray(coords) || coords.length < 3) return geoJson;
+
+  let step = 2;
+  let result = geoJson;
+  while (jsonByteLength(result) > maxBytes && step < coords.length) {
+    const decimated = coords.filter((_, i) => i % step === 0 || i === coords.length - 1);
+    result = {
+      ...geoJson,
+      features: [{ ...feature, geometry: { ...feature.geometry, coordinates: decimated } }],
+    };
+    step++;
+  }
+  return result;
+}
+
+// Finds a simplify() tolerance that gets the geoJson close to (just under)
+// maxBytes, rather than stopping at the first tolerance that happens to fit
+// — the latter can wildly overshoot and throw away far more detail than
+// needed. Grows an upper bound exponentially, then binary-searches between
+// the last-too-big and first-fits tolerances to converge near the budget.
+function capGeoJsonSize(geoJson, maxBytes = MAX_GEOJSON_BYTES, startTolerance = 0.00001) {
+  if (jsonByteLength(geoJson) <= maxBytes) return geoJson;
+
+  let low = 0;
+  let high = startTolerance;
+  let fits = null;
+
+  for (let i = 0; i < 30; i++) {
+    let candidate;
+    try {
+      candidate = simplify(geoJson, { tolerance: high, highQuality: false, mutate: false });
+    } catch {
+      break;
+    }
+    if (jsonByteLength(candidate) <= maxBytes) {
+      fits = candidate;
+      break;
+    }
+    low = high;
+    high *= 2;
+  }
+
+  if (!fits) return decimateGeoJson(geoJson, maxBytes);
+
+  let best = fits;
+  for (let i = 0; i < 14; i++) {
+    const mid = (low + high) / 2;
+    let candidate;
+    try {
+      candidate = simplify(geoJson, { tolerance: mid, highQuality: false, mutate: false });
+    } catch {
+      break;
+    }
+    if (jsonByteLength(candidate) <= maxBytes) {
+      best = candidate;
+      high = mid;
+    } else {
+      low = mid;
+    }
+  }
+
+  return best;
+}
+
 // ─── Point filtering ──────────────────────────────────────────────────────────
 
 function isFiniteCoord(lat, lng) {
@@ -134,7 +213,10 @@ export async function processGpxFileV2(file) {
     };
   }
 
-  const geoJsonSmall = simplify(geoJson, { tolerance: 0.00005, highQuality: false, mutate: false });
+  geoJson = capGeoJsonSize(geoJson);
+  const geoJsonSmall = capGeoJsonSize(
+    simplify(geoJson, { tolerance: 0.00005, highQuality: false, mutate: false }),
+  );
   const profile = buildProfileFromPoints(points);
 
   return { geoJson, geoJsonSmall, profile, distanceM, elevationGainM, elevationLossM, elevationMaxM, elevationMinM, elevationAvgM, startTime, endTime };
@@ -168,7 +250,7 @@ export async function processFitFileV2(file) {
   const startTime = firstValidTime(points);
   const endTime = lastValidTime(points);
 
-  const geoJson = {
+  let geoJson = {
     type: "FeatureCollection",
     features: [
       {
@@ -178,7 +260,10 @@ export async function processFitFileV2(file) {
       },
     ],
   };
-  const geoJsonSmall = simplify(geoJson, { tolerance: 0.00005, highQuality: false, mutate: false });
+  geoJson = capGeoJsonSize(geoJson);
+  const geoJsonSmall = capGeoJsonSize(
+    simplify(geoJson, { tolerance: 0.00005, highQuality: false, mutate: false }),
+  );
   const profile = buildProfileFromPoints(points);
 
   return { geoJson, geoJsonSmall, profile, distanceM, elevationGainM, elevationLossM, elevationMaxM, elevationMinM, elevationAvgM, startTime, endTime };

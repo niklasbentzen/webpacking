@@ -23,6 +23,7 @@ export default function AdminUploadActivityV2({
   const [type, setType] = useState(defaultType);
   const [files, setFiles] = useState([]);
   const [uploadQueue, setUploadQueue] = useState([]);
+  const [uploadOriginalFile, setUploadOriginalFile] = useState(true);
 
   const isUploading = uploadQueue.some((item) => item.status === "uploading");
   const canSubmit = !!stageId && files.length > 0 && !isUploading;
@@ -102,7 +103,9 @@ export default function AdminUploadActivityV2({
         const fdCreate = new FormData();
         fdCreate.append("stage", stageId);
         fdCreate.append("type", type);
-        fdCreate.append(fileIsGpx ? "gpxFile" : "fitFile", file);
+        if (uploadOriginalFile) {
+          fdCreate.append(fileIsGpx ? "gpxFile" : "fitFile", file);
+        }
         fdCreate.append("distanceM", String(distanceM));
         fdCreate.append("elevationGainM", String(elevationGainM));
         fdCreate.append("elevationLossM", String(elevationLossM));
@@ -200,6 +203,23 @@ export default function AdminUploadActivityV2({
           />
         </label>
       </div>
+
+      <label className={s.field} style={{ flexDirection: "row", alignItems: "center", gap: "0.5em" }}>
+        <input
+          type="checkbox"
+          checked={uploadOriginalFile}
+          onChange={(e) => setUploadOriginalFile(e.target.checked)}
+          disabled={isUploading}
+        />
+        Upload original .gpx/.fit file to PocketBase
+      </label>
+      {!uploadOriginalFile && (
+        <p className={s.hint}>
+          Original file will be skipped — only the route/profile data derived
+          from it will be uploaded. Re-upload with this checked later to
+          attach the source file once the upload issue is sorted out.
+        </p>
+      )}
 
       {uploadQueue.length > 0 && (
         <div className={s.queue}>

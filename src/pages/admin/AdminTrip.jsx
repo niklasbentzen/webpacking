@@ -20,6 +20,16 @@ import {
   CheckIcon,
 } from "@phosphor-icons/react";
 
+// Newest first; stages with no startDate yet (e.g. still being planned) sort to the top.
+function sortStagesNewestFirst(stages) {
+  return [...stages].sort((a, b) => {
+    if (!a.startDate && !b.startDate) return 0;
+    if (!a.startDate) return -1;
+    if (!b.startDate) return 1;
+    return new Date(b.startDate) - new Date(a.startDate);
+  });
+}
+
 export default function AdminTrip() {
   const { tripId } = useParams();
   const navigate = useNavigate();
@@ -59,7 +69,7 @@ export default function AdminTrip() {
         setError("");
         const tripData = await fetchTripByIdWithStages(tripId);
         setTrip(tripData);
-        setStages(tripData.expand?.stages_via_trip || []);
+        setStages(sortStagesNewestFirst(tripData.expand?.stages_via_trip || []));
         setName(tripData.name || "");
         setSlug(tripData.slug || "");
         setStartDate(tripData.startDate ? tripData.startDate.slice(0, 10) : "");
@@ -218,7 +228,7 @@ export default function AdminTrip() {
         description: "",
         slug: "",
       });
-      setStages((prev) => [newStage, ...prev]);
+      setStages((prev) => sortStagesNewestFirst([newStage, ...prev]));
       navigate(`/admin/stages/${newStage.id}`);
     } catch {
       setCreateStageError("Could not create stage.");

@@ -686,6 +686,10 @@ export default function AdminStage() {
                     className={s.imageOverlayBtn}
                     title="Delete"
                     onClick={async () => {
+                      const ok = window.confirm(
+                        "Delete this image? This cannot be undone.",
+                      );
+                      if (!ok) return;
                       try {
                         const updated = await deleteStageImage(
                           stage.id,

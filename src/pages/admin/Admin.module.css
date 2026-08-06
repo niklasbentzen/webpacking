@@ -753,10 +753,12 @@ input[type="checkbox"] {
 .imageOverlayBtn {
   width: 30px;
   height: 30px;
-  border: 0;
+  flex-shrink: 0;
+  padding: 0 !important;
+  border: 0 !important;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--contrast);
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: var(--contrast) !important;
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -767,8 +769,8 @@ input[type="checkbox"] {
 }
 
 .imageOverlayBtn:hover {
-  background: var(--p);
-  color: var(--bg-light);
+  background: var(--p) !important;
+  color: var(--bg-light) !important;
   filter: none;
 }
 

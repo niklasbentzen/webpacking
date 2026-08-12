@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import s from "./Admin.module.css";
 import page from "./AdminStoryEditor.module.css";
@@ -6,6 +6,11 @@ import { fetchStageByIdWithActivities, updateStage } from "../../lib/stages";
 import { uploadStageImage } from "../../lib/stageImages";
 import OverTypeEditor from "../../components/OverTypeEditor/OverTypeEditor";
 import { ArrowLeftIcon, FloppyDiskIcon } from "@phosphor-icons/react";
+
+// How long an unsaved change can sit before autosave picks it up, regardless
+// of how long the user keeps typing (a debounce-on-every-keystroke would
+// never fire during a long unbroken paragraph).
+const AUTOSAVE_INTERVAL_MS = 5000;
 
 export default function AdminStoryEditor() {
   const { stageId } = useParams();
@@ -17,6 +22,20 @@ export default function AdminStoryEditor() {
   const [saveError, setSaveError] = useState("");
   const [savedMsg, setSavedMsg] = useState("");
 
+  // Refs so the interval/unmount effects below always see the latest values
+  // without needing to re-run on every keystroke.
+  const bodyRef = useRef("");
+  const savedBodyRef = useRef("");
+  const stageRef = useRef(null);
+  const isSavingRef = useRef(false);
+
+  useEffect(() => {
+    bodyRef.current = body;
+  }, [body]);
+  useEffect(() => {
+    stageRef.current = stage;
+  }, [stage]);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -26,6 +45,7 @@ export default function AdminStoryEditor() {
         if (!isMounted) return;
         setStage(stageRes);
         setBody(stageRes.body || "");
+        savedBodyRef.current = stageRes.body || "";
       } catch (err) {
         console.error(err);
         if (!isMounted) return;
@@ -39,22 +59,56 @@ export default function AdminStoryEditor() {
     };
   }, [stageId]);
 
-  async function handleSave() {
-    if (!stage) return;
+  async function saveBody(value) {
+    const currentStage = stageRef.current;
+    if (!currentStage || isSavingRef.current || value === savedBodyRef.current) {
+      return;
+    }
+    isSavingRef.current = true;
     setIsSaving(true);
     setSaveError("");
-    setSavedMsg("");
     try {
-      const updated = await updateStage(stage.id, { body });
-      setStage((prev) => ({ ...prev, ...updated }));
+      const updated = await updateStage(currentStage.id, { body: value });
+      savedBodyRef.current = value;
+      setStage((prev) => (prev ? { ...prev, ...updated } : prev));
       setSavedMsg("Saved.");
     } catch (err) {
       console.error(err);
       setSaveError("Could not save.");
     } finally {
+      isSavingRef.current = false;
       setIsSaving(false);
     }
   }
+
+  async function handleSave() {
+    await saveBody(body);
+  }
+
+  function handleChange(value) {
+    setBody(value);
+    setSavedMsg("");
+  }
+
+  // Periodic autosave — catches any unsaved change within AUTOSAVE_INTERVAL_MS.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (bodyRef.current !== savedBodyRef.current) saveBody(bodyRef.current);
+    }, AUTOSAVE_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Best-effort save of any unsaved change on the way out (back button,
+  // closing the tab, losing signal right after typing).
+  useEffect(() => {
+    return () => {
+      if (bodyRef.current !== savedBodyRef.current && stageRef.current) {
+        updateStage(stageRef.current.id, { body: bodyRef.current }).catch(
+          (err) => console.error(err),
+        );
+      }
+    };
+  }, []);
 
   return (
     <div className={page.page}>
@@ -85,7 +139,7 @@ export default function AdminStoryEditor() {
         {stage && (
           <OverTypeEditor
             value={body}
-            onChange={setBody}
+            onChange={handleChange}
             onSave={handleSave}
             height="100%"
             onUploadImage={async (file) => {

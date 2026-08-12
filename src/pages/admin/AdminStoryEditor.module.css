@@ -1,0 +1,28 @@
+/* Full-screen editor: the page itself doesn't scroll, only the editor's own
+   textarea/preview does. dvh (not vh) so mobile Safari's address bar and
+   on-screen keyboard don't make the layout jump around. */
+.page {
+  height: calc(100dvh - 53px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5em;
+  padding: 0.65em 1.1em;
+  border-bottom: 1px solid var(--b);
+  background: var(--bg-light);
+  flex-shrink: 0;
+}
+
+.editorWrap {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 1.1em 1.1em;
+}

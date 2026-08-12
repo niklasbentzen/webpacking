@@ -16,7 +16,7 @@ import {
 } from "../../lib/stages";
 import { fetchHaikuFromStageId, deleteHaiku } from "../../lib/haiku";
 import { formatDuration, formatDate } from "../../lib/stageFormatters";
-import { uploadStageImage, deleteStageImage } from "../../lib/stageImages";
+import { deleteStageImage } from "../../lib/stageImages";
 
 import {
   ArrowLeftIcon,
@@ -34,7 +34,6 @@ import {
   FloppyDiskIcon,
 } from "@phosphor-icons/react";
 import AdminEditActivity from "../../components/AdminEditActivity/AdminEditActivity";
-import OverTypeEditor from "../../components/OverTypeEditor/OverTypeEditor";
 import { fetchStatisticsForTrip } from "../../lib/statistics";
 import {
   fetchActivityStatsForTrip,
@@ -65,7 +64,6 @@ export default function AdminStage() {
   const [isAddActivityOpen, setIsAddActivityOpen] = useState(false);
   const [isAddActivityV2Open, setIsAddActivityV2Open] = useState(false);
   const [activityToEdit, setActivityToEdit] = useState(null);
-  const [isEditStoryOpen, setIsEditStoryOpen] = useState(false);
   const [isAddHaikuOpen, setIsAddHaikuOpen] = useState(false);
   const [haikuToEdit, setHaikuToEdit] = useState(null);
 
@@ -134,7 +132,6 @@ export default function AdminStage() {
     isAddActivityOpen ||
     isAddActivityV2Open ||
     !!activityToEdit ||
-    isEditStoryOpen ||
     isAddHaikuOpen ||
     !!haikuToEdit;
 
@@ -598,7 +595,7 @@ export default function AdminStage() {
           <button
             type="button"
             className={s.secondary}
-            onClick={() => setIsEditStoryOpen(true)}
+            onClick={() => navigate(`/admin/stages/${stageId}/story`)}
           >
             <PencilSimpleIcon size={14} /> Edit
           </button>
@@ -750,22 +747,6 @@ export default function AdminStage() {
           activity={activityToEdit}
           setActivities={setActivities}
           tripId={stage?.trip}
-        />
-      </AdminModal>
-
-      <AdminModal
-        open={isEditStoryOpen}
-        title="Edit story"
-        onClose={() => setIsEditStoryOpen(false)}
-      >
-        <OverTypeEditor
-          value={body}
-          onChange={setBody}
-          onSave={handleSave}
-          onUploadImage={async (file) => {
-            const { url } = await uploadStageImage(stage.id, file);
-            return url;
-          }}
         />
       </AdminModal>
 

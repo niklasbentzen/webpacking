@@ -29,12 +29,55 @@ export default function AdminStoryEditor() {
   const stageRef = useRef(null);
   const isSavingRef = useRef(false);
 
+  const [pageHeight, setPageHeight] = useState(null);
+
   useEffect(() => {
     bodyRef.current = body;
   }, [body]);
   useEffect(() => {
     stageRef.current = stage;
   }, [stage]);
+
+  // Locks the outer page so it can never scroll — combined with the
+  // visualViewport-driven height below, this is what stops both "the
+  // controls scroll out of view" and "I can scroll past the bottom" on
+  // mobile: with the document unable to scroll at all, the header can't
+  // move and there's no room to overshoot past the content.
+  useEffect(() => {
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+    };
+  }, []);
+
+  // iOS Safari doesn't shrink 100dvh when the on-screen keyboard opens (it
+  // just overlaps the page), unlike Android. window.visualViewport reports
+  // the actual visible area on both, so use it to size the page precisely
+  // and keep the editor's content within what's really visible.
+  useEffect(() => {
+    const vv = window.visualViewport;
+
+    function updateHeight() {
+      const viewportHeight = vv ? vv.height : window.innerHeight;
+      const headerEl = document.querySelector("header");
+      const headerHeight = headerEl?.getBoundingClientRect().height ?? 0;
+      setPageHeight(Math.max(0, viewportHeight - headerHeight));
+    }
+
+    updateHeight();
+    vv?.addEventListener("resize", updateHeight);
+    vv?.addEventListener("scroll", updateHeight);
+    window.addEventListener("resize", updateHeight);
+    return () => {
+      vv?.removeEventListener("resize", updateHeight);
+      vv?.removeEventListener("scroll", updateHeight);
+      window.removeEventListener("resize", updateHeight);
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -111,7 +154,10 @@ export default function AdminStoryEditor() {
   }, []);
 
   return (
-    <div className={page.page}>
+    <div
+      className={page.page}
+      style={pageHeight != null ? { height: pageHeight } : undefined}
+    >
       <div className={page.header}>
         <div className={s.rowCentered}>
           <Link to={`/admin/stages/${stageId}`} className={s.backArrow}>
@@ -142,6 +188,7 @@ export default function AdminStoryEditor() {
             onChange={handleChange}
             onSave={handleSave}
             height="100%"
+            padding="0.65em"
             onUploadImage={async (file) => {
               const { url } = await uploadStageImage(stage.id, file);
               return url;

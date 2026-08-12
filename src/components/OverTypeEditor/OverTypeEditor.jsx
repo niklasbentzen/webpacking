@@ -23,6 +23,7 @@ export default function OverTypeEditor({
   onUploadImage, // async (file) => url
   height = "100%",
   toolbar = true,
+  padding = "16px",
   ...rest
 }) {
   const hostRef = useRef(null);
@@ -49,6 +50,7 @@ export default function OverTypeEditor({
       // OverType's own "mobile" font-bump option never actually reaches its
       // injected stylesheet, so set 16px directly to stop the zoom.
       fontSize: "16px",
+      padding,
 
       // ✅ Enables drag/drop + paste insertion
       fileUpload: {

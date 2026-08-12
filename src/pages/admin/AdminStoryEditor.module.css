@@ -1,11 +1,17 @@
-/* Full-screen editor: the page itself doesn't scroll, only the editor's own
-   textarea/preview does. dvh (not vh) so mobile Safari's address bar and
-   on-screen keyboard don't make the layout jump around. */
+/* Full-screen editor overlay: covers the outer Admin header too (not needed
+   while writing), and is positioned fixed rather than relying on document
+   flow/dvh so its height + position can be corrected in JS via
+   window.visualViewport — plain vh/dvh don't shrink for the on-screen
+   keyboard on iOS Safari, they just let the keyboard cover part of the page. */
 .page {
-  height: calc(100dvh - 53px);
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: var(--bg-light);
 }
 
 .header {

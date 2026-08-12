@@ -29,7 +29,7 @@ export default function AdminStoryEditor() {
   const stageRef = useRef(null);
   const isSavingRef = useRef(false);
 
-  const [pageHeight, setPageHeight] = useState(null);
+  const pageRef = useRef(null);
 
   useEffect(() => {
     bodyRef.current = body;
@@ -54,28 +54,33 @@ export default function AdminStoryEditor() {
     };
   }, []);
 
-  // iOS Safari doesn't shrink 100dvh when the on-screen keyboard opens (it
-  // just overlaps the page), unlike Android. window.visualViewport reports
-  // the actual visible area on both, so use it to size the page precisely
-  // and keep the editor's content within what's really visible.
+  // iOS Safari doesn't shrink 100dvh when the on-screen keyboard opens — it
+  // just overlays the page. Worse, the *visible* region also shifts down by
+  // visualViewport.offsetTop without the document itself scrolling, so a
+  // plain height fix still leaves content positioned for the wrong region
+  // (a blank gap where the keyboard now covers what used to be visible).
+  // Compensate for both directly via a transform, applied imperatively so
+  // it stays in lockstep with the viewport instead of waiting on a re-render.
   useEffect(() => {
     const vv = window.visualViewport;
 
-    function updateHeight() {
-      const viewportHeight = vv ? vv.height : window.innerHeight;
-      const headerEl = document.querySelector("header");
-      const headerHeight = headerEl?.getBoundingClientRect().height ?? 0;
-      setPageHeight(Math.max(0, viewportHeight - headerHeight));
+    function updateLayout() {
+      const el = pageRef.current;
+      if (!el) return;
+      const height = vv ? vv.height : window.innerHeight;
+      const offsetTop = vv ? vv.offsetTop : 0;
+      el.style.height = `${height}px`;
+      el.style.transform = offsetTop ? `translateY(${offsetTop}px)` : "";
     }
 
-    updateHeight();
-    vv?.addEventListener("resize", updateHeight);
-    vv?.addEventListener("scroll", updateHeight);
-    window.addEventListener("resize", updateHeight);
+    updateLayout();
+    vv?.addEventListener("resize", updateLayout);
+    vv?.addEventListener("scroll", updateLayout);
+    window.addEventListener("resize", updateLayout);
     return () => {
-      vv?.removeEventListener("resize", updateHeight);
-      vv?.removeEventListener("scroll", updateHeight);
-      window.removeEventListener("resize", updateHeight);
+      vv?.removeEventListener("resize", updateLayout);
+      vv?.removeEventListener("scroll", updateLayout);
+      window.removeEventListener("resize", updateLayout);
     };
   }, []);
 
@@ -154,10 +159,7 @@ export default function AdminStoryEditor() {
   }, []);
 
   return (
-    <div
-      className={page.page}
-      style={pageHeight != null ? { height: pageHeight } : undefined}
-    >
+    <div ref={pageRef} className={page.page}>
       <div className={page.header}>
         <div className={s.rowCentered}>
           <Link to={`/admin/stages/${stageId}`} className={s.backArrow}>

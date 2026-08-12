@@ -8,6 +8,7 @@ import AdminLayout from "./components/AdminLayout/AdminLayout.jsx";
 import AdminHome from "./pages/admin/AdminHome.jsx";
 import AdminTrip from "./pages/admin/AdminTrip.jsx";
 import AdminStage from "./pages/admin/AdminStage.jsx";
+import AdminStoryEditor from "./pages/admin/AdminStoryEditor.jsx";
 import AdminTest from "./pages/admin/AdminTest.jsx";
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
           <Route index element={<AdminHome />} />
           <Route path="trips/:tripId" element={<AdminTrip />} />
           <Route path="stages/:stageId" element={<AdminStage />} />
+          <Route path="stages/:stageId/story" element={<AdminStoryEditor />} />
         </Route>
 
         <Route path="test" element={<AdminTest />} />

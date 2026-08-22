@@ -111,6 +111,53 @@ const TripLayer = forwardRef(function TripLayer(
     }
   };
 
+  // Activity markers are just a decorative type icon at the midpoint of each
+  // route — with many stages close together (or just zoomed out), they
+  // overlap into a solid blob that hides the actual route lines. Rather than
+  // a fixed zoom cutoff (which would either over-hide a short/sparse trip or
+  // under-hide a long/dense one), hide a marker only when it's actually
+  // close enough on screen to overlap a marker that's already showing, at
+  // whatever the current zoom happens to be. The clicked stage's marker is
+  // always kept visible so a selected/highlighted stage never disappears.
+  const MIN_MARKER_SPACING_PX = 30;
+
+  const declutterMarkers = () => {
+    const clickedStageValue = clickedStageRef.current;
+
+    const prioritized = [];
+    const rest = [];
+    for (const [stageId, layerSets] of tripRef.current.layersByStage.entries()) {
+      for (const { marker } of layerSets) {
+        if (!marker) continue;
+        (stageId === clickedStageValue ? prioritized : rest).push(marker);
+      }
+    }
+
+    const shownPoints = [];
+    for (const marker of [...prioritized, ...rest]) {
+      const point = map.latLngToContainerPoint(marker.getLatLng());
+      const overlapsShown = shownPoints.some(
+        (p) => Math.hypot(p.x - point.x, p.y - point.y) < MIN_MARKER_SPACING_PX,
+      );
+      const el = marker.getElement();
+      if (overlapsShown) {
+        el?.classList.add("activity-type-marker-hidden");
+      } else {
+        el?.classList.remove("activity-type-marker-hidden");
+        shownPoints.push(point);
+      }
+    }
+  };
+
+  useEffect(() => {
+    map.on("zoomend", declutterMarkers);
+    map.on("moveend", declutterMarkers);
+    return () => {
+      map.off("zoomend", declutterMarkers);
+      map.off("moveend", declutterMarkers);
+    };
+  }, [map]);
+
   useEffect(() => {
     clickedStageRef.current = clickedStage;
 
@@ -320,7 +367,10 @@ const TripLayer = forwardRef(function TripLayer(
             });
             trip.didInitialFit = true;
           }
+          declutterMarkers();
         });
+      } else {
+        declutterMarkers();
       }
 
       applyStageStyles();

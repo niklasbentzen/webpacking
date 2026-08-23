@@ -113,39 +113,46 @@ const TripLayer = forwardRef(function TripLayer(
 
   // Activity markers are just a decorative type icon at the midpoint of each
   // route — with many stages close together (or just zoomed out), they
-  // overlap into a solid blob that hides the actual route lines. Rather than
-  // a fixed zoom cutoff (which would either over-hide a short/sparse trip or
-  // under-hide a long/dense one), hide a marker only when it's actually
-  // close enough on screen to overlap a marker that's already showing, at
-  // whatever the current zoom happens to be. The clicked stage's marker is
-  // always kept visible so a selected/highlighted stage never disappears.
+  // overlap into a solid blob that hides the actual route lines. Thinning
+  // them down to a sparse, evenly-spaced subset reads as "there are only a
+  // few stages", which is worse. Instead: if ANY two markers are close
+  // enough on screen to overlap, hide every marker (so the line reads
+  // cleanly); once the map is zoomed in enough that none of them would
+  // overlap, show them all. The clicked stage's marker is always kept
+  // visible so a selected/highlighted stage never disappears.
   const MIN_MARKER_SPACING_PX = 30;
 
   const declutterMarkers = () => {
     const clickedStageValue = clickedStageRef.current;
 
-    const prioritized = [];
-    const rest = [];
+    const entries = [];
     for (const [stageId, layerSets] of tripRef.current.layersByStage.entries()) {
       for (const { marker } of layerSets) {
         if (!marker) continue;
-        (stageId === clickedStageValue ? prioritized : rest).push(marker);
+        entries.push({
+          marker,
+          point: map.latLngToContainerPoint(marker.getLatLng()),
+          isClicked: stageId === clickedStageValue,
+        });
       }
     }
 
-    const shownPoints = [];
-    for (const marker of [...prioritized, ...rest]) {
-      const point = map.latLngToContainerPoint(marker.getLatLng());
-      const overlapsShown = shownPoints.some(
-        (p) => Math.hypot(p.x - point.x, p.y - point.y) < MIN_MARKER_SPACING_PX,
-      );
-      const el = marker.getElement();
-      if (overlapsShown) {
-        el?.classList.add("activity-type-marker-hidden");
-      } else {
-        el?.classList.remove("activity-type-marker-hidden");
-        shownPoints.push(point);
+    let anyOverlap = false;
+    for (let i = 0; i < entries.length && !anyOverlap; i++) {
+      for (let j = i + 1; j < entries.length; j++) {
+        const a = entries[i].point;
+        const b = entries[j].point;
+        if (Math.hypot(a.x - b.x, a.y - b.y) < MIN_MARKER_SPACING_PX) {
+          anyOverlap = true;
+          break;
+        }
       }
+    }
+
+    for (const { marker, isClicked } of entries) {
+      const el = marker.getElement();
+      const hide = anyOverlap && !isClicked;
+      el?.classList.toggle("activity-type-marker-hidden", hide);
     }
   };
 

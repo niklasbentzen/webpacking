@@ -70,3 +70,7 @@
   justify-content: center;
   flex-shrink: 0;
 }
+
+.activity-type-marker-hidden {
+  display: none !important;
+}

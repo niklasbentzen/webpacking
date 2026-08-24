@@ -113,55 +113,33 @@ const TripLayer = forwardRef(function TripLayer(
 
   // Activity markers are just a decorative type icon at the midpoint of each
   // route — with many stages close together (or just zoomed out), they
-  // overlap into a solid blob that hides the actual route lines. Thinning
-  // them down to a sparse, evenly-spaced subset reads as "there are only a
-  // few stages", which is worse. Instead: if ANY two markers are close
-  // enough on screen to overlap, hide every marker (so the line reads
-  // cleanly); once the map is zoomed in enough that none of them would
-  // overlap, show them all. The clicked stage's marker is always kept
-  // visible so a selected/highlighted stage never disappears.
-  const MIN_MARKER_SPACING_PX = 30;
+  // overlap into a solid blob that hides the actual route lines. Basing the
+  // cutoff on actual on-screen marker spacing meant a single pair of
+  // close-together stages could force every marker to stay hidden until you
+  // zoomed in almost to street level. Simpler and more predictable: a single
+  // fixed zoom level below which all markers hide, and at/above which they
+  // all show. The clicked stage's marker is always kept visible so a
+  // selected/highlighted stage never disappears.
+  const MARKER_MIN_ZOOM = 9;
 
   const declutterMarkers = () => {
     const clickedStageValue = clickedStageRef.current;
+    const showAll = map.getZoom() >= MARKER_MIN_ZOOM;
 
-    const entries = [];
     for (const [stageId, layerSets] of tripRef.current.layersByStage.entries()) {
       for (const { marker } of layerSets) {
         if (!marker) continue;
-        entries.push({
-          marker,
-          point: map.latLngToContainerPoint(marker.getLatLng()),
-          isClicked: stageId === clickedStageValue,
-        });
+        const el = marker.getElement();
+        const hide = !showAll && stageId !== clickedStageValue;
+        el?.classList.toggle("activity-type-marker-hidden", hide);
       }
-    }
-
-    let anyOverlap = false;
-    for (let i = 0; i < entries.length && !anyOverlap; i++) {
-      for (let j = i + 1; j < entries.length; j++) {
-        const a = entries[i].point;
-        const b = entries[j].point;
-        if (Math.hypot(a.x - b.x, a.y - b.y) < MIN_MARKER_SPACING_PX) {
-          anyOverlap = true;
-          break;
-        }
-      }
-    }
-
-    for (const { marker, isClicked } of entries) {
-      const el = marker.getElement();
-      const hide = anyOverlap && !isClicked;
-      el?.classList.toggle("activity-type-marker-hidden", hide);
     }
   };
 
   useEffect(() => {
     map.on("zoomend", declutterMarkers);
-    map.on("moveend", declutterMarkers);
     return () => {
       map.off("zoomend", declutterMarkers);
-      map.off("moveend", declutterMarkers);
     };
   }, [map]);
 
@@ -172,6 +150,7 @@ const TripLayer = forwardRef(function TripLayer(
       fitStageBounds(clickedStageRef.current);
     }
 
+    declutterMarkers();
     applyStageStyles();
   }, [clickedStage]);
 

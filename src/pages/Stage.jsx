@@ -13,13 +13,20 @@ import { fetchActivitiesForStage } from "../lib/activities";
 import { fetchHaikuFromStageId } from "../lib/haiku";
 
 import {
-  PersonSimpleBikeIcon,
-  PersonSimpleHikeIcon,
   ArrowUpRightIcon,
   ArrowsHorizontalIcon,
   ClockIcon,
 } from "@phosphor-icons/react";
 import StageActivityPanel from "../components/StageActivityPanel/StageActivityPanel";
+import { ACTIVITY_TYPES, ACTIVITY_TYPE_ICONS } from "../lib/activityTypes";
+
+const ACTIVITY_TYPE_COUNT_KEYS = {
+  Bike: "bikeCount",
+  Hike: "hikeCount",
+  Ferry: "ferryCount",
+  Train: "trainCount",
+  Bus: "busCount",
+};
 
 export default function Stage() {
   const { slug } = useParams();
@@ -57,7 +64,10 @@ export default function Stage() {
     () => formatDateRange(stage?.startDate, stage?.startDate),
     [stage?.startDate, stage?.startDate],
   );
-  const summary = useMemo(() => summarizeActivities(activities), [activities]);
+  const summary = useMemo(
+    () => summarizeActivities(activities, { bikeOnly: true }),
+    [activities],
+  );
 
   return (
     <main className={s.stage}>
@@ -66,18 +76,17 @@ export default function Stage() {
         <h1>{stage?.name ?? status}</h1>
         <div className={s.stageData}>
           <div className={s.stageDataType}>
-            {summary.bikeCount > 0 && (
-              <div className={(s.stageDataItem, s.activityCount)}>
-                <PersonSimpleBikeIcon size="18" />
-                <span>{summary.bikeCount}</span>
-              </div>
-            )}
-            {summary.hikeCount > 0 && (
-              <div className={(s.stageDataItem, s.activityCount)}>
-                <PersonSimpleHikeIcon size="18" />
-                <span>{summary.hikeCount}</span>
-              </div>
-            )}
+            {ACTIVITY_TYPES.map((type) => {
+              const count = summary[ACTIVITY_TYPE_COUNT_KEYS[type]];
+              if (!count) return null;
+              const TypeIcon = ACTIVITY_TYPE_ICONS[type];
+              return (
+                <div key={type} className={(s.stageDataItem, s.activityCount)}>
+                  <TypeIcon size="18" />
+                  <span>{count}</span>
+                </div>
+              );
+            })}
           </div>
 
           {summary.distanceM != null && (

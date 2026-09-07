@@ -24,9 +24,6 @@ import {
   ClockIcon,
   ArrowsHorizontalIcon,
   ArrowUpRightIcon,
-  PersonSimpleBikeIcon,
-  PersonSimpleHikeIcon,
-  BoatIcon,
   PencilSimpleIcon,
   TrashIcon,
   CopyIcon,
@@ -41,12 +38,10 @@ import {
 } from "../../lib/activityStats";
 import { pb } from "../../lib/pb";
 import Divider from "@/components/Divider/Divider";
-
-const activityTypes = {
-  Bike: { label: "Bike", Icon: PersonSimpleBikeIcon },
-  Hike: { label: "Hike", Icon: PersonSimpleHikeIcon },
-  Ferry: { label: "Ferry", Icon: BoatIcon },
-};
+import {
+  ACTIVITY_TYPE_ICONS,
+  getActivityTypeColor,
+} from "../../lib/activityTypes";
 
 // DB ISO -> datetime-local string
 export function toLocalInputValue(dateString) {
@@ -464,11 +459,14 @@ export default function AdminStage() {
         </div>
 
         {activities.map((activity) => {
-          const TypeIcon = activityTypes[activity.type]?.Icon;
+          const TypeIcon = ACTIVITY_TYPE_ICONS[activity.type];
           return (
             <div key={activity.id} className={s.activityCard}>
               <div className={s.acTop}>
-                <span className="activity-type-marker">
+                <span
+                  className="activity-type-marker"
+                  style={{ backgroundColor: getActivityTypeColor(activity.type) }}
+                >
                   {TypeIcon && <TypeIcon size={13} />}
                 </span>
                 <span className={s.acStamp}>

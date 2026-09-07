@@ -8,6 +8,7 @@ import {
   createActivity,
   updateActivityFiles,
 } from "../../lib/activities";
+import { ACTIVITY_TYPES } from "../../lib/activityTypes";
 
 export default function AdminUploadActivity({
   stageId,
@@ -132,11 +133,11 @@ export default function AdminUploadActivity({
           onChange={(e) => setType(e.target.value)}
           disabled={isUploading}
         >
-          <option value="Bike">Bike</option>
-          <option value="Hike">Hike</option>
-          <option value="Ferry">Ferry</option>
-          <option value="Train">Train</option>
-          <option value="Bus">Bus</option>
+          {ACTIVITY_TYPES.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
         </select>
       </div>
 

@@ -8,6 +8,7 @@ import {
   updateActivityFieldV2,
   describeError,
 } from "../../lib/activitiesV2";
+import { ACTIVITY_TYPES } from "../../lib/activityTypes";
 
 const SUB_STEPS = [
   { key: "geoJSON", label: "Route (geoJSON)" },
@@ -173,11 +174,11 @@ export default function AdminUploadActivityV2({
           onChange={(e) => setType(e.target.value)}
           disabled={isUploading}
         >
-          <option value="Bike">Bike</option>
-          <option value="Hike">Hike</option>
-          <option value="Ferry">Ferry</option>
-          <option value="Train">Train</option>
-          <option value="Bus">Bus</option>
+          {ACTIVITY_TYPES.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
         </select>
       </div>
 

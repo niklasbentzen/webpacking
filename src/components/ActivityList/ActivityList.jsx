@@ -3,17 +3,11 @@ import { formatStartTime, formatDuration } from "../../lib/stageFormatters";
 import s from "./ActivityList.module.css";
 
 import {
-  PersonSimpleBikeIcon,
-  PersonSimpleHikeIcon,
   ArrowUpRightIcon,
   ArrowsHorizontalIcon,
   ClockIcon,
 } from "@phosphor-icons/react";
-
-const typeIcons = {
-  Bike: <PersonSimpleBikeIcon width="18" />,
-  Hike: <PersonSimpleHikeIcon width="18" />,
-};
+import { ACTIVITY_TYPE_ICONS } from "../../lib/activityTypes";
 
 export default function ActivityList({
   activities,
@@ -46,7 +40,10 @@ export default function ActivityList({
           }
         >
           <div className={s.activityHeader}>
-            {typeIcons[activity.type]}
+            {(() => {
+              const TypeIcon = ACTIVITY_TYPE_ICONS[activity.type];
+              return TypeIcon ? <TypeIcon width="18" /> : null;
+            })()}
             <span>{formatStartTime(activity.startTime)}</span>
           </div>
           {/*

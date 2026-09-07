@@ -63,7 +63,7 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: green;
+  background: var(--text-faded);
   color: var(--bg-light);
   display: flex;
   align-items: center;

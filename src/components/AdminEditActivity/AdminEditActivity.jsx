@@ -7,6 +7,7 @@ import {
   fetchActivityStatsForActivity,
   upsertActivityStat,
 } from "../../lib/activityStats";
+import { ACTIVITY_TYPES } from "../../lib/activityTypes";
 
 export default function AdminEditActivity({ activity, setActivities, tripId }) {
   const [type, setType] = useState(activity.type);
@@ -127,11 +128,11 @@ export default function AdminEditActivity({ activity, setActivities, tripId }) {
           onChange={(e) => setType(e.target.value)}
           disabled={isSaving}
         >
-          <option value="Bike">Bike</option>
-          <option value="Hike">Hike</option>
-          <option value="Ferry">Ferry</option>
-          <option value="Train">Train</option>
-          <option value="Bus">Bus</option>
+          {ACTIVITY_TYPES.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
         </select>
       </div>
 

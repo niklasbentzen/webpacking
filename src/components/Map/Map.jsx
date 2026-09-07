@@ -10,7 +10,7 @@ import HoverDot from "./HoverDot";
  *
  * Usage:
  * <Map ref={mapRef}>
- *   <StageLayers ... />
+ *   <TripLayer ... />
  *   <PlannedRoute ... />
  *   <CurrentPosition ... />
  * </Map>

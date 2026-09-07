@@ -93,20 +93,28 @@ export function getStageDateRangeFromActivities(activities) {
   return { start, end };
 }
 
-export function summarizeActivities(activities) {
+export function summarizeActivities(activities, { bikeOnly = false } = {}) {
   let distanceM = 0;
   let elevationM = 0;
   let durationMs = 0;
 
   let bikeCount = 0;
   let hikeCount = 0;
+  let ferryCount = 0;
+  let trainCount = 0;
+  let busCount = 0;
 
   for (const a of activities || []) {
-    if (typeof a.distanceM === "number") distanceM += a.distanceM;
-    if (typeof a.elevationGainM === "number") elevationM += a.elevationGainM;
-
     if (a.type === "Bike") bikeCount += 1;
     if (a.type === "Hike") hikeCount += 1;
+    if (a.type === "Ferry") ferryCount += 1;
+    if (a.type === "Train") trainCount += 1;
+    if (a.type === "Bus") busCount += 1;
+
+    if (bikeOnly && a.type !== "Bike") continue;
+
+    if (typeof a.distanceM === "number") distanceM += a.distanceM;
+    if (typeof a.elevationGainM === "number") elevationM += a.elevationGainM;
 
     if (a.startTime) {
       const start = new Date(a.startTime);
@@ -119,6 +127,9 @@ export function summarizeActivities(activities) {
   return {
     bikeCount,
     hikeCount,
+    ferryCount,
+    trainCount,
+    busCount,
     distanceM: distanceM || null,
     elevationM: elevationM || null,
     duration: formatDuration(durationMs),

@@ -3,6 +3,7 @@ import { MapContainer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet-gpx";
 import { pb } from "../../lib/pb";
+import { getActivityTypeColor } from "../../lib/activityTypes";
 
 function RouteLayers({ items }) {
   const map = useMap();
@@ -34,7 +35,7 @@ function RouteLayers({ items }) {
           polyline_options: {
             weight: 2,
             opacity: 1,
-            color: "var(--p)",
+            color: getActivityTypeColor(item.type),
           },
           markers: {
             startIcon: null,
@@ -67,7 +68,7 @@ function RouteLayers({ items }) {
 
           const layer = L.geoJSON(data, {
             style: () => ({
-              color: "var(--p)",
+              color: getActivityTypeColor(item.type),
               weight: 2,
               opacity: 1,
             }),
@@ -103,12 +104,20 @@ export default function Sparkline({ activities, width = 60, height = 60 }) {
       // Prefer geoJSONSmall -> geoJSON -> gpxFile
       const geoFile = a.geoJSONSmall || a.geoJSON;
       if (geoFile) {
-        out.push({ kind: "geojson", url: pb.files.getURL(a, geoFile) });
+        out.push({
+          kind: "geojson",
+          url: pb.files.getURL(a, geoFile),
+          type: a.type,
+        });
         continue;
       }
 
       if (a.gpxFile) {
-        out.push({ kind: "gpx", url: pb.files.getURL(a, a.gpxFile) });
+        out.push({
+          kind: "gpx",
+          url: pb.files.getURL(a, a.gpxFile),
+          type: a.type,
+        });
       }
     }
 

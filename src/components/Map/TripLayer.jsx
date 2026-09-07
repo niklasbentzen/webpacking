@@ -8,22 +8,11 @@ import React, {
 import { renderToStaticMarkup } from "react-dom/server";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
-import {
-  PersonSimpleBikeIcon,
-  PersonSimpleHikeIcon,
-  BoatIcon,
-  TrainIcon,
-  BusIcon,
-} from "@phosphor-icons/react";
 import { pb } from "../../lib/pb";
-
-const typeIconMap = {
-  Bike: PersonSimpleBikeIcon,
-  Hike: PersonSimpleHikeIcon,
-  Ferry: BoatIcon,
-  Train: TrainIcon,
-  Bus: BusIcon,
-};
+import {
+  ACTIVITY_TYPE_ICONS,
+  getActivityTypeColor,
+} from "../../lib/activityTypes";
 
 const TripLayer = forwardRef(function TripLayer(
   {
@@ -74,7 +63,7 @@ const TripLayer = forwardRef(function TripLayer(
       const isClicked = clickedStageValue === stageId;
       const isHovered = hoveredStageValue === stageId;
 
-      for (const { outline, line, hit, marker, activityId } of layerSets) {
+      for (const { outline, line, hit, marker, activityId, type } of layerSets) {
         const isSelectedActivity =
           isClicked && activityId === selectedActivityValue;
         const isHoveredActivity =
@@ -88,7 +77,11 @@ const TripLayer = forwardRef(function TripLayer(
             : "#fff";
         const outlineOpacity = isHoveredActivity ? 1 : 0.5;
 
-        line.setStyle?.({ color: "green", opacity: lineOpacity, weight: 4 });
+        line.setStyle?.({
+          color: getActivityTypeColor(type),
+          opacity: lineOpacity,
+          weight: 4,
+        });
         outline.setStyle?.({
           color: outlineColor,
           opacity: outlineOpacity,
@@ -266,8 +259,10 @@ const TripLayer = forwardRef(function TripLayer(
           style: () => ({ color: "#fff", weight: 8, opacity: 1 }),
         });
 
+        const lineColor = getActivityTypeColor(activity.type);
+
         const line = L.geoJSON(data, {
-          style: () => ({ color: "green", weight: 4, opacity: 0.5 }),
+          style: () => ({ color: lineColor, weight: 4, opacity: 0.5 }),
         });
 
         const hit = L.geoJSON(data, {
@@ -278,7 +273,7 @@ const TripLayer = forwardRef(function TripLayer(
         let marker = null;
         if (coords?.length) {
           const mid = coords[Math.floor(coords.length / 2)];
-          const Icon = typeIconMap[activity.type];
+          const Icon = ACTIVITY_TYPE_ICONS[activity.type];
           const iconHtml = Icon
             ? renderToStaticMarkup(
                 React.createElement(Icon, {
@@ -290,7 +285,7 @@ const TripLayer = forwardRef(function TripLayer(
             : "";
           const divIcon = L.divIcon({
             className: "",
-            html: `<div class="activity-type-marker">${iconHtml}</div>`,
+            html: `<div class="activity-type-marker" style="background-color:${lineColor}">${iconHtml}</div>`,
             iconSize: [24, 24],
             iconAnchor: [12, 12],
           });
@@ -309,6 +304,7 @@ const TripLayer = forwardRef(function TripLayer(
           hit,
           marker,
           activityId: activity.id,
+          type: activity.type,
         });
 
         const bounds = line.getBounds();

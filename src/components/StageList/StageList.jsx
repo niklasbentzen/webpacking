@@ -3,17 +3,21 @@ import { useEffect, useRef } from "react";
 import Sparkline from "../Sparkline/Sparkline";
 import s from "./StageList.module.css";
 
-import {
-  PersonSimpleBikeIcon,
-  PersonSimpleHikeIcon,
-  ArrowsHorizontalIcon,
-  ClockIcon,
-} from "@phosphor-icons/react";
+import { ArrowsHorizontalIcon, ClockIcon } from "@phosphor-icons/react";
 
 import {
   formatDateRange,
   summarizeActivities,
 } from "../../lib/stageFormatters";
+import { ACTIVITY_TYPES, ACTIVITY_TYPE_ICONS } from "../../lib/activityTypes";
+
+const ACTIVITY_TYPE_COUNT_KEYS = {
+  Bike: "bikeCount",
+  Hike: "hikeCount",
+  Ferry: "ferryCount",
+  Train: "trainCount",
+  Bus: "busCount",
+};
 
 export default function StageList({
   stages,
@@ -56,7 +60,7 @@ export default function StageList({
     <ul className={`${s.stageList} ${scroll ? s.scroll : ""}`} ref={listRef}>
       {stages.map((stage) => {
           const stageActs = stage.expand?.activities_via_stage || [];
-          const summary = summarizeActivities(stageActs);
+          const summary = summarizeActivities(stageActs, { bikeOnly: true });
           const dateLabel = formatDateRange(stage.startDate, stage.endDate);
 
           const isClicked = stage.id === clickedStage;
@@ -82,22 +86,20 @@ export default function StageList({
                   {stageActs.length > 0 && (
                     <div className={s.stageData}>
                       <div className={s.stageDataType}>
-                        {summary.bikeCount > 0 && (
-                          <div
-                            className={`${s.stageDataItem} ${s.activityCount}`}
-                          >
-                            <PersonSimpleBikeIcon size="18" />
-                            <span>{summary.bikeCount}</span>
-                          </div>
-                        )}
-                        {summary.hikeCount > 0 && (
-                          <div
-                            className={`${s.stageDataItem} ${s.activityCount}`}
-                          >
-                            <PersonSimpleHikeIcon size="18" />
-                            <span>{summary.hikeCount}</span>
-                          </div>
-                        )}
+                        {ACTIVITY_TYPES.map((type) => {
+                          const count = summary[ACTIVITY_TYPE_COUNT_KEYS[type]];
+                          if (!count) return null;
+                          const TypeIcon = ACTIVITY_TYPE_ICONS[type];
+                          return (
+                            <div
+                              key={type}
+                              className={`${s.stageDataItem} ${s.activityCount}`}
+                            >
+                              <TypeIcon size="18" />
+                              <span>{count}</span>
+                            </div>
+                          );
+                        })}
                       </div>
 
                       {summary.distanceM != null && (

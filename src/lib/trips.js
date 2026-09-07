@@ -74,9 +74,11 @@ export function summarizeTripFromStages(stages) {
     activityCount += activities.length;
 
     for (const a of activities) {
-      if (typeof a.distanceM === "number") distanceM += a.distanceM;
-      if (typeof a.elevationGainM === "number")
-        elevationGainM += a.elevationGainM;
+      if (a.type === "Bike") {
+        if (typeof a.distanceM === "number") distanceM += a.distanceM;
+        if (typeof a.elevationGainM === "number")
+          elevationGainM += a.elevationGainM;
+      }
 
       if (a.startTime != null) {
         const t = new Date(a.startTime).getTime();

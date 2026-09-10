@@ -224,7 +224,23 @@ export function normalizeLng(value) {
   return semicirclesToDegrees(x);
 }
 
-export function fitDataToTrackPoints(fitData) {
+// Garmin FIT files can carry both a true-UTC `timestamp` and a device-local
+// `local_timestamp` on the "activity" message (both device-configured). The
+// difference between them is the UTC offset in effect where the ride
+// happened, which lets us show the *recorded* local clock time (e.g. 08:00
+// in China) instead of the raw UTC instant, regardless of the viewer's own
+// timezone. Falls back to 0 (raw UTC, today's behavior) when the file
+// doesn't carry an "activity" message with both fields.
+export function getFitUtcOffsetMs(fitData) {
+  const activity = fitData?.activity;
+  const utc = activity?.timestamp;
+  const local = activity?.local_timestamp;
+  if (!(utc instanceof Date) || !(local instanceof Date)) return 0;
+  if (Number.isNaN(utc.getTime()) || Number.isNaN(local.getTime())) return 0;
+  return local.getTime() - utc.getTime();
+}
+
+export function fitDataToTrackPoints(fitData, utcOffsetMs = 0) {
   const records = fitData?.records || fitData?.record || [];
   const out = [];
 
@@ -236,7 +252,7 @@ export function fitDataToTrackPoints(fitData) {
     const eleRaw = r.altitude ?? r.enhanced_altitude ?? r.elevation;
     const ele = eleRaw == null || !Number.isFinite(Number(eleRaw)) ? null : Number(eleRaw);
     const ts = r.timestamp ?? r.time_created ?? r.time;
-    const time = ts ? new Date(ts).toISOString() : null;
+    const time = ts ? new Date(new Date(ts).getTime() + utcOffsetMs).toISOString() : null;
 
     if (lat === lat && lng === lng) {
       out.push({ lat, lng, ele, time });
@@ -303,7 +319,8 @@ export async function processFitFile(file) {
   const arrayBuffer = await file.arrayBuffer();
   const fitData = await parseFitArrayBuffer(arrayBuffer);
 
-  const points = fitDataToTrackPoints(fitData);
+  const utcOffsetMs = getFitUtcOffsetMs(fitData);
+  const points = fitDataToTrackPoints(fitData, utcOffsetMs);
   if (!points.length) throw new Error("No GPS track points found in FIT.");
 
   const session = (fitData?.sessions && fitData.sessions[0]) || null;

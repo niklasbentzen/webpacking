@@ -7,6 +7,7 @@ import {
   computeStatsFromPoints,
   parseFitArrayBuffer,
   fitDataToTrackPoints,
+  getFitUtcOffsetMs,
   safeNum,
 } from "./activities";
 
@@ -234,7 +235,8 @@ export async function processFitFileV2(file) {
     throw new Error(`Could not read this FIT file: ${err?.message || err}`);
   }
 
-  const points = fitDataToTrackPoints(fitData).filter((p) => isFiniteCoord(p.lat, p.lng));
+  const utcOffsetMs = getFitUtcOffsetMs(fitData);
+  const points = fitDataToTrackPoints(fitData, utcOffsetMs).filter((p) => isFiniteCoord(p.lat, p.lng));
   if (!points.length) throw new Error("No usable GPS points found in this FIT file.");
 
   const session = (fitData?.sessions && fitData.sessions[0]) || null;

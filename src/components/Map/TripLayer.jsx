@@ -113,7 +113,7 @@ const TripLayer = forwardRef(function TripLayer(
   // fixed zoom level below which all markers hide, and at/above which they
   // all show. The clicked stage's marker is always kept visible so a
   // selected/highlighted stage never disappears.
-  const MARKER_MIN_ZOOM = 9;
+  const MARKER_MIN_ZOOM = 7;
 
   const declutterMarkers = () => {
     const clickedStageValue = clickedStageRef.current;
